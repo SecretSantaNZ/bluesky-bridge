@@ -19,8 +19,10 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@atproto/api": "^0.12.11",
     "@fastify/auth": "^4.6.1",
     "@fastify/basic-auth": "^5.1.1",
+    "dotenv": "^16.4.5",
     "fastify": "^4.27.0"
   }
 }

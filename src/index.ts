@@ -1,5 +1,8 @@
+import dotenv from 'dotenv';
 import Fastify from 'fastify';
 import basicAuth from '@fastify/basic-auth';
+
+dotenv.config();
 
 const fastify = Fastify({
   logger: true,
