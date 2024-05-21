@@ -2,7 +2,10 @@
   "name": "bluesky-bridge",
   "version": "1.0.0",
   "description": "",
-  "scripts": {},
+  "type": "module",
+  "scripts": {
+    "start": "ts-node-esm src/index.ts"
+  },
   "author": "",
   "license": "ISC",
   "devDependencies": {
@@ -12,6 +15,12 @@
     "@typescript-eslint/parser": "^7.10.0",
     "eslint": "^8.57.0",
     "eslint-plugin-prettier": "^5.1.3",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@fastify/auth": "^4.6.1",
+    "@fastify/basic-auth": "^5.1.1",
+    "fastify": "^4.27.0"
   }
 }
