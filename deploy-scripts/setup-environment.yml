@@ -1,0 +1,46 @@
+- name: Setup Environment
+  hosts: bluesky-bridge
+  tasks:
+    - name: Add service user
+      ansible.builtin.user:
+        name: '{{ service_name }}'
+    - name: Install node
+      ansible.builtin.apt:
+        name: nodejs
+        state: present
+    - name: Install npm
+      ansible.builtin.apt:
+        name: npm
+        state: present
+    - name: Setup service
+      ansible.builtin.template:
+        src: ./service.template
+        dest: /etc/systemd/system/{{ service_name }}.service
+        mode: '0444'
+#    - name: Copy Project
+#      ansible.posix.synchronize:
+#        src: ../../
+#        dest: /opt/{{ service_name }}/
+#        owner: false
+#        group: false
+#        delete: true
+    - name: Restart service
+      ansible.builtin.service:
+        name: '{{ service_name }}'
+        enabled: yes
+        daemon_reload: true
+        state: restarted
+    - name: Install caddy
+      ansible.builtin.apt:
+        name: caddy
+        state: present
+    - name: Setup Caddy
+      ansible.builtin.template:
+        src: ./Caddyfile
+        dest: /etc/caddy/Caddyfile
+        mode: '0444'
+    - name: Reload caddy
+      ansible.builtin.service:
+        name: caddy
+        enabled: yes
+        state: reloaded

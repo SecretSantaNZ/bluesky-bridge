@@ -1,0 +1,4 @@
+{{ inventory_hostname }} {
+  tls {{ tls_contact_email }}
+  reverse_proxy http://localhost:3000
+}
