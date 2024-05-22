@@ -3,13 +3,14 @@ Description={{ service_name }}
 After=network.target
 
 [Service]
-ExecStart=npm start
+ExecStart=node dist/index.js
 WorkingDirectory=/opt/{{ service_name }}
 Restart=always
 User={{ service_name }}
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
-Environment=FEEDGEN_HOSTNAME={{ inventory_hostname }}
+Environment=BLUESKY_HANDLE={{ bluesky_handle }}
+Environment=BLUESKY_PASSWORD={{ bluesky_password }}
 
 [Install]
 WantedBy=multi-user.target

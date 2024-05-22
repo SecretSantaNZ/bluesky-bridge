@@ -17,13 +17,13 @@
         src: ./service.template
         dest: /etc/systemd/system/{{ service_name }}.service
         mode: '0444'
-#    - name: Copy Project
-#      ansible.posix.synchronize:
-#        src: ../../
-#        dest: /opt/{{ service_name }}/
-#        owner: false
-#        group: false
-#        delete: true
+    - name: Copy Node Modules
+      ansible.posix.synchronize:
+        src: ../../
+        dest: /opt/{{ service_name }}/
+        owner: false
+        group: false
+        delete: true
     - name: Restart service
       ansible.builtin.service:
         name: '{{ service_name }}'
