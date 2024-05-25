@@ -3,7 +3,7 @@ Description={{ service_name }}
 After=network.target
 
 [Service]
-ExecStart=node dist/index.js
+ExecStart=node dist/server.js
 WorkingDirectory=/opt/{{ service_name }}
 Restart=always
 User={{ service_name }}
