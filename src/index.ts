@@ -7,6 +7,7 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import z from 'zod';
+import { RichText } from '@atproto/api';
 
 import { getBskyAgent } from './bluesky.js';
 
@@ -29,23 +30,46 @@ fastify.setSerializerCompiler(serializerCompiler);
 fastify.withTypeProvider<ZodTypeProvider>().get('/', async (request, reply) => {
   reply.send({ ok: true });
 });
-fastify
-  .withTypeProvider<ZodTypeProvider>()
-  .get('/action/dm', async (request, reply) => {
+fastify.withTypeProvider<ZodTypeProvider>().post(
+  '/action/dm',
+  {
+    schema: {
+      body: z.object({
+        sendToDid: z.string(),
+        message: z.string(),
+      }),
+    },
+  },
+  async (request, reply) => {
     const client = await getBskyAgent();
-    // const result = client.session;
-    // https://plc.directory/did:plc:crngjmsdh3zpuhmd5gtgwx6q
-    // const result = await client.api.app.bsky.graph.getFollowers({
-    //   actor: 'did:plc:crngjmsdh3zpuhmd5gtgwx6q',
-    // });
-    const result = await client.api.chat.bsky.convo.getConvoForMembers(
+    const sendFromDid = client.session?.did as string;
+    const {
+      data: { convo },
+    } = await client.api.chat.bsky.convo.getConvoForMembers(
       {
-        members: [
-          'did:plc:crngjmsdh3zpuhmd5gtgwx6q',
-          'did:plc:kj53ykzin4kn3oemv52myygh',
-        ],
+        members: [sendFromDid, request.body.sendToDid],
       },
       {
+        headers: {
+          'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
+        },
+      }
+    );
+
+    const message = new RichText({
+      text: request.body.message,
+    });
+    await message.detectFacets(client);
+    const { data: result } = await client.api.chat.bsky.convo.sendMessage(
+      {
+        convoId: convo.id,
+        message: {
+          text: message.text,
+          facets: message.facets,
+        },
+      },
+      {
+        encoding: 'application/json',
         headers: {
           'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
         },
@@ -69,7 +93,8 @@ fastify
     //   ],
     // });
     reply.send(result);
-  });
+  }
+);
 
 // Declare a route
 fastify.withTypeProvider<ZodTypeProvider>().post(
