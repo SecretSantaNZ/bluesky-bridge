@@ -9,8 +9,7 @@ Restart=always
 User={{ service_name }}
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
-Environment=BLUESKY_HANDLE={{ bluesky_handle }}
-Environment=BLUESKY_PASSWORD={{ bluesky_password }}
+LoadCredentialEncrypted={{ service_name }}-creds:/home/{{ service_name }}/{{ service_name }}-creds.cred
 
 [Install]
 WantedBy=multi-user.target
