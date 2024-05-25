@@ -1,7 +1,7 @@
 {{ inventory_hostname }} {
   tls {{ tls_contact_email }}
 
-  basicauth {
+  basicauth /action/* {
 		{{ service_username }} {{ service_password | password_hash('bcrypt') }}
 	}
 
