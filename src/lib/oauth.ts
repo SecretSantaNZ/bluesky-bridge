@@ -2,10 +2,11 @@ import { randomBytes, timingSafeEqual } from 'crypto';
 import base64url from 'base64url';
 import { BadRequestError, UnauthorizedError } from 'http-errors-enhanced';
 import { subMinutes, isBefore } from 'date-fns';
+import bcrypt from 'bcrypt';
 
 export type OauthClient = {
   client_id: string;
-  client_secret: string;
+  client_secret_hash: string;
   redirectUris: Set<string>;
 };
 
@@ -47,6 +48,13 @@ export class OauthSessionStore {
 
   registerClient(client: OauthClient) {
     this.oauthClients[client.client_id] = client;
+  }
+
+  async authenticateClient(clientId: string, clientSecret: string) {
+    const client = this.oauthClients[clientId];
+    return client != null
+      ? bcrypt.compare(clientSecret, client.client_secret_hash)
+      : false;
   }
 
   async startAuth(opts: {
@@ -102,30 +110,22 @@ export class OauthSessionStore {
     return authRequestWithCode;
   }
 
-  async completeAuth(opts: {
-    grant_type: string;
-    client_id: string;
-    client_secret: string;
-    code: string;
-    redirect_uri: string;
-  }) {
+  async completeAuth(
+    client_id: string,
+    opts: {
+      grant_type: string;
+      code: string;
+      redirect_uri: string;
+    }
+  ) {
     if (opts.grant_type !== 'authorization_code') {
       throw new BadRequestError(
         `Bad grant type, only 'authorization_code' is supported`
       );
     }
 
-    const client = this.oauthClients[opts.client_id];
+    const client = this.oauthClients[client_id];
     if (client == null) {
-      throw new UnauthorizedError(`Unknown client`);
-    }
-    // TODO, use bcrypt for client secret
-    if (
-      !timingSafeEqual(
-        Buffer.from(client.client_secret),
-        Buffer.from(opts.client_secret)
-      )
-    ) {
       throw new UnauthorizedError(`Unknown client`);
     }
 
