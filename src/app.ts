@@ -15,6 +15,7 @@ import type { TokenManager } from './lib/TokenManager.js';
 
 import { action } from './routes/action/index.js';
 import { oauth } from './routes/oauth/index.js';
+import { bsky } from './routes/bsky/index.js';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -57,6 +58,7 @@ export const build = async (
 
   await app.register(action);
   await app.register(oauth);
+  await app.register(bsky);
 
   return app;
 };
