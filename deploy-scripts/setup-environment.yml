@@ -36,9 +36,7 @@
           systemd-creds encrypt --name={{ service_name }}-creds - {{ service_credentials_path }};
           rm {{ service_credentials_path }}-hash.*;
           touch {{ service_credentials_path }}-hash.{{ service_credentials | hash('sha256') }};
-        stdin: |
-          BLUESKY_HANDLE={{ bluesky_handle }}
-          BLUESKY_PASSWORD={{ service_password }}
+        stdin: "{{ service_credentials }}"
         creates: "{{ service_credentials_path }}-hash.{{ service_credentials | hash('sha256') }}"
       no_log: true
     - name: Setup service

@@ -49,7 +49,7 @@ export const build = async (
     engine: {
       ejs,
     },
-    root: path.join(new URL('.', import.meta.url).pathname, 'views'),
+    root: path.join(process.cwd(), 'views'),
   });
 
   // Add schema validator and serializer
