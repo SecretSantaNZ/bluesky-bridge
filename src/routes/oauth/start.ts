@@ -16,8 +16,8 @@ export const start: FastifyPluginAsync = async (app) => {
         }),
       },
     },
-    async (request, reply) => {
-      const { oauthSessionStore, loginTokenManager } = app.blueskyBridge;
+    async function handler(request, reply) {
+      const { oauthSessionStore, loginTokenManager } = this.blueskyBridge;
       const postKey = await oauthSessionStore.startAuth(request.query);
 
       const loginToken = await loginTokenManager.generateToken(postKey);

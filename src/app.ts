@@ -19,6 +19,7 @@ declare module 'fastify' {
     };
   }
 }
+
 export const build = async (
   opts: fastify.FastifyHttpOptions<http.Server>,
   blueskyBridge: {
