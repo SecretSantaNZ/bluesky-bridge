@@ -1,12 +1,8 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import type { OauthPluginOptions } from './types.js';
 
-export const start: FastifyPluginAsync<OauthPluginOptions> = async (
-  app,
-  { oauthSessionStore, loginTokenManager }
-) => {
+export const start: FastifyPluginAsync = async (app) => {
   app.withTypeProvider<ZodTypeProvider>().get(
     '/start',
     {
@@ -21,6 +17,7 @@ export const start: FastifyPluginAsync<OauthPluginOptions> = async (
       },
     },
     async (request, reply) => {
+      const { oauthSessionStore, loginTokenManager } = app.blueskyBridge;
       const postKey = await oauthSessionStore.startAuth(request.query);
 
       const loginToken = await loginTokenManager.generateToken(postKey);

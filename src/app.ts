@@ -5,16 +5,29 @@ import {
   validatorCompiler,
 } from 'fastify-type-provider-zod';
 import fastifyHttpErrorsEnhanced from 'fastify-http-errors-enhanced';
+import type { OauthSessionStore } from './lib/oauth.js';
+import type { LoginTokenManager } from './lib/LoginTokenManager.js';
 
 import { action } from './routes/action/index.js';
 import { oauth } from './routes/oauth/index.js';
-import type { OauthPluginOptions } from './routes/oauth/types.js';
 
+declare module 'fastify' {
+  export interface FastifyInstance {
+    blueskyBridge: {
+      oauthSessionStore: OauthSessionStore;
+      loginTokenManager: LoginTokenManager;
+    };
+  }
+}
 export const build = async (
   opts: fastify.FastifyHttpOptions<http.Server>,
-  pluginOpts: OauthPluginOptions
+  blueskyBridge: {
+    oauthSessionStore: OauthSessionStore;
+    loginTokenManager: LoginTokenManager;
+  }
 ) => {
   const app = fastify(opts);
+  app.decorate('blueskyBridge', blueskyBridge);
 
   await app.register(fastifyHttpErrorsEnhanced);
 
@@ -23,7 +36,7 @@ export const build = async (
   app.setSerializerCompiler(serializerCompiler);
 
   await app.register(action);
-  await app.register(oauth, pluginOpts);
+  await app.register(oauth);
 
   return app;
 };
