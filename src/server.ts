@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { build } from './app.js';
 import { Subscription } from './subscription.js';
 import { OauthSessionStore } from './lib/oauth.js';
-import { LoginTokenManager } from './lib/LoginTokenManager.js';
+import { TokenManager } from './lib/TokenManager.js';
 
 dotenv.config({
   path: [
@@ -24,12 +24,20 @@ const main = async () => {
   });
 
   const tokenIssuer = process.env.TOKEN_ISSUER as string;
-  const loginTokenManager = new LoginTokenManager(
+  const loginTokenManager = new TokenManager(
     tokenIssuer,
-    `${tokenIssuer}/oauth/login`
+    `${tokenIssuer}/oauth/login`,
+    '5 minutes'
   );
+  const authTokenManager = new TokenManager(
+    tokenIssuer,
+    `${tokenIssuer}/endpoints`,
+    '1 day'
+  );
+
   // TODO, pull and rotate from database so things don't break on restart
   loginTokenManager.setKey(uuidv4(), randomBytes(32));
+  authTokenManager.setKey(uuidv4(), randomBytes(32));
 
   const subscription = new Subscription();
   subscription.onPostMatching(
@@ -41,7 +49,7 @@ const main = async () => {
 
   const app = await build(
     { logger: true },
-    { oauthSessionStore, loginTokenManager }
+    { oauthSessionStore, loginTokenManager, authTokenManager }
   );
 
   subscription.run(3000);

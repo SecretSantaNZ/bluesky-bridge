@@ -1,42 +1,21 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { UnauthorizedError } from 'http-errors-enhanced';
-
-declare module 'fastify' {
-  export interface FastifyRequest {
-    postKey?: string;
-  }
-}
+import { validateAuth } from '../../util/validateAuth.js';
 
 export const poll: FastifyPluginAsync = async (app) => {
   app.get(
     '/poll',
     {
-      onRequest: async function validateAuth(request) {
-        let { authorization } = request.headers;
-        authorization = authorization?.replace(/^Bearer\s+/, '');
-        if (!authorization) {
-          throw new UnauthorizedError('No Token');
-        }
-        try {
-          const result =
-            await this.blueskyBridge.loginTokenManager.validateToken(
-              authorization
-            );
-          request.postKey = result.postKey;
-        } catch (e) {
-          const error = e as Error;
-          throw new UnauthorizedError(error.message);
-        }
-      },
+      onRequest: validateAuth(({ loginTokenManager }) => loginTokenManager),
     },
     async function handler(request, reply) {
       const { oauthSessionStore } = this.blueskyBridge;
-      if (request.postKey == null) {
+      if (request.tokenSubject == null) {
         throw new UnauthorizedError();
       }
 
       const authentication = await oauthSessionStore.getAuthCodeForPostKey(
-        request.postKey
+        request.tokenSubject
       );
 
       const redirectTo = new URL(authentication.redirect_uri);

@@ -9,9 +9,9 @@ import {
   AppBskyGraphFollow,
 } from '@atproto/api';
 
-import { agent } from '../bluesky.js';
+import { unauthenticatedAgent } from '../bluesky.js';
 
-const lex = agent.api.xrpc.baseClient.lex;
+const lex = unauthenticatedAgent.api.xrpc.baseClient.lex;
 
 export type RepoEvent =
   | ComAtprotoSyncSubscribeRepos.Commit
