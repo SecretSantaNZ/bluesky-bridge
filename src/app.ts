@@ -5,6 +5,10 @@ import {
   validatorCompiler,
 } from 'fastify-type-provider-zod';
 import fastifyHttpErrorsEnhanced from 'fastify-http-errors-enhanced';
+import fastifyView from '@fastify/view';
+import ejs from 'ejs';
+import path from 'path';
+
 import type { OauthSessionStore } from './lib/oauth.js';
 import type { LoginTokenManager } from './lib/LoginTokenManager.js';
 
@@ -31,6 +35,12 @@ export const build = async (
   app.decorate('blueskyBridge', blueskyBridge);
 
   await app.register(fastifyHttpErrorsEnhanced);
+  await app.register(fastifyView, {
+    engine: {
+      ejs,
+    },
+    root: path.join(new URL('.', import.meta.url).pathname, 'views'),
+  });
 
   // Add schema validator and serializer
   app.setValidatorCompiler(validatorCompiler);

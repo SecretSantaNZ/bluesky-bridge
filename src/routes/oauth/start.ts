@@ -22,7 +22,7 @@ export const start: FastifyPluginAsync = async (app) => {
 
       const loginToken = await loginTokenManager.generateToken(postKey);
       const requiredPost = `!SecretSantaNZ let me in ${postKey}`;
-      reply.send({ requiredPost, loginToken });
+      return reply.view('oauth/start.ejs', { requiredPost, loginToken });
     }
   );
 };
