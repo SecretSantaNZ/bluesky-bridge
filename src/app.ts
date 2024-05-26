@@ -8,14 +8,12 @@ import fastifyHttpErrorsEnhanced from 'fastify-http-errors-enhanced';
 
 import { action } from './routes/action/index.js';
 import { oauth } from './routes/oauth/index.js';
-import type { OauthSessionStore } from './lib/oauth.js';
+import type { OauthPluginOptions } from './routes/oauth/types.js';
 
-export const build = async ({
-  oauthSessionStore,
-  ...opts
-}: fastify.FastifyHttpOptions<http.Server> & {
-  oauthSessionStore: OauthSessionStore;
-}) => {
+export const build = async (
+  opts: fastify.FastifyHttpOptions<http.Server>,
+  pluginOpts: OauthPluginOptions
+) => {
   const app = fastify(opts);
 
   await app.register(fastifyHttpErrorsEnhanced);
@@ -25,7 +23,7 @@ export const build = async ({
   app.setSerializerCompiler(serializerCompiler);
 
   await app.register(action);
-  await app.register(oauth, { oauthSessionStore });
+  await app.register(oauth, pluginOpts);
 
   return app;
 };

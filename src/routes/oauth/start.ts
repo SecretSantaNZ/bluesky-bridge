@@ -5,7 +5,7 @@ import type { OauthPluginOptions } from './types.js';
 
 export const start: FastifyPluginAsync<OauthPluginOptions> = async (
   app,
-  { oauthSessionStore }
+  { oauthSessionStore, loginTokenManager }
 ) => {
   app.withTypeProvider<ZodTypeProvider>().get(
     '/start',
@@ -21,8 +21,11 @@ export const start: FastifyPluginAsync<OauthPluginOptions> = async (
       },
     },
     async (request, reply) => {
-      const requiredPost = await oauthSessionStore.startAuth(request.query);
-      reply.send({ requiredPost });
+      const postKey = await oauthSessionStore.startAuth(request.query);
+
+      const loginToken = await loginTokenManager.generateToken(postKey);
+      const requiredPost = `!SecretSantaNZ let me in ${postKey}`;
+      reply.send({ requiredPost, loginToken });
     }
   );
 };

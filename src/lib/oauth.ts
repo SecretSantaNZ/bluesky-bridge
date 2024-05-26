@@ -119,6 +119,7 @@ export class OauthSessionStore {
     if (client == null) {
       throw new UnauthorizedError(`Unknown client`);
     }
+    // TODO, use bcrypt for client secret
     if (
       !timingSafeEqual(
         Buffer.from(client.client_secret),

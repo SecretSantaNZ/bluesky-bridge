@@ -1,9 +1,12 @@
 import path from 'path';
 import dotenv from 'dotenv';
+import { randomBytes } from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 
 import { build } from './app.js';
 import { Subscription } from './subscription.js';
 import { OauthSessionStore } from './lib/oauth.js';
+import { LoginTokenManager } from './lib/LoginTokenManager.js';
 
 dotenv.config({
   path: [
@@ -20,6 +23,14 @@ const main = async () => {
     redirectUris: new Set([process.env.OAUTH_REDIRECT_URI as string]),
   });
 
+  const tokenIssuer = process.env.TOKEN_ISSUER as string;
+  const loginTokenManager = new LoginTokenManager(
+    tokenIssuer,
+    `${tokenIssuer}/oauth/login`
+  );
+  // TODO, pull and rotate from database so things don't break on restart
+  loginTokenManager.setKey(uuidv4(), randomBytes(32));
+
   const subscription = new Subscription();
   subscription.onPostMatching(
     /!SecretSantaNZ let me in\s*([^\s]+)/i,
@@ -28,7 +39,10 @@ const main = async () => {
     }
   );
 
-  const app = await build({ logger: true, oauthSessionStore });
+  const app = await build(
+    { logger: true },
+    { oauthSessionStore, loginTokenManager }
+  );
 
   subscription.run(3000);
 

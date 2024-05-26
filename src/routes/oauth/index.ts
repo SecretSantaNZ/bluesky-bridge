@@ -4,7 +4,7 @@ import type { OauthPluginOptions } from './types.js';
 
 export const oauth: FastifyPluginAsync<OauthPluginOptions> = async (
   app,
-  { oauthSessionStore }
+  opts
 ) => {
-  await app.register(start, { prefix: '/oauth', oauthSessionStore });
+  await app.register(start, { ...opts, prefix: '/oauth' });
 };
