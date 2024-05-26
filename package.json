@@ -12,6 +12,7 @@
   "license": "ISC",
   "devDependencies": {
     "@total-typescript/tsconfig": "^1.0.4",
+    "@types/base64url": "^2.0.0",
     "@types/node": "^20.12.12",
     "@typescript-eslint/eslint-plugin": "^7.10.0",
     "@typescript-eslint/parser": "^7.10.0",
@@ -22,10 +23,16 @@
   },
   "dependencies": {
     "@atproto/api": "^0.12.12",
+    "@atproto/repo": "^0.4.0",
+    "@atproto/xrpc-server": "^0.5.1",
     "@fastify/auth": "^4.6.1",
+    "base64url": "^3.0.1",
+    "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "fastify": "^4.27.0",
+    "fastify-http-errors-enhanced": "^5.0.4",
     "fastify-type-provider-zod": "^1.2.0",
+    "http-errors-enhanced": "^2.0.8",
     "zod": "^3.23.8"
   }
 }
