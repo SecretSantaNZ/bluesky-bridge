@@ -16,7 +16,15 @@
       ansible.builtin.set_fact:
         service_credentials: |
           BLUESKY_HANDLE={{ bluesky_handle }}
-          BLUESKY_PASSWORD={{ service_password }}
+          BLUESKY_PASSWORD={{ bluesky_password }}
+
+          ACTION_USERNAME={{ action_username }}
+          ACTION_PASSWORD_HASH={{ action_password | password_hash('bcrypt') }}
+
+          OAUTH_CLIENT_ID={{ oauth_client_id }}
+          OAUTH_CLIENT_SECRET_HASH={{ oauth_client_secret | password_hash('bcrypt') }}
+          OAUTH_REDIRECT_URI={{ oauth_redirect_uri }}
+          TOKEN_ISSUER={{ inventory_hostname }}
         service_credentials_path: /home/{{ service_name }}/{{ service_name }}-creds.cred
       no_log: true
     - name: Set service credentials fact hashs

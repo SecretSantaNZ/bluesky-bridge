@@ -1,9 +1,5 @@
 {{ inventory_hostname }} {
   tls {{ tls_contact_email }}
 
-  basicauth /action/* {
-		{{ service_username }} {{ service_password | password_hash('bcrypt') }}
-	}
-
   reverse_proxy http://localhost:3000
 }

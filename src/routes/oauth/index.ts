@@ -7,7 +7,7 @@ import { token } from './token.js';
 import { UnauthorizedError } from 'http-errors-enhanced';
 
 export const oauth: FastifyPluginAsync = async (app) => {
-  app.register(fastifyBasicAuth, {
+  await app.register(fastifyBasicAuth, {
     validate: async function validate(username, password, req) {
       if (
         await this.blueskyBridge.oauthSessionStore.authenticateClient(

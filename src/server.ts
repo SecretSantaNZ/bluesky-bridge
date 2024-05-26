@@ -2,7 +2,6 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { randomBytes } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
-import bcrypt from 'bcrypt';
 
 import { build } from './app.js';
 import { Subscription } from './subscription.js';
@@ -20,10 +19,7 @@ const main = async () => {
   const oauthSessionStore = new OauthSessionStore();
   oauthSessionStore.registerClient({
     client_id: process.env.OAUTH_CLIENT_ID as string,
-    client_secret_hash: await bcrypt.hash(
-      process.env.OAUTH_CLIENT_SECRET as string,
-      12
-    ),
+    client_secret_hash: process.env.OAUTH_CLIENT_SECRET_HASH as string,
     redirectUris: new Set([process.env.OAUTH_REDIRECT_URI as string]),
   });
 
