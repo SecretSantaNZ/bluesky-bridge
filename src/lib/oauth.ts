@@ -1,4 +1,4 @@
-import { randomBytes, timingSafeEqual } from 'crypto';
+import { randomBytes } from 'crypto';
 import base64url from 'base64url';
 import { BadRequestError, UnauthorizedError } from 'http-errors-enhanced';
 import { subMinutes, isBefore } from 'date-fns';
@@ -13,7 +13,7 @@ export type OauthClient = {
 export type AuthRequest = {
   client_id: string;
   redirect_uri: string;
-  scope: string;
+  scope?: string;
   state: string;
   startedAt: Date;
   step: 'waiting-for-post' | 'authenticated';
@@ -60,7 +60,7 @@ export class OauthSessionStore {
   async startAuth(opts: {
     client_id: string;
     redirect_uri: string;
-    scope: string;
+    scope?: string;
     state: string;
   }) {
     const client = this.oauthClients[opts.client_id];

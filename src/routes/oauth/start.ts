@@ -11,7 +11,7 @@ export const start: FastifyPluginAsync = async (app) => {
           response_type: z.literal('code'),
           client_id: z.string(),
           redirect_uri: z.string(),
-          scope: z.string(),
+          scope: z.string().optional(),
           state: z.string(),
         }),
       },
