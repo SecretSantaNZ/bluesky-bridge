@@ -25,7 +25,7 @@ export const token: FastifyPluginAsync = async (app) => {
         request.body
       );
       const authToken = await authTokenManager.generateToken(
-        authentication.userDid
+        authentication.user_did
       );
 
       return reply.send({

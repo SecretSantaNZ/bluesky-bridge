@@ -1,12 +1,11 @@
 import path from 'path';
 import dotenv from 'dotenv';
-import { randomBytes } from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
 
 import { build } from './app.js';
 import { Subscription } from './subscription.js';
 import { OauthSessionStore } from './lib/oauth.js';
 import { TokenManager } from './lib/TokenManager.js';
+import { createDb, migrateToLatest } from './lib/database/index.js';
 
 dotenv.config({
   path: [
@@ -16,7 +15,10 @@ dotenv.config({
 });
 
 const main = async () => {
-  const oauthSessionStore = new OauthSessionStore();
+  const db = createDb();
+  await migrateToLatest(db);
+
+  const oauthSessionStore = new OauthSessionStore(db);
   oauthSessionStore.registerClient({
     client_id: process.env.OAUTH_CLIENT_ID as string,
     client_secret_hash: process.env.OAUTH_CLIENT_SECRET_HASH as string,
@@ -25,19 +27,23 @@ const main = async () => {
 
   const tokenIssuer = process.env.TOKEN_ISSUER as string;
   const loginTokenManager = new TokenManager(
+    db,
     tokenIssuer,
     `${tokenIssuer}/oauth/login`,
     '5 minutes'
   );
   const authTokenManager = new TokenManager(
+    db,
     tokenIssuer,
     `${tokenIssuer}/endpoints`,
     '1 day'
   );
 
   // TODO, pull and rotate from database so things don't break on restart
-  loginTokenManager.setKey(uuidv4(), randomBytes(32));
-  authTokenManager.setKey(uuidv4(), randomBytes(32));
+  await Promise.all([
+    loginTokenManager.initialize(),
+    authTokenManager.initialize(),
+  ]);
 
   const subscription = new Subscription();
   subscription.onPostMatching(

@@ -1,8 +1,9 @@
 import { randomBytes } from 'crypto';
 import base64url from 'base64url';
 import { BadRequestError, UnauthorizedError } from 'http-errors-enhanced';
-import { subMinutes, isBefore } from 'date-fns';
+import { subMinutes, formatISO } from 'date-fns';
 import bcrypt from 'bcrypt';
+import type { Database } from './database/index.js';
 
 export type OauthClient = {
   client_id: string;
@@ -10,39 +11,22 @@ export type OauthClient = {
   redirectUris: Set<string>;
 };
 
-export type AuthRequest = {
-  client_id: string;
-  redirect_uri: string;
-  scope?: string;
-  state: string;
-  startedAt: Date;
-  step: 'waiting-for-post' | 'authenticated';
-  userDid: string;
-};
-
-type AuthRequestWithCode = AuthRequest & { code: string };
+const AUTH_TIMEOUT_MINUTES = 5;
 
 export class OauthSessionStore {
   private readonly oauthClients: Record<string, OauthClient> = {};
 
-  private readonly inflightAuth: Record<string, AuthRequest> = {};
-  private readonly codeAssigned: Record<string, AuthRequestWithCode> = {};
-
   private cleanupInterval: ReturnType<typeof setInterval>;
 
-  constructor() {
-    this.cleanupInterval = setInterval(() => {
-      const removeBefore = subMinutes(new Date(), 5);
-      for (const [key, { startedAt }] of Object.entries(this.inflightAuth)) {
-        if (isBefore(startedAt, removeBefore)) {
-          delete this.inflightAuth[key];
-        }
-      }
-      for (const [key, { startedAt }] of Object.entries(this.codeAssigned)) {
-        if (isBefore(startedAt, removeBefore)) {
-          delete this.codeAssigned[key];
-        }
-      }
+  constructor(private db: Database) {
+    this.cleanupInterval = setInterval(async () => {
+      const removeBefore = formatISO(
+        subMinutes(new Date(), AUTH_TIMEOUT_MINUTES)
+      );
+      await this.db
+        .deleteFrom('auth_request')
+        .where('started_at', '<', removeBefore)
+        .execute();
     }, 60000);
   }
 
@@ -72,42 +56,58 @@ export class OauthSessionStore {
         `Redirect url ${opts.redirect_uri} is not allowed for client ${opts.client_id}`
       );
     }
-    const keyBytes = randomBytes(9);
-    const key = base64url.default.encode(keyBytes);
 
-    this.inflightAuth[key] = {
-      ...opts,
-      step: 'waiting-for-post',
-      startedAt: new Date(),
-      userDid: '',
-    };
+    const post_key = base64url.default.encode(randomBytes(9));
+    const auth_code = base64url.default.encode(randomBytes(9));
 
-    return `${key}`;
+    await this.db
+      .insertInto('auth_request')
+      .values({
+        post_key,
+        auth_code,
+        auth_state: 'pending',
+        client_id: opts.client_id,
+        redirect_uri: opts.redirect_uri,
+        scope: opts.scope,
+        state: opts.state,
+        user_did: '',
+        started_at: formatISO(new Date()),
+      })
+      .execute();
+
+    return post_key;
   }
 
   async keyPostSeen(postKey: string, userDid: string) {
-    const authentication = this.inflightAuth[postKey];
-    if (authentication != null) {
-      authentication.userDid = userDid;
-      authentication.step = 'authenticated';
-    }
+    await this.db
+      .updateTable('auth_request')
+      .set('user_did', userDid)
+      .set('auth_state', 'authenticated')
+      .where('post_key', '=', postKey)
+      // Only update if pending to ensure that a subsequent post
+      // of the secret doesn't allow someone else to take over
+      .where('auth_state', '=', 'pending')
+      .execute();
   }
 
   async getAuthCodeForPostKey(postKey: string) {
-    const authentication = this.inflightAuth[postKey];
-    if (
-      authentication == null ||
-      authentication.step !== 'authenticated' ||
-      isBefore(authentication.startedAt, subMinutes(new Date(), 5))
-    ) {
+    const authentication = await this.db
+      .selectFrom('auth_request')
+      .selectAll()
+      .where('post_key', '=', postKey)
+      .where('auth_state', '=', 'authenticated')
+      .where(
+        'started_at',
+        '>',
+        formatISO(subMinutes(new Date(), AUTH_TIMEOUT_MINUTES))
+      )
+      .executeTakeFirst();
+
+    if (authentication == null) {
       throw new UnauthorizedError();
     }
-    const codeBytes = randomBytes(9);
-    const code = base64url.default.encode(codeBytes);
-    delete this.inflightAuth[postKey];
-    const authRequestWithCode = { ...authentication, code };
-    this.codeAssigned[code] = authRequestWithCode;
-    return authRequestWithCode;
+
+    return authentication;
   }
 
   async completeAuth(
@@ -129,7 +129,18 @@ export class OauthSessionStore {
       throw new UnauthorizedError(`Unknown client`);
     }
 
-    const authentication = this.codeAssigned[opts.code];
+    const authentication = await this.db
+      .deleteFrom('auth_request')
+      .where('auth_code', '=', opts.code)
+      .where('auth_state', '=', 'authenticated')
+      .where(
+        'started_at',
+        '>',
+        formatISO(subMinutes(new Date(), AUTH_TIMEOUT_MINUTES))
+      )
+      .returningAll()
+      .executeTakeFirst();
+
     if (authentication == null) {
       throw new UnauthorizedError(`Unknown code for client`);
     }

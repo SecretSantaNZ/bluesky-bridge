@@ -19,7 +19,7 @@ export const poll: FastifyPluginAsync = async (app) => {
       );
 
       const redirectTo = new URL(authentication.redirect_uri);
-      redirectTo.searchParams.set('code', authentication.code);
+      redirectTo.searchParams.set('code', authentication.auth_code);
       redirectTo.searchParams.set('state', authentication.state);
       reply.send({ redirectTo: redirectTo.toString() });
     }
