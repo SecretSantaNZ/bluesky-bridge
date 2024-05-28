@@ -15,16 +15,9 @@
     - name: Set service credentials facts
       ansible.builtin.set_fact:
         service_credentials: |
-          BLUESKY_HANDLE={{ bluesky_handle }}
           BLUESKY_PASSWORD={{ bluesky_password }}
-
-          ACTION_USERNAME={{ action_username }}
           ACTION_PASSWORD_HASH={{ action_password | password_hash('bcrypt') }}
-
-          OAUTH_CLIENT_ID={{ oauth_client_id }}
           OAUTH_CLIENT_SECRET_HASH={{ oauth_client_secret | password_hash('bcrypt') }}
-          OAUTH_REDIRECT_URI={{ oauth_redirect_uri }}
-          TOKEN_ISSUER={{ inventory_hostname }}
         service_credentials_path: /home/{{ service_name }}/{{ service_name }}-creds.cred
       no_log: true
     - name: Set service credentials fact hashs
@@ -44,13 +37,41 @@
         src: ./service.template
         dest: /etc/systemd/system/{{ service_name }}.service
         mode: '0444'
+    - name: Create Service Directory
+      ansible.builtin.file:
+        path: /opt/{{ service_name }}
+        state: directory
+        mode: '0755'
     - name: Copy Project
       ansible.posix.synchronize:
-        src: ../../
-        dest: /opt/{{ service_name }}/
+        src: ../../{{ item }}
+        dest: /opt/{{ service_name }}/{{ item }}
         owner: false
         group: false
         delete: true
+      loop:
+        - dist/
+        - views/
+    - name: Copy Package
+      ansible.builtin.copy:
+        src: ../{{ item }}
+        dest: /opt/{{ service_name }}/{{ item }}
+      loop:
+        - package.json
+        - package-lock.json
+    - name: Hash package-lock.json
+      ansible.builtin.stat:
+        path: /opt/{{ service_name }}/package-lock.json
+        checksum_algorithm: sha256
+      register: package_lock
+    - name: npm install
+      shell:
+        cmd: |
+          npm ci;
+          rm package-lock.json-installed-*
+          touch /opt/{{ service_name }}/package-lock.json-installed-{{ package_lock.stat.checksum }}
+        chdir: /opt/{{ service_name }}
+        creates: /opt/{{ service_name }}/package-lock.json-installed-{{ package_lock.stat.checksum }}
     - name: Restart service
       ansible.builtin.service:
         name: '{{ service_name }}'

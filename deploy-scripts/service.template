@@ -7,8 +7,15 @@ ExecStart=node dist/server.js
 WorkingDirectory=/opt/{{ service_name }}
 Restart=always
 User={{ service_name }}
+
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
+Environment=BLUESKY_HANDLE={{ bluesky_handle }}
+Environment=ACTION_USERNAME={{ action_username }}
+Environment=OAUTH_CLIENT_ID={{ oauth_client_id }}
+Environment=OAUTH_REDIRECT_URI={{ oauth_redirect_uri }}
+Environment=TOKEN_ISSUER={{ inventory_hostname }}
+
 LoadCredentialEncrypted={{ service_name }}-creds:/home/{{ service_name }}/{{ service_name }}-creds.cred
 
 [Install]
