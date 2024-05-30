@@ -16,6 +16,7 @@ import type { TokenManager } from './lib/TokenManager.js';
 import { action } from './routes/action/index.js';
 import { oauth } from './routes/oauth/index.js';
 import { bsky } from './routes/bsky/index.js';
+import type { Database } from './lib/database/index.js';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -23,6 +24,7 @@ declare module 'fastify' {
       oauthSessionStore: OauthSessionStore;
       loginTokenManager: TokenManager;
       authTokenManager: TokenManager;
+      db: Database;
     };
   }
 
@@ -37,6 +39,7 @@ export const build = async (
     oauthSessionStore: OauthSessionStore;
     loginTokenManager: TokenManager;
     authTokenManager: TokenManager;
+    db: Database;
   }
 ) => {
   const app = fastify(opts);
@@ -56,7 +59,7 @@ export const build = async (
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
 
-  await app.register(action);
+  await app.register(action, { prefix: '/action' });
   await app.register(oauth);
   await app.register(bsky);
 

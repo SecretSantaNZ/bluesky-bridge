@@ -1,6 +1,7 @@
 export interface DatabaseSchema {
   jwt_mac_key: JwtMacKey;
   auth_request: AuthRequest;
+  message: Message;
 }
 
 export interface JwtMacKey {
@@ -20,4 +21,10 @@ export interface AuthRequest {
   state: string;
   user_did: string;
   started_at: string;
+}
+
+export interface Message {
+  id: number;
+  message_type: string;
+  message: string;
 }

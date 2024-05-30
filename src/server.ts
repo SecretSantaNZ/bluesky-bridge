@@ -55,7 +55,7 @@ const main = async () => {
 
   const app = await build(
     { logger: true },
-    { oauthSessionStore, loginTokenManager, authTokenManager }
+    { oauthSessionStore, loginTokenManager, authTokenManager, db }
   );
 
   subscription.run(3000);

@@ -3,26 +3,40 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { getSantaBskyAgent } from '../../bluesky.js';
 import { RichText } from '@atproto/api';
+import { getRandomMessage } from '../../util/getRandomMessage.js';
 
-export const dm: FastifyPluginAsync = async (app) => {
+export const templateDm: FastifyPluginAsync = async (app) => {
   app.withTypeProvider<ZodTypeProvider>().post(
-    '/dm',
+    '/dm/:message_type',
     {
       schema: {
-        body: z.object({
-          sendToDid: z.string(),
-          message: z.string(),
+        params: z.object({
+          message_type: z.string(),
         }),
+        body: z
+          .object({
+            recipient_did: z.string(),
+          })
+          .catchall(z.string()),
       },
     },
-    async (request, reply) => {
+    async function (request, reply) {
+      const { message_type } = request.params;
+      const { recipient_did, ...rest } = request.body;
+
+      const rawMessage = await getRandomMessage(
+        this.blueskyBridge.db,
+        'dm-' + message_type,
+        rest
+      );
+
       const client = await getSantaBskyAgent();
       const sendFromDid = client.session?.did as string;
       const {
         data: { convo },
       } = await client.api.chat.bsky.convo.getConvoForMembers(
         {
-          members: [sendFromDid, request.body.sendToDid],
+          members: [sendFromDid, recipient_did],
         },
         {
           headers: {
@@ -32,7 +46,7 @@ export const dm: FastifyPluginAsync = async (app) => {
       );
 
       const message = new RichText({
-        text: request.body.message,
+        text: rawMessage + ' [Sent by 🤖]',
       });
       await message.detectFacets(client);
       const { data: result } = await client.api.chat.bsky.convo.sendMessage(

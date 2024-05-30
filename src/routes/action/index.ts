@@ -3,6 +3,8 @@ import { dm } from './dm.js';
 import fastifyBasicAuth from '@fastify/basic-auth';
 import { UnauthorizedError } from 'http-errors-enhanced';
 import bcrypt from 'bcrypt';
+import { templateDm } from './template-dm.js';
+import { nudge } from './nudge.js';
 
 export const action: FastifyPluginAsync = async (app) => {
   await app.register(fastifyBasicAuth, {
@@ -23,5 +25,7 @@ export const action: FastifyPluginAsync = async (app) => {
 
   app.addHook('onRequest', app.basicAuth);
 
-  await app.register(dm, { prefix: '/action' });
+  await app.register(dm);
+  await app.register(templateDm);
+  await app.register(nudge);
 };
