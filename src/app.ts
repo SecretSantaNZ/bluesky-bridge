@@ -60,8 +60,8 @@ export const build = async (
   app.setSerializerCompiler(serializerCompiler);
 
   await app.register(action, { prefix: '/action' });
-  await app.register(oauth);
-  await app.register(bsky);
+  await app.register(oauth, { prefix: '/oauth' });
+  await app.register(bsky, { prefix: '/bsky' });
 
   return app;
 };
