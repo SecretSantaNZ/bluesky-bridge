@@ -42,6 +42,14 @@ migrations['001'] = {
       .execute();
 
     await db.schema
+      .createTable('player')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('did', 'varchar', (col) => col.notNull().unique())
+      .addColumn('handle', 'varchar', (col) => col.notNull())
+      .addColumn('following_santa', 'int2', (col) => col.notNull())
+      .execute();
+
+    await db.schema
       .createTable('message')
       .addColumn('id', 'integer', (col) => col.primaryKey())
       .addColumn('message_type', 'varchar', (col) => col.notNull())
@@ -66,6 +74,7 @@ migrations['001'] = {
   async down(db: Kysely<unknown>) {
     await db.schema.dropIndex('idx_message_type').execute();
     await db.schema.dropTable('message').execute();
+    await db.schema.dropTable('player').execute();
     await db.schema.dropTable('auth_request').execute();
     await db.schema.dropTable('jwt_mac_key').execute();
   },

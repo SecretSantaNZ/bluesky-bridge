@@ -14,6 +14,7 @@ import type { OauthSessionStore } from './lib/oauth.js';
 import type { TokenManager } from './lib/TokenManager.js';
 
 import { action } from './routes/action/index.js';
+import { sync } from './routes/sync/index.js';
 import { oauth } from './routes/oauth/index.js';
 import { bsky } from './routes/bsky/index.js';
 import type { Database } from './lib/database/index.js';
@@ -60,6 +61,7 @@ export const build = async (
   app.setSerializerCompiler(serializerCompiler);
 
   await app.register(action, { prefix: '/action' });
+  await app.register(sync, { prefix: '/sync' });
   await app.register(oauth, { prefix: '/oauth' });
   await app.register(bsky, { prefix: '/bsky' });
 

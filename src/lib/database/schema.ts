@@ -2,6 +2,7 @@ export interface DatabaseSchema {
   jwt_mac_key: JwtMacKey;
   auth_request: AuthRequest;
   message: Message;
+  player: Player;
 }
 
 export interface JwtMacKey {
@@ -27,4 +28,11 @@ export interface Message {
   id: number;
   message_type: string;
   message: string;
+}
+
+export interface Player {
+  id?: number;
+  did: string;
+  handle: string;
+  following_santa: number;
 }
