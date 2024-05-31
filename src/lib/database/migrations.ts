@@ -4,6 +4,9 @@ import {
   type Migration,
   type MigrationProvider,
 } from 'kysely';
+import { initialMessages } from './initialMessages.js';
+import type { Database } from './index.js';
+import type { Message } from './schema.js';
 
 const migrations: Record<string, Migration> = {};
 
@@ -58,6 +61,15 @@ migrations['002'] = {
       .on('message')
       .column('message_type')
       .execute();
+
+    for (const [message_type, messages] of Object.entries(initialMessages)) {
+      await (db as Database)
+        .insertInto('message')
+        .values(
+          messages.map((message) => ({ message_type, message }) as Message)
+        )
+        .execute();
+    }
   },
   async down(db: Kysely<unknown>) {
     await db.schema.dropIndex('idx_message_type').execute();

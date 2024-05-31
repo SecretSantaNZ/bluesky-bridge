@@ -1,0 +1,50 @@
+export const initialMessages = {
+  'dm-match-handle': [
+    "Your Giftee for Secret Santa is $giftee_handle$. If this is an utterly unsuitable match, please reply to this message ASAP.\n\nWe'll be sending out addresses in a few days, so if you haven't updated yours in the Santa App (My Details), today is the day!\n\nNudging your Giftee via the App becomes available after we send you their address.\n\nHappy sleuthing!!",
+    'Hello!\n\nYour Giftee for #SecretSantaNZ2022 is $giftee_handle$. If this clearly a terrible match, please reply to this message *TODAY*, so we can fix it.\n\nWe are sending out addresses in a few days - please check that yours is up to date right now (in the App, check the My Details tab).\n\nYou will be able to Nudge your Giftee via the App once you have received their address.\n\nAll the best!',
+    "We have news: Your Giftee for Secret Santa is $giftee_handle$. Is this an unsuitable match? Let us know as soon as possible.\n\nYour Giftee's address is following in a few days. Please take a moment to check that the App has your correct shipping address (have a look in the My Details tab).\n\nThe Nudge Feature becomes available after we send you their postal address.\n\nYour friendly Elves",
+    "Two things: is your address in the App up to date? Please check now!\n\nAnd ... your Giftee is $giftee_handle$. Please reply to this message ASAP if this match is totally unsuitable.\n\nWe're sending out addresses in a few days. If your Giftee has not posted any hints yet you will be able to Nudge them via the App as soon as we have sent you their address. #SecretSantaNZ2022",
+    "HOHOHO!\n\nThis is Santa speaking: Your Giftee for #SecretSantaNZ2022 is $giftee_handle$.\n\nIf this is totally and utterly unsuitable as a match, please let us know ASAP. Addresses are coming by DM in a few days, and nudging your Giftee via the App becomes available after that point.\n\nYour own address in the App must be checked & updated **today** (My Details). We hope you're having as much fun as we all are.\n\nYours, the Elves (on behalf of Santa)",
+  ],
+  'dm-match-address': [
+    "Hello! $giftee_handle$'s address is\n\n$giftee_instructions$$giftee_address$\n\nYou can send them a Nudge via the web app if your sleuthing has not revealed the perfect gift yet.\n\nRemember to ship before 6 December & login to the App (http://secretsanta.nz) to submit your tracking details.\n\nWe hope your sleuthing is going splendidly!!",
+    "As promised $giftee_handle$'s address is\n\n$giftee_instructions$$giftee_address$\n\nNudging is now available if you're having trouble coming up with the perfect gift for them.\n\nYou'll need to get it into the post before 6 December and login to the App to submit your tracking details.\n\nThat's it. Happy sleuthing!",
+    "HOHOHO! Post your gift for $giftee_handle$ to\n\n$giftee_instructions$$giftee_address$\n\nWe've enabled the Nudge feature via the web app if your sleuthing has not yet revealed that perfect gift.\n\nLast day to ship is 6 December. Submit details for the presents you send.\n\nEnjoy the Secret Santa Magic! ",
+    "Season's Greetings!! $giftee_handle$'s address is\n\n$giftee_instructions$$giftee_address$\n\nStuck for gift ideas? You can now send them a Nudge via the App and browse the #SecretSantaNZ2022 hashtag for inspiration!\n\nShip _BEFORE_ 6 December for the Opening Day on 20 December.\n\nDon't forget to update the tracking details of the presents you send via the App, too.\n\nHappy Secret Santa, New Zealand!",
+    "Here we go! $giftee_handle$'s address is\n\n$giftee_instructions$$giftee_address$\n\nThings to sort on the App:\n* Sent your present? Tell us the tracking details!\n* Not got a present idea yet? Send them a Nudge to get inspiration!\n\nDon't forget you should post your present _before_ 6 December\n\nBrowse the #SecretSantaNZ2022 hashtag for festive feelings!",
+  ],
+  'dm-tracking-added': [
+    "Great news! Your Santa has shipped your gift on $date_shipped$ with $carrier$.\n\nTracking Number: $tracking_number$\n\nLet us know if you don't receive it within the next week and we'll get the Reindeers to do a search.",
+    "WOHOOO!!! Your gift is on its way: Your Santa posted it on $date_shipped$ with $carrier$.\n\nTracking Number: $tracking_number$\n\nWhen it arrives: tweet on #SecretSantaNZ2022 so your Santa knows. If it doesn't arrive with you in a week, let us know by DM!!",
+    "HOHOHO again! Your gift went on its way on $date_shipped$ with $carrier$.\n\nTracking Number: $tracking_number$\n\nWhat's next: tweet when it arrives! If it doesn't within a week, DM us back!",
+    "Newsflash: Your Santa has shipped your gift on $date_shipped$ with $carrier$.\n\nTracking Number: $tracking_number$\n\nIf it doesn't arrive with you over the next week, we want to know so that the Elves can mount a search!",
+    'We have great news ... Your gift was shipped on $date_shipped$ with $carrier$.\n\nTracking Number: $tracking_number$\n\nPlease confirm receipt with a tweet with #SecretSantaNZ2022, so your Santa can find out. No arrival over next week? DM us, so that we can send the Hogs on a search!',
+  ],
+  'dm-poke-inactive': [
+    'Did you forget to enter Tracking deets?',
+    'Hey, did you remember to Post your gift off?',
+    'Can we help finish off your Gifting?',
+    'Hi Santa, how goes the mission to the Postshop?',
+    "We were wondering if you're still able to send your Gift?",
+  ],
+  'nudge-hint': [
+    "Your Secret Santa needs you to do a Tweet with some hints please. Don't forget to use #SecretSantaNZ2022 -",
+    'Secret Santa would like you to do a Tweet with some likes, dislikes, allergies, interests. Please use #SecretSantaNZ2022 so that they can find it!',
+    "Please do a Tweet with some hints for your Santa! They'll appreciate it and you won't get a lump of coal! Use #SecretSantaNZ2022 -)",
+  ],
+  'nudge-arrival': [
+    'Your Secret Santa is wondering if your parcel arrived? Can you let them know by Tweeting on #SecretSantaNZ2022 please?',
+    'Has your present arrived?? Please post a Tweet on #SecretSantaNZ2022!',
+    'Is it there yet? Did you get it yet? Did it arrive? Please tweet on #SecretSantaNZ2022 to let your Santa know!)',
+  ],
+  'nudge-present update': [
+    "I've got an update on your #SecretSantaNZ2022 present for you:",
+    'News on your #SecretSantaNZ2022 gift:',
+    "I know you're waiting to hear when your #SecretSantaNZ2022 gift is on its way:)",
+  ],
+  'nudge-opening': [
+    "Your Secret Santa asks that you Tweet some photos or a wee video of your gift. Please don't forget to add a description (with alt-text) and use #SecretSantaNZ2022 -",
+    'OPENING DAY!! What did you get? Tweet some photos (with alt-text) and use #SecretSantaNZ2022 -',
+    'Your Secret Santa thinks your gift must have arrived by now and is asking for a tweet with some photos/video (with alt-text). Use #SecretSantaNZ2022 -)',
+  ],
+};
