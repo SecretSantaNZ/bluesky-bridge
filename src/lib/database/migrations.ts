@@ -40,15 +40,7 @@ migrations['001'] = {
       .addColumn('user_did', 'varchar', (col) => col.notNull())
       .addColumn('started_at', 'varchar', (col) => col.notNull())
       .execute();
-  },
-  async down(db: Kysely<unknown>) {
-    await db.schema.dropTable('auth_request').execute();
-    await db.schema.dropTable('jwt_mac_key').execute();
-  },
-};
 
-migrations['002'] = {
-  async up(db: Kysely<unknown>) {
     await db.schema
       .createTable('message')
       .addColumn('id', 'integer', (col) => col.primaryKey())
@@ -74,5 +66,7 @@ migrations['002'] = {
   async down(db: Kysely<unknown>) {
     await db.schema.dropIndex('idx_message_type').execute();
     await db.schema.dropTable('message').execute();
+    await db.schema.dropTable('auth_request').execute();
+    await db.schema.dropTable('jwt_mac_key').execute();
   },
 };

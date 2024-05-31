@@ -10,6 +10,7 @@ User={{ service_name }}
 
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
+Environment=SQLITE_LOCATION=:memory:
 Environment=SANTA_BLUESKY_HANDLE={{ santa_bluesky_handle }}
 Environment=ROBOT_BLUESKY_HANDLE={{ robot_bluesky_handle }}
 Environment=ACTION_USERNAME={{ action_username }}
