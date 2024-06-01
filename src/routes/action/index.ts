@@ -5,6 +5,8 @@ import { UnauthorizedError } from 'http-errors-enhanced';
 import bcrypt from 'bcrypt';
 import { templateDm } from './template-dm.js';
 import { nudge } from './nudge.js';
+import { authTest } from './auth-test.js';
+import { meta } from './meta.js';
 
 export const action: FastifyPluginAsync = async (app) => {
   await app.register(fastifyBasicAuth, {
@@ -28,4 +30,6 @@ export const action: FastifyPluginAsync = async (app) => {
   await app.register(dm);
   await app.register(templateDm);
   await app.register(nudge);
+  await app.register(authTest);
+  await app.register(meta, { prefix: '/meta' });
 };
