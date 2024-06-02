@@ -18,6 +18,19 @@ export const meta: FastifyPluginAsync = async (rawApp) => {
     reply.send({ types });
   });
 
+  app.get('/nudge/types', async function (request, reply) {
+    const result = await this.blueskyBridge.db
+      .selectFrom('message')
+      .select('message_type')
+      .distinct()
+      .execute();
+
+    const types = result
+      .filter(({ message_type }) => message_type.startsWith('nudge-'))
+      .map(({ message_type }) => message_type.substring(6));
+    reply.send({ types });
+  });
+
   app.get(
     '/dm/variables',
     {
