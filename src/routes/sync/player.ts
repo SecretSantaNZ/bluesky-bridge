@@ -20,6 +20,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
       const { db } = this.blueskyBridge;
 
       const santaAgent = await getSantaBskyAgent();
+      const santaDid = santaAgent.session?.did as string;
 
       const [
         { data: profile },
@@ -30,16 +31,21 @@ export const player: FastifyPluginAsync = async (rawApp) => {
         unauthenticatedAgent.getProfile({
           actor: player_did,
         }),
-        unauthenticatedAgent.app.bsky.graph.getRelationships({
-          actor: santaAgent.session?.did as string,
-          others: [player_did],
-        }),
+        santaDid === player_did
+          ? { data: { relationships: [] } }
+          : unauthenticatedAgent.app.bsky.graph.getRelationships({
+              actor: santaDid,
+              others: [player_did],
+            }),
       ]);
-      const following_santa_uri = AppBskyGraphDefs.isRelationship(
+      let following_santa_uri = AppBskyGraphDefs.isRelationship(
         relationships[0]
       )
         ? relationships[0].followedBy
         : undefined;
+      if (santaDid === player_did) {
+        following_santa_uri = 'self';
+      }
 
       const player: Player = {
         did: player_did,
