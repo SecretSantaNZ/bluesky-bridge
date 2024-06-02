@@ -35,7 +35,7 @@ export interface Player {
   id?: number;
   did: string;
   handle: string;
-  following_santa: number;
+  following_santa_uri: string | null;
 }
 
 export interface Settings {

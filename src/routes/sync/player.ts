@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { getSantaBskyAgent, unauthenticatedAgent } from '../../bluesky.js';
 import { AppBskyGraphDefs } from '@atproto/api';
+import type { Player } from '../../lib/database/schema.js';
 
 export const player: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -34,14 +35,16 @@ export const player: FastifyPluginAsync = async (rawApp) => {
           others: [player_did],
         }),
       ]);
-      const following_santa = AppBskyGraphDefs.isRelationship(relationships[0])
-        ? relationships[0].followedBy != null
-        : false;
+      const following_santa_uri = AppBskyGraphDefs.isRelationship(
+        relationships[0]
+      )
+        ? relationships[0].followedBy
+        : undefined;
 
-      const player = {
+      const player: Player = {
         did: player_did,
         handle: profile.handle,
-        following_santa: following_santa ? 1 : 0,
+        following_santa_uri: following_santa_uri ?? null,
       };
 
       await db
@@ -51,7 +54,10 @@ export const player: FastifyPluginAsync = async (rawApp) => {
         .execute();
 
       reply.send({
-        player: { ...player, following_santa: player.following_santa === 1 },
+        player: {
+          ...player,
+          following_santa: player.following_santa_uri != null,
+        },
       });
     }
   );
