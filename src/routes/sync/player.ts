@@ -2,8 +2,39 @@ import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { getSantaBskyAgent, unauthenticatedAgent } from '../../bluesky.js';
-import { AppBskyGraphDefs } from '@atproto/api';
+import { AppBskyGraphDefs, AppBskyGraphGetRelationships } from '@atproto/api';
 import type { Player } from '../../lib/database/schema.js';
+import { InternalServerError } from 'http-errors-enhanced';
+
+const fetchRelationships = async (
+  santaDid: string,
+  playerDid: string
+): Promise<AppBskyGraphGetRelationships.OutputSchema> => {
+  if (santaDid === playerDid) {
+    return {
+      relationships: [
+        {
+          $type: 'app.bsky.graph.defs#relationship',
+          did: playerDid,
+          followedBy: 'self',
+        },
+      ],
+    };
+  }
+  const uri = new URL(
+    'https://public.api.bsky.app/xrpc/app.bsky.graph.getRelationships'
+  );
+  uri.searchParams.set('actor', santaDid);
+  uri.searchParams.set('others', playerDid);
+  uri.searchParams.set('cacheBust', new Date().toISOString());
+  const result = await fetch(uri.toString());
+  if (!result.ok) {
+    throw new InternalServerError(
+      `Unable to fetch relationship [${result.status}]: ${await result.text()}`
+    );
+  }
+  return (await result.json()) as AppBskyGraphGetRelationships.OutputSchema;
+};
 
 export const player: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -22,30 +53,17 @@ export const player: FastifyPluginAsync = async (rawApp) => {
       const santaAgent = await getSantaBskyAgent();
       const santaDid = santaAgent.session?.did as string;
 
-      const [
-        { data: profile },
-        {
-          data: { relationships },
-        },
-      ] = await Promise.all([
+      const [{ data: profile }, { relationships }] = await Promise.all([
         unauthenticatedAgent.getProfile({
           actor: player_did,
         }),
-        santaDid === player_did
-          ? { data: { relationships: [] } }
-          : unauthenticatedAgent.app.bsky.graph.getRelationships({
-              actor: santaDid,
-              others: [player_did],
-            }),
+        fetchRelationships(santaDid, player_did),
       ]);
-      let following_santa_uri = AppBskyGraphDefs.isRelationship(
+      const following_santa_uri = AppBskyGraphDefs.isRelationship(
         relationships[0]
       )
         ? relationships[0].followedBy
         : undefined;
-      if (santaDid === player_did) {
-        following_santa_uri = 'self';
-      }
 
       const player: Player = {
         did: player_did,
