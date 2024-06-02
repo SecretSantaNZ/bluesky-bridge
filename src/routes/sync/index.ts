@@ -3,6 +3,7 @@ import fastifyBasicAuth from '@fastify/basic-auth';
 import { UnauthorizedError } from 'http-errors-enhanced';
 import bcrypt from 'bcrypt';
 import { player } from './player.js';
+import { settings } from './settings.js';
 
 export const sync: FastifyPluginAsync = async (app) => {
   await app.register(fastifyBasicAuth, {
@@ -24,4 +25,5 @@ export const sync: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', app.basicAuth);
 
   await app.register(player);
+  await app.register(settings);
 };

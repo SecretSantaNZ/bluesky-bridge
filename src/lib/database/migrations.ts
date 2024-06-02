@@ -50,6 +50,16 @@ migrations['001'] = {
       .execute();
 
     await db.schema
+      .createTable('settings')
+      .addColumn('id', 'numeric', (col) => col.primaryKey())
+      .addColumn('signups_open', 'int2', (col) => col.notNull())
+      .addColumn('matches_sent_date', 'varchar', (col) => col.notNull())
+      .addColumn('send_by_date', 'varchar', (col) => col.notNull())
+      .addColumn('opening_date', 'varchar', (col) => col.notNull())
+      .addColumn('hashtag', 'varchar', (col) => col.notNull())
+      .execute();
+
+    await db.schema
       .createTable('message')
       .addColumn('id', 'integer', (col) => col.primaryKey())
       .addColumn('message_type', 'varchar', (col) => col.notNull())
@@ -74,6 +84,7 @@ migrations['001'] = {
   async down(db: Kysely<unknown>) {
     await db.schema.dropIndex('idx_message_type').execute();
     await db.schema.dropTable('message').execute();
+    await db.schema.dropTable('settings').execute();
     await db.schema.dropTable('player').execute();
     await db.schema.dropTable('auth_request').execute();
     await db.schema.dropTable('jwt_mac_key').execute();

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getRobotBskyAgent, unauthenticatedAgent } from '../../bluesky.js';
 import { RichText } from '@atproto/api';
 import { getRandomMessage } from '../../util/getRandomMessage.js';
+import { loadSettings } from '../../lib/settings.js';
 
 export const nudge: FastifyPluginAsync = async (app) => {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -24,8 +25,12 @@ export const nudge: FastifyPluginAsync = async (app) => {
       const { nudge_type } = request.params;
       const { recipient_did, greeting, signoff, ...rest } = request.body;
 
+      const settings = await loadSettings(this.blueskyBridge.db);
       const [messageBody, { data: profile }] = await Promise.all([
-        getRandomMessage(this.blueskyBridge.db, 'nudge-' + nudge_type, rest),
+        getRandomMessage(this.blueskyBridge.db, 'nudge-' + nudge_type, {
+          ...rest,
+          ...settings,
+        }),
         unauthenticatedAgent.getProfile({
           actor: recipient_did,
         }),

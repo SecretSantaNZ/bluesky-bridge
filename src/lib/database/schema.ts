@@ -3,6 +3,7 @@ export interface DatabaseSchema {
   auth_request: AuthRequest;
   message: Message;
   player: Player;
+  settings: Settings;
 }
 
 export interface JwtMacKey {
@@ -35,4 +36,14 @@ export interface Player {
   did: string;
   handle: string;
   following_santa: number;
+}
+
+export interface Settings {
+  id: number;
+  signups_open: number;
+  matches_sent_date: string;
+  send_by_date: string;
+  opening_date: string;
+  hashtag: string;
+  elf_list: string;
 }

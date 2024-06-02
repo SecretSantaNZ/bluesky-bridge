@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { loadSettings } from '../../lib/settings.js';
 
 export const meta: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -27,11 +28,14 @@ export const meta: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function (request, reply) {
-      const result = await this.blueskyBridge.db
-        .selectFrom('message')
-        .select('message')
-        .where('message_type', '=', 'dm-' + request.query.message_type)
-        .execute();
+      const [result, settings] = await Promise.all([
+        this.blueskyBridge.db
+          .selectFrom('message')
+          .select('message')
+          .where('message_type', '=', 'dm-' + request.query.message_type)
+          .execute(),
+        loadSettings(this.blueskyBridge.db),
+      ]);
 
       const uniqueKeys = new Set(
         result.flatMap(({ message }) => {
@@ -39,6 +43,7 @@ export const meta: FastifyPluginAsync = async (rawApp) => {
           return Array.from(matches).map((match) => match[1]);
         })
       );
+      Object.keys(settings).forEach((key) => uniqueKeys.delete(key));
 
       const variables = Array.from(uniqueKeys);
 

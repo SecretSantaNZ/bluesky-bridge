@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { getSantaBskyAgent } from '../../bluesky.js';
 import { RichText } from '@atproto/api';
 import { getRandomMessage } from '../../util/getRandomMessage.js';
+import { loadSettings } from '../../lib/settings.js';
 
 export const templateDm: FastifyPluginAsync = async (app) => {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -24,10 +25,11 @@ export const templateDm: FastifyPluginAsync = async (app) => {
       const { message_type } = request.params;
       const { recipient_did, ...rest } = request.body;
 
-      const rawMessage = await getRandomMessage(
+      const settings = await loadSettings(this.blueskyBridge.db);
+      const rawMessage = getRandomMessage(
         this.blueskyBridge.db,
         'dm-' + message_type,
-        rest
+        { ...rest, ...settings }
       );
 
       const client = await getSantaBskyAgent();

@@ -4,7 +4,7 @@ import type { Database } from '../lib/database/index.js';
 export const getRandomMessage = async (
   db: Database,
   messageType: string,
-  substitutions: Record<string, string>
+  substitutions: Record<string, unknown>
 ) => {
   const messageTemplates = await db
     .selectFrom('message')
@@ -21,7 +21,7 @@ export const getRandomMessage = async (
 
   let message = messageTemplate.message;
   for (const [key, value] of Object.entries(substitutions)) {
-    message = message.replaceAll(`$${key}$`, value);
+    message = message.replaceAll(`$${key}$`, String(value));
   }
 
   return message;
