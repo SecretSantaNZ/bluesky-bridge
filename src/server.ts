@@ -6,6 +6,7 @@ import { Subscription } from './subscription.js';
 import { OauthSessionStore } from './lib/oauth.js';
 import { TokenManager } from './lib/TokenManager.js';
 import { createDb, migrateToLatest } from './lib/database/index.js';
+import { getSantaBskyAgent } from './bluesky.js';
 
 dotenv.config({
   path: [
@@ -45,7 +46,8 @@ const main = async () => {
     authTokenManager.initialize(),
   ]);
 
-  const subscription = new Subscription(db);
+  const santaAgent = await getSantaBskyAgent();
+  const subscription = new Subscription(db, santaAgent.session?.did as string);
   subscription.onPostMatching(
     /!SecretSantaNZ let me in\s*([^\s]+)/i,
     (post, matches) => {

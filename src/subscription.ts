@@ -18,8 +18,34 @@ export class Subscription extends FirehoseSubscriptionBase {
     callback: MatchedPostCallback;
   }> = [];
 
-  constructor(private readonly db: Database) {
+  constructor(
+    private readonly db: Database,
+    private readonly santaAccountDid: string
+  ) {
     super('wss://bsky.network');
+  }
+
+  async notifyFollowingChanged(player_did: string, following_santa: boolean) {
+    const followingChangedWebhook = process.env.FOLLOWING_CHANGED_WEBHOOK;
+
+    if (followingChangedWebhook) {
+      const result = await fetch(followingChangedWebhook, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          player_did,
+          following_santa: true,
+        }),
+      });
+      await result.text();
+      console.log(`Notify Make ${player_did} Following: ${following_santa}`);
+    } else {
+      console.log(
+        `(SKIPPED) Notify Make ${player_did} Following: ${following_santa}`
+      );
+    }
   }
 
   override async handleEvent(evt: RepoEvent) {
@@ -33,6 +59,38 @@ export class Subscription extends FirehoseSubscriptionBase {
           }
         }
       }
+
+      await Promise.all(
+        eventsByType.follows.deletes.map(async (follow) => {
+          const deleteFollowResult = await this.db
+            .updateTable('player')
+            .set({
+              following_santa_uri: null,
+            })
+            .where('following_santa_uri', '=', follow.uri)
+            .returningAll()
+            .executeTakeFirst();
+          if (deleteFollowResult != null) {
+            await this.notifyFollowingChanged(deleteFollowResult.did, false);
+          }
+        })
+      );
+
+      await Promise.all(
+        eventsByType.follows.creates.map(async (follow) => {
+          if (follow.record.subject !== this.santaAccountDid) return;
+          const updatedPlayer = await this.db
+            .updateTable('player')
+            .set({
+              following_santa_uri: follow.uri,
+            })
+            .where('did', '=', follow.author)
+            .returningAll()
+            .executeTakeFirst();
+          if (updatedPlayer == null) return;
+          await this.notifyFollowingChanged(updatedPlayer.did, true);
+        })
+      );
     } else if (ComAtprotoSyncSubscribeRepos.isHandle(evt)) {
       const record = await this.db
         .selectFrom('player')
