@@ -1,5 +1,4 @@
-import type { Database } from './lib/database/index.js';
-import { recordFollow, removeFollow, updateHandle } from './lib/player.js';
+import type { PlayerService } from './lib/PlayerService.js';
 import {
   FirehoseSubscriptionBase,
   getOpsByType,
@@ -19,10 +18,7 @@ export class Subscription extends FirehoseSubscriptionBase {
     callback: MatchedPostCallback;
   }> = [];
 
-  constructor(
-    private readonly db: Database,
-    private readonly santaAccountDid: string
-  ) {
+  constructor(private readonly playerService: PlayerService) {
     super('wss://bsky.network');
   }
 
@@ -40,14 +36,13 @@ export class Subscription extends FirehoseSubscriptionBase {
 
       await Promise.all(
         eventsByType.follows.deletes.map((follow) =>
-          removeFollow(this.db, follow.uri)
+          this.playerService.removeFollow(follow.uri)
         )
       );
 
       await Promise.all(
         eventsByType.follows.creates.map((follow) =>
-          recordFollow(
-            this.db,
+          this.playerService.recordFollow(
             follow.author,
             follow.record.subject,
             follow.uri
@@ -55,7 +50,7 @@ export class Subscription extends FirehoseSubscriptionBase {
         )
       );
     } else if (ComAtprotoSyncSubscribeRepos.isHandle(evt)) {
-      await updateHandle(this.db, evt.did, evt.handle);
+      await this.playerService.updateHandle(evt.did, evt.handle);
     }
   }
 

@@ -1,7 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { createPlayer, deletePlayer } from '../../lib/player.js';
 
 export const player: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -15,9 +14,9 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     },
     async function (request, reply) {
       const { player_did } = request.params;
-      const { db } = this.blueskyBridge;
+      const { playerService } = this.blueskyBridge;
 
-      const player = await createPlayer(db, player_did);
+      const player = await playerService.createPlayer(player_did);
 
       reply.send({
         player,
@@ -34,9 +33,9 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     },
     async function (request, reply) {
       const { player_did } = request.params;
-      const { db } = this.blueskyBridge;
+      const { playerService } = this.blueskyBridge;
 
-      await deletePlayer(db, player_did);
+      await playerService.deletePlayer(player_did);
 
       reply.send({ ok: true });
     }

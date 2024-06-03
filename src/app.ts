@@ -18,6 +18,7 @@ import { sync } from './routes/sync/index.js';
 import { oauth } from './routes/oauth/index.js';
 import { bsky } from './routes/bsky/index.js';
 import type { Database } from './lib/database/index.js';
+import type { PlayerService } from './lib/PlayerService.js';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -25,6 +26,7 @@ declare module 'fastify' {
       oauthSessionStore: OauthSessionStore;
       loginTokenManager: TokenManager;
       authTokenManager: TokenManager;
+      playerService: PlayerService;
       db: Database;
     };
   }
@@ -40,6 +42,7 @@ export const build = async (
     oauthSessionStore: OauthSessionStore;
     loginTokenManager: TokenManager;
     authTokenManager: TokenManager;
+    playerService: PlayerService;
     db: Database;
   }
 ) => {
