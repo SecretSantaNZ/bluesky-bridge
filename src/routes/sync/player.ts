@@ -17,6 +17,7 @@ const fetchRelationships = async (
           $type: 'app.bsky.graph.defs#relationship',
           did: playerDid,
           followedBy: 'self',
+          following: 'self',
         },
       ],
     };
@@ -59,16 +60,15 @@ export const player: FastifyPluginAsync = async (rawApp) => {
         }),
         fetchRelationships(santaDid, player_did),
       ]);
-      const following_santa_uri = AppBskyGraphDefs.isRelationship(
-        relationships[0]
-      )
-        ? relationships[0].followedBy
+      const relationship = AppBskyGraphDefs.isRelationship(relationships[0])
+        ? relationships[0]
         : undefined;
 
       const player: Player = {
         did: player_did,
         handle: profile.handle,
-        following_santa_uri: following_santa_uri ?? null,
+        following_santa_uri: relationship?.followedBy ?? null,
+        santa_following_uri: relationship?.following ?? null,
       };
 
       await db

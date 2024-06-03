@@ -12,6 +12,13 @@ type MatchedPostCallback = (
   post: CreateOp<AppBskyFeedPost.Record>,
   matches: RegExpMatchArray
 ) => void;
+
+const getAuthorFromtUri = (postUri: string | undefined) => {
+  if (postUri == null) return undefined;
+  const [, , repo] = postUri.split('/');
+  return repo;
+};
+
 export class Subscription extends FirehoseSubscriptionBase {
   private postMatchers: Array<{
     matcher: RegExp;
@@ -62,33 +69,53 @@ export class Subscription extends FirehoseSubscriptionBase {
 
       await Promise.all(
         eventsByType.follows.deletes.map(async (follow) => {
-          const deleteFollowResult = await this.db
-            .updateTable('player')
-            .set({
-              following_santa_uri: null,
-            })
-            .where('following_santa_uri', '=', follow.uri)
-            .returningAll()
-            .executeTakeFirst();
-          if (deleteFollowResult != null) {
-            await this.notifyFollowingChanged(deleteFollowResult.did, false);
+          const author = getAuthorFromtUri(follow.uri);
+          if (author === this.santaAccountDid) {
+            await this.db
+              .updateTable('player')
+              .set({
+                santa_following_uri: null,
+              })
+              .where('santa_following_uri', '=', follow.uri)
+              .executeTakeFirst();
+          } else {
+            const deleteFollowResult = await this.db
+              .updateTable('player')
+              .set({
+                following_santa_uri: null,
+              })
+              .where('following_santa_uri', '=', follow.uri)
+              .returningAll()
+              .executeTakeFirst();
+            if (deleteFollowResult != null) {
+              await this.notifyFollowingChanged(deleteFollowResult.did, false);
+            }
           }
         })
       );
 
       await Promise.all(
         eventsByType.follows.creates.map(async (follow) => {
-          if (follow.record.subject !== this.santaAccountDid) return;
-          const updatedPlayer = await this.db
-            .updateTable('player')
-            .set({
-              following_santa_uri: follow.uri,
-            })
-            .where('did', '=', follow.author)
-            .returningAll()
-            .executeTakeFirst();
-          if (updatedPlayer == null) return;
-          await this.notifyFollowingChanged(updatedPlayer.did, true);
+          if (follow.author === this.santaAccountDid) {
+            await this.db
+              .updateTable('player')
+              .set({
+                santa_following_uri: follow.uri,
+              })
+              .where('did', '=', follow.record.subject)
+              .executeTakeFirst();
+          } else if (follow.record.subject === this.santaAccountDid) {
+            const updatedPlayer = await this.db
+              .updateTable('player')
+              .set({
+                following_santa_uri: follow.uri,
+              })
+              .where('did', '=', follow.author)
+              .returningAll()
+              .executeTakeFirst();
+            if (updatedPlayer == null) return;
+            await this.notifyFollowingChanged(updatedPlayer.did, true);
+          }
         })
       );
     } else if (ComAtprotoSyncSubscribeRepos.isHandle(evt)) {

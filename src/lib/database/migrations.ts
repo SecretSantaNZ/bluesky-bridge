@@ -47,6 +47,7 @@ migrations['001'] = {
       .addColumn('did', 'varchar', (col) => col.notNull().unique())
       .addColumn('handle', 'varchar', (col) => col.notNull())
       .addColumn('following_santa_uri', 'varchar')
+      .addColumn('santa_following_uri', 'varchar')
       .execute();
 
     await db.schema
