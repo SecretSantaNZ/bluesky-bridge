@@ -57,6 +57,7 @@ migrations['001'] = {
       .addColumn('send_by_date', 'varchar', (col) => col.notNull())
       .addColumn('opening_date', 'varchar', (col) => col.notNull())
       .addColumn('hashtag', 'varchar', (col) => col.notNull())
+      .addColumn('elf_list', 'varchar', (col) => col.notNull())
       .execute();
 
     await db.schema
