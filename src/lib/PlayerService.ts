@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import {
   AppBskyGraphDefs,
   type AppBskyGraphGetRelationships,
@@ -8,6 +9,7 @@ import fetch from 'node-fetch';
 import { InternalServerError } from 'http-errors-enhanced';
 
 import type { Player as DbPlayer } from './database/schema.js';
+import ms from 'ms';
 
 export type Player = Omit<
   DbPlayer,
@@ -96,6 +98,38 @@ export class PlayerService {
       process.env.HANDLE_CHANGED_WEBHOOK,
       'handle changed'
     );
+
+    setInterval(this.followPlayers.bind(this), ms('1 hour'));
+  }
+
+  private async followPlayers() {
+    const playersToFollow = await this.db
+      .selectFrom('player')
+      .select(['did', 'handle'])
+      .where('santa_following_uri', 'is', null)
+      .limit(4)
+      .execute();
+    console.log(`Found ${playersToFollow.length} players to follow`);
+
+    const santaAgent = await getSantaBskyAgent();
+    for (const { did, handle } of playersToFollow) {
+      try {
+        console.log(`Following ${handle} (${did})`);
+        const { uri } = await santaAgent.follow(did);
+        await this.recordFollow(this.santaAccountDid, did, uri);
+      } catch (error) {
+        // @ts-expect-error
+        console.error(`Error following ${handle} (${did}): ${error.message}`);
+        await this.db
+          .updateTable('player')
+          .set({
+            // @ts-expect-error
+            santa_following_uri: `Error: ${error.message}`,
+          })
+          .where('did', '=', did)
+          .executeTakeFirst();
+      }
+    }
   }
 
   async createPlayer(player_did: string): Promise<Player> {
