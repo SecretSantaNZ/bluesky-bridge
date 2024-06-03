@@ -1,4 +1,5 @@
 import type { Database } from './lib/database/index.js';
+import { recordFollow, removeFollow, updateHandle } from './lib/player.js';
 import {
   FirehoseSubscriptionBase,
   getOpsByType,
@@ -6,18 +7,11 @@ import {
   type RepoEvent,
 } from './util/subscription.js';
 import { AppBskyFeedPost, ComAtprotoSyncSubscribeRepos } from '@atproto/api';
-import fetch from 'node-fetch';
 
 type MatchedPostCallback = (
   post: CreateOp<AppBskyFeedPost.Record>,
   matches: RegExpMatchArray
 ) => void;
-
-const getAuthorFromtUri = (postUri: string | undefined) => {
-  if (postUri == null) return undefined;
-  const [, , repo] = postUri.split('/');
-  return repo;
-};
 
 export class Subscription extends FirehoseSubscriptionBase {
   private postMatchers: Array<{
@@ -30,29 +24,6 @@ export class Subscription extends FirehoseSubscriptionBase {
     private readonly santaAccountDid: string
   ) {
     super('wss://bsky.network');
-  }
-
-  async notifyFollowingChanged(player_did: string, following_santa: boolean) {
-    const followingChangedWebhook = process.env.FOLLOWING_CHANGED_WEBHOOK;
-
-    if (followingChangedWebhook) {
-      const result = await fetch(followingChangedWebhook, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          player_did,
-          following_santa: true,
-        }),
-      });
-      await result.text();
-      console.log(`Notify Make ${player_did} Following: ${following_santa}`);
-    } else {
-      console.log(
-        `(SKIPPED) Notify Make ${player_did} Following: ${following_santa}`
-      );
-    }
   }
 
   override async handleEvent(evt: RepoEvent) {
@@ -68,89 +39,23 @@ export class Subscription extends FirehoseSubscriptionBase {
       }
 
       await Promise.all(
-        eventsByType.follows.deletes.map(async (follow) => {
-          const author = getAuthorFromtUri(follow.uri);
-          if (author === this.santaAccountDid) {
-            await this.db
-              .updateTable('player')
-              .set({
-                santa_following_uri: null,
-              })
-              .where('santa_following_uri', '=', follow.uri)
-              .executeTakeFirst();
-          } else {
-            const deleteFollowResult = await this.db
-              .updateTable('player')
-              .set({
-                following_santa_uri: null,
-              })
-              .where('following_santa_uri', '=', follow.uri)
-              .returningAll()
-              .executeTakeFirst();
-            if (deleteFollowResult != null) {
-              await this.notifyFollowingChanged(deleteFollowResult.did, false);
-            }
-          }
-        })
+        eventsByType.follows.deletes.map((follow) =>
+          removeFollow(this.db, follow.uri)
+        )
       );
 
       await Promise.all(
-        eventsByType.follows.creates.map(async (follow) => {
-          if (follow.author === this.santaAccountDid) {
-            await this.db
-              .updateTable('player')
-              .set({
-                santa_following_uri: follow.uri,
-              })
-              .where('did', '=', follow.record.subject)
-              .executeTakeFirst();
-          } else if (follow.record.subject === this.santaAccountDid) {
-            const updatedPlayer = await this.db
-              .updateTable('player')
-              .set({
-                following_santa_uri: follow.uri,
-              })
-              .where('did', '=', follow.author)
-              .returningAll()
-              .executeTakeFirst();
-            if (updatedPlayer == null) return;
-            await this.notifyFollowingChanged(updatedPlayer.did, true);
-          }
-        })
+        eventsByType.follows.creates.map((follow) =>
+          recordFollow(
+            this.db,
+            follow.author,
+            follow.record.subject,
+            follow.uri
+          )
+        )
       );
     } else if (ComAtprotoSyncSubscribeRepos.isHandle(evt)) {
-      const record = await this.db
-        .selectFrom('player')
-        .select('handle')
-        .where('did', '=', evt.did)
-        .executeTakeFirst();
-      if (record != null && evt.handle !== record.handle) {
-        const handleChangedWebhook = process.env.HANDLE_CHANGED_WEBHOOK;
-        if (handleChangedWebhook) {
-          const result = await fetch(handleChangedWebhook, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              player_did: evt.did,
-              old_handle: record.handle,
-              new_handle: evt.handle,
-            }),
-          });
-          await result.text();
-          console.log(`Notify Make ${record.handle} => ${evt.handle}`);
-        } else {
-          console.log(
-            `(SKIPPED) Notify Make ${record.handle} => ${evt.handle}`
-          );
-        }
-        await this.db
-          .updateTable('player')
-          .set({ handle: evt.handle })
-          .where('did', '=', evt.did)
-          .execute();
-      }
+      await updateHandle(this.db, evt.did, evt.handle);
     }
   }
 
