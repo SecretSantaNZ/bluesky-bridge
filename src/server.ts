@@ -45,7 +45,7 @@ const main = async () => {
     authTokenManager.initialize(),
   ]);
 
-  const subscription = new Subscription();
+  const subscription = new Subscription(db);
   subscription.onPostMatching(
     /!SecretSantaNZ let me in\s*([^\s]+)/i,
     (post, matches) => {

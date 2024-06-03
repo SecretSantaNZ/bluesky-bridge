@@ -20,6 +20,8 @@
           ACTION_PASSWORD_HASH={{ action_password | password_hash('bcrypt') }}
           SYNC_PASSWORD_HASH={{ sync_password | password_hash('bcrypt') }}
           OAUTH_CLIENT_SECRET_HASH={{ oauth_client_secret | password_hash('bcrypt') }}
+
+          HANDLE_CHANGED_WEBHOOK={{ handle_changed_webhook }}
         service_credentials_path: /home/{{ service_name }}/{{ service_name }}-creds.cred
       no_log: true
     - name: Set service credentials fact hashs
