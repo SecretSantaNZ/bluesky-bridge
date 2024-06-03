@@ -18,6 +18,9 @@ export const dm: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       const client = await getSantaBskyAgent();
       const sendFromDid = client.session?.did as string;
+      if (sendFromDid === request.body.recipient_did) {
+        return reply.send({});
+      }
       const {
         data: { convo },
       } = await client.api.chat.bsky.convo.getConvoForMembers(
