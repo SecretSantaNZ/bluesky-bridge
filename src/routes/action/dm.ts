@@ -10,7 +10,7 @@ export const dm: FastifyPluginAsync = async (app) => {
     {
       schema: {
         body: z.object({
-          sendToDid: z.string(),
+          recipient_did: z.string(),
           message: z.string(),
         }),
       },
@@ -22,7 +22,7 @@ export const dm: FastifyPluginAsync = async (app) => {
         data: { convo },
       } = await client.api.chat.bsky.convo.getConvoForMembers(
         {
-          members: [sendFromDid, request.body.sendToDid],
+          members: [sendFromDid, request.body.recipient_did],
         },
         {
           headers: {
