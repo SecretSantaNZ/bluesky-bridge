@@ -46,6 +46,7 @@ migrations['001'] = {
       .addColumn('id', 'integer', (col) => col.primaryKey())
       .addColumn('did', 'varchar', (col) => col.notNull().unique())
       .addColumn('handle', 'varchar', (col) => col.notNull())
+      .addColumn('signup_complete', 'int2', (col) => col.notNull())
       .addColumn('following_santa_uri', 'varchar')
       .addColumn('santa_following_uri', 'varchar')
       .execute();

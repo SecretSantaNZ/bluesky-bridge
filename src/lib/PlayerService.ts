@@ -107,6 +107,7 @@ export class PlayerService {
       .selectFrom('player')
       .select(['did', 'handle'])
       .where('santa_following_uri', 'is', null)
+      .where('signup_complete', '=', 1)
       .limit(4)
       .execute();
     console.log(`Found ${playersToFollow.length} players to follow`);
@@ -132,7 +133,10 @@ export class PlayerService {
     }
   }
 
-  async createPlayer(player_did: string): Promise<Player> {
+  async createPlayer(
+    player_did: string,
+    signup_complete: boolean
+  ): Promise<Player> {
     const [{ data: profile }, { relationships }] = await Promise.all([
       unauthenticatedAgent.getProfile({
         actor: player_did,
@@ -146,6 +150,7 @@ export class PlayerService {
     const player: DbPlayer = {
       did: player_did,
       handle: profile.handle,
+      signup_complete: signup_complete ? 1 : 0,
       following_santa_uri: relationship?.followedBy ?? null,
       santa_following_uri: relationship?.following ?? null,
     };
@@ -231,6 +236,7 @@ export class PlayerService {
       .selectFrom('player')
       .select('handle')
       .where('did', '=', playerDid)
+      .where('signup_complete', '=', 1)
       .executeTakeFirst();
     if (record != null && newHandle !== record.handle) {
       await this.handleChangedWebhook({

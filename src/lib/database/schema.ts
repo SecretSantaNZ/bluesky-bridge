@@ -35,6 +35,7 @@ export interface Player {
   id?: number;
   did: string;
   handle: string;
+  signup_complete: number;
   following_santa_uri: string | null;
   santa_following_uri: string | null;
 }

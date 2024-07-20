@@ -9,14 +9,23 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     '/player/:player_did',
     {
       schema: {
-        params: z.object({ player_did: z.string() }),
+        params: z.object({
+          player_did: z.string(),
+        }),
+        body: z.object({
+          signup_complete: z.boolean(),
+        }),
       },
     },
     async function (request, reply) {
       const { player_did } = request.params;
+      const { signup_complete } = request.body;
       const { playerService } = this.blueskyBridge;
 
-      const player = await playerService.createPlayer(player_did);
+      const player = await playerService.createPlayer(
+        player_did,
+        signup_complete
+      );
 
       reply.send({
         player,
