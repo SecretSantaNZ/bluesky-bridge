@@ -94,6 +94,57 @@ tracking.match.tracking_missing_count = count tracking where tracking.match = ma
 tracking.match.has_no_present = tracking.match.tracking_count = 0 || tracking.match.tracking_missing_count = 1
 ```
 
+## Logged In Header Workflow
+
+### When Logged Out
+```
+go to login page
+```
+
+### When Logged In
+
+```
+if player is deactivated:
+  go to opt out or deactivated page
+## Don't think this is needed as we do it on login
+else if user.player is null && signups closed
+  go to signups closed
+```
+
+## Login Page Workflow
+
+### When Logged in
+
+```
+if user.player is null:
+  user.player = player where player.bluseky_did = user.bluesky_did
+if player is deactivated:
+  go to opt out or deactivated page
+else if user.player is null && signups closed
+  go to signups closed
+else
+  sync player to bluesky bridge
+  if user.player is null:
+    create player
+      bluesky_handle = bridge.handle
+      bluesky_did = bridge.did
+      following_secret_santa = bridge.following_secret_santa
+    set user.player = created player
+  go back to page
+```
+
+## User Page Workflow
+
+### When Logged In
+
+```
+## Don't think this is needed as we do it in the common header
+if player is deactivated:
+  go to opt out or deactivated page
+else
+  if player.address is empty => show fill in address
+  if player.game_mode is empty => show fill in game_mode
+```
 
 ## Player Lifecycle
 
