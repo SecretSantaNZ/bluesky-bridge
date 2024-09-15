@@ -7,9 +7,11 @@ export type Database = Kysely<DatabaseSchema>;
 
 export const createDb = (): Database => {
   const location = process.env.SQLITE_LOCATION ?? ':memory:';
+  const database = new SqliteDb(location);
+  database.pragma('journal_mode = WAL');
   return new Kysely<DatabaseSchema>({
     dialect: new SqliteDialect({
-      database: new SqliteDb(location),
+      database,
     }),
   });
 };
