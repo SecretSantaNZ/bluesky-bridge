@@ -13,8 +13,8 @@ import ms from 'ms';
 
 export type Player = Omit<
   DbPlayer,
-  'following_santa_uri' | 'santa_following_uri'
-> & { following_santa: boolean };
+  'following_santa_uri' | 'santa_following_uri' | 'signup_complete'
+> & { following_santa: boolean; signup_complete: boolean };
 
 const fetchRelationships = async (
   santaDid: string,
@@ -163,7 +163,11 @@ export class PlayerService {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { following_santa_uri, santa_following_uri, ...rest } = player;
-    return { ...rest, following_santa: following_santa_uri != null };
+    return {
+      ...rest,
+      following_santa: following_santa_uri != null,
+      signup_complete: Boolean(signup_complete),
+    };
   }
 
   async deletePlayer(player_did: string): Promise<void> {
