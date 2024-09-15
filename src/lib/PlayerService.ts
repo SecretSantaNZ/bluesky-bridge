@@ -8,8 +8,10 @@ import type { Database } from './database/index.js';
 import fetch from 'node-fetch';
 import { InternalServerError } from 'http-errors-enhanced';
 
-import type { Player as DbPlayer } from './database/schema.js';
+import type { DatabaseSchema, Player as DbPlayer } from './database/schema.js';
 import ms from 'ms';
+import type { ExpressionBuilder } from 'kysely';
+import type { InsertObject } from 'kysely';
 
 export type Player = Omit<
   DbPlayer,
@@ -82,6 +84,32 @@ const getAuthorFromUri = (postUri: string | undefined) => {
   return repo;
 };
 
+const buildSetSignupComplete = (
+  eb: ExpressionBuilder<DatabaseSchema, 'player'>,
+  {
+    following_santa_uri,
+    registration_complete,
+  }: Pick<DbPlayer, 'following_santa_uri' | 'registration_complete'>
+): Pick<InsertObject<DatabaseSchema, 'player'>, 'signup_complete'> => {
+  if (!following_santa_uri) {
+    return { signup_complete: 0 };
+  }
+  if (registration_complete == null) {
+    return {
+      signup_complete: eb
+        .case()
+        .when('registration_complete', '=', 1)
+        .then(1)
+        .else(0)
+        .end(),
+    };
+  }
+  if (registration_complete && following_santa_uri) {
+    return { signup_complete: 1 };
+  }
+  return { signup_complete: 0 };
+};
+
 export class PlayerService {
   private readonly followingChangedWebhook: WebhookNotifier<{
     player_did: string;
@@ -142,7 +170,7 @@ export class PlayerService {
 
   async createPlayer(
     player_did: string,
-    signup_complete?: boolean
+    registration_complete?: boolean
   ): Promise<Player> {
     const [{ data: profile }, { relationships }] = await Promise.all([
       unauthenticatedAgent.getProfile({
@@ -159,15 +187,25 @@ export class PlayerService {
       handle: profile.handle,
       following_santa_uri: relationship?.followedBy ?? null,
       santa_following_uri: relationship?.following ?? null,
-      ...(signup_complete != null
-        ? { signup_complete: signup_complete ? 1 : 0 }
+      ...(registration_complete != null
+        ? { registration_complete: registration_complete ? 1 : 0 }
         : undefined),
     };
 
     const savedPlayer = await this.db
       .insertInto('player')
-      .values(player)
-      .onConflict((oc) => oc.column('did').doUpdateSet(player))
+      .values({
+        registration_complete: 0,
+        signup_complete:
+          player.following_santa_uri != null && registration_complete ? 1 : 0,
+        ...player,
+      })
+      .onConflict((oc) =>
+        oc.column('did').doUpdateSet((eb) => ({
+          ...player,
+          ...buildSetSignupComplete(eb, player),
+        }))
+      )
       .returningAll()
       .execute();
 
