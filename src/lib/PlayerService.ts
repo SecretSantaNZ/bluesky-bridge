@@ -13,8 +13,15 @@ import ms from 'ms';
 
 export type Player = Omit<
   DbPlayer,
-  'following_santa_uri' | 'santa_following_uri' | 'signup_complete'
-> & { following_santa: boolean; signup_complete: boolean };
+  | 'following_santa_uri'
+  | 'santa_following_uri'
+  | 'registration_complete'
+  | 'signup_complete'
+> & {
+  following_santa: boolean;
+  registration_complete: boolean;
+  signup_complete: boolean;
+};
 
 const fetchRelationships = async (
   santaDid: string,
@@ -135,7 +142,7 @@ export class PlayerService {
 
   async createPlayer(
     player_did: string,
-    signup_complete: boolean
+    signup_complete?: boolean
   ): Promise<Player> {
     const [{ data: profile }, { relationships }] = await Promise.all([
       unauthenticatedAgent.getProfile({
@@ -150,23 +157,28 @@ export class PlayerService {
     const player: DbPlayer = {
       did: player_did,
       handle: profile.handle,
-      signup_complete: signup_complete ? 1 : 0,
       following_santa_uri: relationship?.followedBy ?? null,
       santa_following_uri: relationship?.following ?? null,
+      ...(signup_complete != null
+        ? { signup_complete: signup_complete ? 1 : 0 }
+        : undefined),
     };
 
-    await this.db
+    const savedPlayer = await this.db
       .insertInto('player')
       .values(player)
       .onConflict((oc) => oc.column('did').doUpdateSet(player))
+      .returningAll()
       .execute();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { following_santa_uri, santa_following_uri, ...rest } = player;
+    const { following_santa_uri, santa_following_uri, ...rest } =
+      savedPlayer[0] as DbPlayer;
     return {
       ...rest,
       following_santa: following_santa_uri != null,
-      signup_complete: Boolean(signup_complete),
+      registration_complete: Boolean(rest.registration_complete),
+      signup_complete: Boolean(rest.signup_complete),
     };
   }
 

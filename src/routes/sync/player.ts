@@ -5,6 +5,27 @@ import { z } from 'zod';
 export const player: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
 
+  app.get(
+    '/player/:player_did',
+    {
+      schema: {
+        params: z.object({
+          player_did: z.string(),
+        }),
+      },
+    },
+    async function (request, reply) {
+      const { player_did } = request.params;
+      const { playerService } = this.blueskyBridge;
+
+      const player = await playerService.createPlayer(player_did);
+
+      reply.send({
+        player,
+      });
+    }
+  );
+
   app.put(
     '/player/:player_did',
     {
