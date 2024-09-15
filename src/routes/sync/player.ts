@@ -34,18 +34,18 @@ export const player: FastifyPluginAsync = async (rawApp) => {
           player_did: z.string(),
         }),
         body: z.object({
-          signup_complete: z.boolean(),
+          registration_complete: z.boolean(),
         }),
       },
     },
     async function (request, reply) {
       const { player_did } = request.params;
-      const { signup_complete } = request.body;
+      const { registration_complete } = request.body;
       const { playerService } = this.blueskyBridge;
 
       const player = await playerService.createPlayer(
         player_did,
-        signup_complete
+        registration_complete
       );
 
       reply.send({
