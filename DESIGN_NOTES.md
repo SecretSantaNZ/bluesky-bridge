@@ -106,9 +106,6 @@ go to login page
 ```
 if player is deactivated:
   go to opt out or deactivated page
-## Don't think this is needed as we do it on login
-else if user.player is null && signups closed
-  go to signups closed
 ```
 
 ## Login Page Workflow
@@ -138,12 +135,8 @@ else
 ### When Logged In
 
 ```
-## Don't think this is needed as we do it in the common header
-if player is deactivated:
-  go to opt out or deactivated page
-else
-  if player.address is empty => show fill in address
-  if player.game_mode is empty => show fill in game_mode
+if player.address is empty => show fill in address
+if player.game_mode is empty => show fill in game_mode
 ```
 
 ## Player Lifecycle
