@@ -150,18 +150,19 @@ else
 
 ```mermaid
 stateDiagram
-  [*] --> LinkedPlayer : First Signin
-  [*] --> UnlinkedPlayer : Elf Register
-  UnlinkedPlayer --> LinkedPlayer : First Signin
-  LinkedPlayer --> RegistrationComplete : Fill in Address and Game Mode
-  RegistrationComplete --> SignupComplete : Follow
+  state Active {
+    direction LR
+    [*] --> Incomplete: first signin - queries follow status from bridge, creates player in bridge
+    [*] --> Incomplete: elf add player - queries follow status from bridge, creates player in bridge
+    Incomplete --> if_following: last of filling out address or following, puts registration complete to bridge
+    Incomplete --> if_following: (elf) last of filling out address or following, puts registration complete to bridge
+    state if_following <<choice>>
+    if_following --> RegistrationComplete: if not following
+    if_following --> SignupComplete: if following
+    RegistrationComplete --> SignupComplete: on follow
+  }
 
-  LinkedPlayer --> BootedOut : boot out
-  UnlinkedPlayer --> BootedOut : boot out
-  RegistrationComplete --> BootedOut : boot out
-  SignupComplete --> BootedOut : boot out
-
-  LinkedPlayer --> OptedOut   : opt out
-  RegistrationComplete --> OptedOut : opt out
-  SignupComplete --> OptedOut : opt out
+  Active --> OptedOut: opt out - delete player from bridge
+  Active --> BootedOut: elf boot out - delete player from bridge
+  OptedOut --> Active: opt in - queries follow status from bridge, creates player in bridge
 ```
