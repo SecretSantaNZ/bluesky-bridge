@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { getRobotBskyAgent, unauthenticatedAgent } from '../../bluesky.js';
+import { unauthenticatedAgent } from '../../bluesky.js';
 import { RichText } from '@atproto/api';
 import { getRandomMessage } from '../../util/getRandomMessage.js';
 import { loadSettings } from '../../lib/settings.js';
@@ -37,7 +37,7 @@ export const nudge: FastifyPluginAsync = async (app) => {
       ]);
 
       const rawMessage = `${greeting} @${profile.handle}. ${messageBody} ${signoff} [Sent by 🤖]`;
-      const client = await getRobotBskyAgent();
+      const client = app.blueskyBridge.robotAgent;
 
       const message = new RichText({
         text: rawMessage,

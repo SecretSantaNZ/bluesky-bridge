@@ -1,31 +1,15 @@
-import { BskyAgent } from '@atproto/api';
+import { Agent, AtpAgent } from '@atproto/api';
+import type { NodeOAuthClient } from '@atproto/oauth-client-node';
 
-export const unauthenticatedAgent = new BskyAgent({
+export const unauthenticatedAgent = new AtpAgent({
   service: 'https://public.api.bsky.app',
 });
 
-const agent = new BskyAgent({
-  service: 'https://bsky.social',
-});
-
-export const getSantaBskyAgent = async () => {
-  if (!agent.hasSession) {
-    console.log('logging in');
-    await agent.login({
-      identifier: process.env.SANTA_BLUESKY_HANDLE ?? 'unknown',
-      password: process.env.SANTA_BLUESKY_PASSWORD ?? 'unknown',
-    });
-  }
-  return agent;
-};
-
-export const getRobotBskyAgent = async () => {
-  if (!agent.hasSession) {
-    console.log('logging in');
-    await agent.login({
-      identifier: process.env.ROBOT_BLUESKY_HANDLE ?? 'unknown',
-      password: process.env.ROBOT_BLUESKY_PASSWORD ?? 'unknown',
-    });
-  }
-  return agent;
+export const buildAtpClient = async (
+  client: NodeOAuthClient,
+  handle: string
+) => {
+  const resolveHandle = await unauthenticatedAgent.resolveHandle({ handle });
+  const session = await client.restore(resolveHandle.data.did);
+  return new Agent(session);
 };

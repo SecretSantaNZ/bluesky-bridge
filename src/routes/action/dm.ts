@@ -1,7 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { getSantaBskyAgent } from '../../bluesky.js';
 import { RichText } from '@atproto/api';
 
 export const dm: FastifyPluginAsync = async (app) => {
@@ -16,8 +15,8 @@ export const dm: FastifyPluginAsync = async (app) => {
       },
     },
     async (request, reply) => {
-      const client = await getSantaBskyAgent();
-      const sendFromDid = client.session?.did as string;
+      const client = app.blueskyBridge.santaAgent;
+      const sendFromDid = client.sessionManager.did as string;
       if (sendFromDid === request.body.recipient_did) {
         return reply.send({});
       }

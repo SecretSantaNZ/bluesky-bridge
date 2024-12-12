@@ -7,7 +7,7 @@ import { build } from './app.js';
 import { OauthSessionStore } from './lib/oauth.js';
 import { TokenManager } from './lib/TokenManager.js';
 import { createDb, migrateToLatest } from './lib/database/index.js';
-import { getSantaBskyAgent } from './bluesky.js';
+import { buildAtpClient } from './bluesky.js';
 import { PlayerService } from './lib/PlayerService.js';
 import { initAtLoginClient } from './lib/initAtLoginClient.js';
 
@@ -43,9 +43,17 @@ const main = async () => {
     '1 day'
   );
 
-  await Promise.all([
+  const [atOauthClient] = await Promise.all([
+    initAtLoginClient({
+      database: db,
+      basePath: process.env.PUBLIC_BASE_URL as string,
+    }),
     loginTokenManager.initialize(),
     authTokenManager.initialize(),
+  ]);
+  const [santaAgent, robotAgent] = await Promise.all([
+    buildAtpClient(atOauthClient, process.env.SANTA_BLUESKY_HANDLE as string),
+    buildAtpClient(atOauthClient, process.env.ROBOT_BLUESKY_HANDLE as string),
   ]);
   const didResolver = new DidResolver({
     didCache: new MemoryCache(),
@@ -53,11 +61,7 @@ const main = async () => {
     timeout: 3000,
   });
 
-  // const santaAgent = await getSantaBskyAgent();
-  // const playerService = new PlayerService(
-  //   db,
-  //   santaAgent.session?.did as string
-  // );
+  const playerService = new PlayerService(db, santaAgent);
   // const subscription = new Subscription(playerService);
   // subscription.onPostMatching(
   //   /!SecretSantaNZ let me in\s*([^\s]+)/i,
@@ -72,13 +76,11 @@ const main = async () => {
       oauthSessionStore,
       loginTokenManager,
       authTokenManager,
-      // @ts-expect-error temp
-      playerService: undefined,
+      playerService,
       db,
-      atOauthClient: await initAtLoginClient({
-        database: db,
-        basePath: process.env.PUBLIC_BASE_URL as string,
-      }),
+      atOauthClient,
+      santaAgent,
+      robotAgent,
       didResolver,
     }
   );

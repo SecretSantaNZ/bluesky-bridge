@@ -22,6 +22,7 @@ import type { PlayerService } from './lib/PlayerService.js';
 import type { NodeOAuthClient } from '@atproto/oauth-client-node';
 import { at_oauth } from './routes/at_oauth/index.js';
 import type { DidResolver } from '@atproto/identity';
+import type { Agent } from '@atproto/api';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -32,6 +33,8 @@ declare module 'fastify' {
       playerService: PlayerService;
       db: Database;
       atOauthClient: NodeOAuthClient;
+      santaAgent: Agent;
+      robotAgent: Agent;
       didResolver: DidResolver;
     };
   }

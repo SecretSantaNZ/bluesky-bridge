@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import {
+  Agent,
   AppBskyGraphDefs,
   type AppBskyGraphGetRelationships,
 } from '@atproto/api';
-import { getSantaBskyAgent, unauthenticatedAgent } from '../bluesky.js';
+import { unauthenticatedAgent } from '../bluesky.js';
 import type { Database } from './database/index.js';
 import fetch from 'node-fetch';
 import { InternalServerError } from 'http-errors-enhanced';
@@ -120,10 +121,11 @@ export class PlayerService {
     old_handle: string;
     new_handle: string;
   }>;
+  private readonly santaAccountDid: string;
 
   constructor(
     private readonly db: Database,
-    private readonly santaAccountDid: string
+    private readonly santaAgent: Agent
   ) {
     this.followingChangedWebhook = buildWebhookNotifier(
       process.env.FOLLOWING_CHANGED_WEBHOOK,
@@ -133,6 +135,7 @@ export class PlayerService {
       process.env.HANDLE_CHANGED_WEBHOOK,
       'handle changed'
     );
+    this.santaAccountDid = santaAgent.sessionManager.did as string;
 
     setInterval(this.followPlayers.bind(this), ms('1 hour'));
   }
@@ -147,11 +150,10 @@ export class PlayerService {
       .execute();
     console.log(`Found ${playersToFollow.length} players to follow`);
 
-    const santaAgent = await getSantaBskyAgent();
     for (const { did, handle } of playersToFollow) {
       try {
         console.log(`Following ${handle} (${did})`);
-        const { uri } = await santaAgent.follow(did);
+        const { uri } = await this.santaAgent.follow(did);
         await this.recordFollow(this.santaAccountDid, did, uri);
       } catch (error) {
         // @ts-expect-error
@@ -256,10 +258,8 @@ export class PlayerService {
   }
 
   async removeFollow(followUri: string) {
-    const santaAgent = await getSantaBskyAgent();
-    const santaAccountDid = santaAgent.session?.did;
     const author = getAuthorFromUri(followUri);
-    if (author === santaAccountDid) {
+    if (author === this.santaAccountDid) {
       await this.db
         .updateTable('player')
         .set({

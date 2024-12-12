@@ -1,4 +1,3 @@
-import { Agent } from '@atproto/api';
 import { randomUUID } from 'crypto';
 import type { FastifyPluginAsync } from 'fastify';
 

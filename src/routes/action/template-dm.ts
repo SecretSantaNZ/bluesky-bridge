@@ -1,7 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { getSantaBskyAgent } from '../../bluesky.js';
 import { RichText } from '@atproto/api';
 import { getRandomMessage } from '../../util/getRandomMessage.js';
 import { loadSettings } from '../../lib/settings.js';
@@ -25,11 +24,9 @@ export const templateDm: FastifyPluginAsync = async (app) => {
       const { message_type } = request.params;
       const { recipient_did, ...rest } = request.body;
 
-      const [settings, client] = await Promise.all([
-        loadSettings(this.blueskyBridge.db),
-        getSantaBskyAgent(),
-      ]);
-      const sendFromDid = client.session?.did as string;
+      const settings = await loadSettings(this.blueskyBridge.db);
+      const client = app.blueskyBridge.santaAgent;
+      const sendFromDid = client.sessionManager.did as string;
       if (sendFromDid === request.body.recipient_did) {
         return reply.send({});
       }
