@@ -1,5 +1,8 @@
 export interface DatabaseSchema {
   jwt_mac_key: JwtMacKey;
+  jwk_key: JwkKey;
+  at_oauth_state: AtOauthState;
+  at_oauth_session: AtOauthSession;
   auth_request: AuthRequest;
   message: Message;
   player: Player;
@@ -10,6 +13,24 @@ export interface JwtMacKey {
   kid: string;
   audience: string;
   key_bytes: Buffer;
+  created_at: string;
+}
+
+export interface JwkKey {
+  kid: string;
+  jwk_json: string;
+  created_at: string;
+}
+
+export interface AtOauthState {
+  key: string;
+  data: string;
+  created_at: string;
+}
+
+export interface AtOauthSession {
+  key: string;
+  data: string;
   created_at: string;
 }
 

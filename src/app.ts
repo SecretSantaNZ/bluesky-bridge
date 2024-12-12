@@ -1,5 +1,5 @@
 import type * as http from 'http';
-import fastify from 'fastify';
+import fastify, { type FastifyInstance } from 'fastify';
 import {
   serializerCompiler,
   validatorCompiler,
@@ -19,6 +19,9 @@ import { oauth } from './routes/oauth/index.js';
 import { bsky } from './routes/bsky/index.js';
 import type { Database } from './lib/database/index.js';
 import type { PlayerService } from './lib/PlayerService.js';
+import type { NodeOAuthClient } from '@atproto/oauth-client-node';
+import { at_oauth } from './routes/at_oauth/index.js';
+import type { DidResolver } from '@atproto/identity';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -28,6 +31,8 @@ declare module 'fastify' {
       authTokenManager: TokenManager;
       playerService: PlayerService;
       db: Database;
+      atOauthClient: NodeOAuthClient;
+      didResolver: DidResolver;
     };
   }
 
@@ -38,13 +43,7 @@ declare module 'fastify' {
 
 export const build = async (
   opts: fastify.FastifyHttpOptions<http.Server>,
-  blueskyBridge: {
-    oauthSessionStore: OauthSessionStore;
-    loginTokenManager: TokenManager;
-    authTokenManager: TokenManager;
-    playerService: PlayerService;
-    db: Database;
-  }
+  blueskyBridge: FastifyInstance['blueskyBridge']
 ) => {
   const app = fastify(opts);
   app.decorate('blueskyBridge', blueskyBridge);
@@ -67,6 +66,7 @@ export const build = async (
   await app.register(sync, { prefix: '/sync' });
   await app.register(oauth, { prefix: '/oauth' });
   await app.register(bsky, { prefix: '/bsky' });
+  await app.register(at_oauth);
 
   return app;
 };

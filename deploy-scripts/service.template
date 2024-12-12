@@ -18,6 +18,7 @@ Environment=SYNC_USERNAME={{ sync_username }}
 Environment=OAUTH_CLIENT_ID={{ oauth_client_id }}
 Environment=OAUTH_REDIRECT_URI={{ oauth_redirect_uri }}
 Environment=TOKEN_ISSUER={{ inventory_hostname }}
+Environment=PUBLIC_BASE_URL=https://{{ inventory_hostname }}
 
 LoadCredentialEncrypted={{ service_name }}-creds:/home/{{ service_name }}/{{ service_name }}-creds.cred
 

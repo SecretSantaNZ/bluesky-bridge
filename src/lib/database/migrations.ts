@@ -27,6 +27,27 @@ migrations['001'] = {
       .execute();
 
     await db.schema
+      .createTable('jwk_key')
+      .addColumn('kid', 'varchar', (col) => col.primaryKey())
+      .addColumn('jwk_json', 'varchar', (col) => col.notNull())
+      .addColumn('created_at', 'varchar', (col) => col.notNull())
+      .execute();
+
+    await db.schema
+      .createTable('at_oauth_state')
+      .addColumn('key', 'varchar', (col) => col.primaryKey())
+      .addColumn('data', 'varchar', (col) => col.notNull())
+      .addColumn('created_at', 'varchar', (col) => col.notNull())
+      .execute();
+
+    await db.schema
+      .createTable('at_oauth_session')
+      .addColumn('key', 'varchar', (col) => col.primaryKey())
+      .addColumn('data', 'varchar', (col) => col.notNull())
+      .addColumn('created_at', 'varchar', (col) => col.notNull())
+      .execute();
+
+    await db.schema
       .createTable('auth_request')
       .addColumn('post_key', 'varchar', (col) => col.notNull().unique())
       .addColumn('auth_code', 'varchar', (col) => col.notNull().unique())

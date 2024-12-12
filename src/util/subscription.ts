@@ -11,6 +11,7 @@ import {
 
 import { unauthenticatedAgent } from '../bluesky.js';
 
+// @ts-expect-error temp
 const lex = unauthenticatedAgent.api.xrpc.baseClient.lex;
 
 export type RepoEvent =

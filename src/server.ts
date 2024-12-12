@@ -1,13 +1,15 @@
 import path from 'path';
 import dotenv from 'dotenv';
+import { DidResolver, MemoryCache } from '@atproto/identity';
 
 import { build } from './app.js';
-import { Subscription } from './subscription.js';
+// import { Subscription } from './subscription.js';
 import { OauthSessionStore } from './lib/oauth.js';
 import { TokenManager } from './lib/TokenManager.js';
 import { createDb, migrateToLatest } from './lib/database/index.js';
 import { getSantaBskyAgent } from './bluesky.js';
 import { PlayerService } from './lib/PlayerService.js';
+import { initAtLoginClient } from './lib/initAtLoginClient.js';
 
 dotenv.config({
   path: [
@@ -41,24 +43,28 @@ const main = async () => {
     '1 day'
   );
 
-  // TODO, pull and rotate from database so things don't break on restart
   await Promise.all([
     loginTokenManager.initialize(),
     authTokenManager.initialize(),
   ]);
+  const didResolver = new DidResolver({
+    didCache: new MemoryCache(),
+    plcUrl: 'https://plc.directory',
+    timeout: 3000,
+  });
 
-  const santaAgent = await getSantaBskyAgent();
-  const playerService = new PlayerService(
-    db,
-    santaAgent.session?.did as string
-  );
-  const subscription = new Subscription(playerService);
-  subscription.onPostMatching(
-    /!SecretSantaNZ let me in\s*([^\s]+)/i,
-    (post, matches) => {
-      oauthSessionStore.keyPostSeen(matches[1] as string, post.author);
-    }
-  );
+  // const santaAgent = await getSantaBskyAgent();
+  // const playerService = new PlayerService(
+  //   db,
+  //   santaAgent.session?.did as string
+  // );
+  // const subscription = new Subscription(playerService);
+  // subscription.onPostMatching(
+  //   /!SecretSantaNZ let me in\s*([^\s]+)/i,
+  //   (post, matches) => {
+  //     oauthSessionStore.keyPostSeen(matches[1] as string, post.author);
+  //   }
+  // );
 
   const app = await build(
     { logger: true },
@@ -66,12 +72,18 @@ const main = async () => {
       oauthSessionStore,
       loginTokenManager,
       authTokenManager,
-      playerService,
+      // @ts-expect-error temp
+      playerService: undefined,
       db,
+      atOauthClient: await initAtLoginClient({
+        database: db,
+        basePath: process.env.PUBLIC_BASE_URL as string,
+      }),
+      didResolver,
     }
   );
 
-  subscription.run(3000);
+  // subscription.run(3000);
 
   app.listen({ port: 3000 }, (err) => {
     if (err) {
