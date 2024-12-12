@@ -33,8 +33,8 @@ declare module 'fastify' {
       playerService: PlayerService;
       db: Database;
       atOauthClient: NodeOAuthClient;
-      santaAgent: Agent;
-      robotAgent: Agent;
+      santaAgent: () => Promise<Agent>;
+      robotAgent: () => Promise<Agent>;
       didResolver: DidResolver;
     };
   }

@@ -121,11 +121,11 @@ export class PlayerService {
     old_handle: string;
     new_handle: string;
   }>;
-  private readonly santaAccountDid: string;
 
   constructor(
     private readonly db: Database,
-    private readonly santaAgent: Agent
+    private readonly santaAgent: () => Promise<Agent>,
+    private readonly santaAccountDid: string
   ) {
     this.followingChangedWebhook = buildWebhookNotifier(
       process.env.FOLLOWING_CHANGED_WEBHOOK,
@@ -135,7 +135,6 @@ export class PlayerService {
       process.env.HANDLE_CHANGED_WEBHOOK,
       'handle changed'
     );
-    this.santaAccountDid = santaAgent.sessionManager.did as string;
 
     setInterval(this.followPlayers.bind(this), ms('1 hour'));
   }
@@ -153,7 +152,8 @@ export class PlayerService {
     for (const { did, handle } of playersToFollow) {
       try {
         console.log(`Following ${handle} (${did})`);
-        const { uri } = await this.santaAgent.follow(did);
+        const agent = await this.santaAgent();
+        const { uri } = await agent.follow(did);
         await this.recordFollow(this.santaAccountDid, did, uri);
       } catch (error) {
         // @ts-expect-error

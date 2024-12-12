@@ -37,7 +37,7 @@ export const nudge: FastifyPluginAsync = async (app) => {
       ]);
 
       const rawMessage = `${greeting} @${profile.handle}. ${messageBody} ${signoff} [Sent by 🤖]`;
-      const client = app.blueskyBridge.robotAgent;
+      const client = await app.blueskyBridge.robotAgent();
 
       const message = new RichText({
         text: rawMessage,

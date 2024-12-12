@@ -25,7 +25,7 @@ export const templateDm: FastifyPluginAsync = async (app) => {
       const { recipient_did, ...rest } = request.body;
 
       const settings = await loadSettings(this.blueskyBridge.db);
-      const client = app.blueskyBridge.santaAgent;
+      const client = await app.blueskyBridge.santaAgent();
       const sendFromDid = client.sessionManager.did as string;
       if (sendFromDid === request.body.recipient_did) {
         return reply.send({});

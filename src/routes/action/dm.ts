@@ -15,7 +15,7 @@ export const dm: FastifyPluginAsync = async (app) => {
       },
     },
     async (request, reply) => {
-      const client = app.blueskyBridge.santaAgent;
+      const client = await app.blueskyBridge.santaAgent();
       const sendFromDid = client.sessionManager.did as string;
       if (sendFromDid === request.body.recipient_did) {
         return reply.send({});

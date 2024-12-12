@@ -51,7 +51,7 @@ const main = async () => {
     loginTokenManager.initialize(),
     authTokenManager.initialize(),
   ]);
-  const [santaAgent, robotAgent] = await Promise.all([
+  const [[santaAgent, santaAccountDid], [robotAgent]] = await Promise.all([
     buildAtpClient(atOauthClient, process.env.SANTA_BLUESKY_HANDLE as string),
     buildAtpClient(atOauthClient, process.env.ROBOT_BLUESKY_HANDLE as string),
   ]);
@@ -61,7 +61,7 @@ const main = async () => {
     timeout: 3000,
   });
 
-  const playerService = new PlayerService(db, santaAgent);
+  const playerService = new PlayerService(db, santaAgent, santaAccountDid);
   // const subscription = new Subscription(playerService);
   // subscription.onPostMatching(
   //   /!SecretSantaNZ let me in\s*([^\s]+)/i,
