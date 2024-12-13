@@ -51,9 +51,11 @@ const main = async () => {
     loginTokenManager.initialize(),
     authTokenManager.initialize(),
   ]);
+  const santaHandle = process.env.SANTA_BLUESKY_HANDLE as string;
+  const robotHandle = process.env.ROBOT_BLUESKY_HANDLE as string;
   const [[santaAgent, santaAccountDid], [robotAgent]] = await Promise.all([
-    buildAtpClient(atOauthClient, process.env.SANTA_BLUESKY_HANDLE as string),
-    buildAtpClient(atOauthClient, process.env.ROBOT_BLUESKY_HANDLE as string),
+    buildAtpClient(atOauthClient, santaHandle),
+    buildAtpClient(atOauthClient, robotHandle),
   ]);
   const didResolver = new DidResolver({
     didCache: new MemoryCache(),
@@ -79,6 +81,9 @@ const main = async () => {
       playerService,
       db,
       atOauthClient,
+      fullScopeHandles: new Set(
+        [santaHandle, robotHandle].map((s) => s.toLowerCase())
+      ),
       santaAgent,
       robotAgent,
       didResolver,

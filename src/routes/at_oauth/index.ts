@@ -18,19 +18,29 @@ export const at_oauth: FastifyPluginAsync = async (app) => {
 
     console.log('User authenticated as:', session.did);
 
-    const didDoc = await app.blueskyBridge.didResolver.resolve(session.did);
+    const [didDoc, profile] = await Promise.all([
+      app.blueskyBridge.didResolver.resolve(session.did),
+      app.blueskyBridge
+        .santaAgent()
+        .then((agent) => agent.getProfile({ actor: session.did })),
+    ]);
 
-    reply.send(didDoc);
+    reply.send({ didDoc, profile });
   });
   app.get('/atproto-login', async (request, reply) => {
     const client = app.blueskyBridge.atOauthClient;
     // @ts-expect-error query is untyped
-    const handle = request.query.handle;
+    const handle = request.query.handle as string;
+    const fullPerms = app.blueskyBridge.fullScopeHandles.has(
+      handle.toLowerCase()
+    );
     const state = randomUUID();
 
     const url = await client.authorize(handle, {
       state,
-      scope: 'atproto',
+      scope: fullPerms
+        ? 'atproto transition:generic transition:chat.bsky'
+        : 'atproto',
     });
 
     reply.redirect(307, url.href);
