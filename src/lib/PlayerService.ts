@@ -9,20 +9,18 @@ import type { Database } from './database/index.js';
 import fetch from 'node-fetch';
 import { InternalServerError } from 'http-errors-enhanced';
 
-import type { DatabaseSchema, Player as DbPlayer } from './database/schema.js';
+import type { Player as DbPlayer } from './database/schema.js';
 import ms from 'ms';
-import type { ExpressionBuilder } from 'kysely';
-import type { InsertObject } from 'kysely';
 
 export type Player = Omit<
   DbPlayer,
   | 'following_santa_uri'
   | 'santa_following_uri'
-  | 'registration_complete'
+  | 'profile_complete'
   | 'signup_complete'
 > & {
   following_santa: boolean;
-  registration_complete: boolean;
+  profile_complete: boolean;
   signup_complete: boolean;
 };
 
@@ -85,32 +83,6 @@ const getAuthorFromUri = (postUri: string | undefined) => {
   return repo;
 };
 
-const buildSetSignupComplete = (
-  eb: ExpressionBuilder<DatabaseSchema, 'player'>,
-  {
-    following_santa_uri,
-    registration_complete,
-  }: Pick<DbPlayer, 'following_santa_uri' | 'registration_complete'>
-): Pick<InsertObject<DatabaseSchema, 'player'>, 'signup_complete'> => {
-  if (!following_santa_uri) {
-    return { signup_complete: 0 };
-  }
-  if (registration_complete == null) {
-    return {
-      signup_complete: eb
-        .case()
-        .when('registration_complete', '=', 1)
-        .then(1)
-        .else(0)
-        .end(),
-    };
-  }
-  if (registration_complete && following_santa_uri) {
-    return { signup_complete: 1 };
-  }
-  return { signup_complete: 0 };
-};
-
 export class PlayerService {
   private readonly followingChangedWebhook: WebhookNotifier<{
     player_did: string;
@@ -170,10 +142,7 @@ export class PlayerService {
     }
   }
 
-  async createPlayer(
-    player_did: string,
-    registration_complete?: boolean
-  ): Promise<Player> {
+  async createPlayer(player_did: string): Promise<Player> {
     const [{ data: profile }, { relationships }] = await Promise.all([
       unauthenticatedAgent.getProfile({
         actor: player_did,
@@ -187,25 +156,20 @@ export class PlayerService {
     const player: DbPlayer = {
       did: player_did,
       handle: profile.handle,
+      profile_complete: 0,
+      signup_complete: 0,
       following_santa_uri: relationship?.followedBy ?? null,
       santa_following_uri: relationship?.following ?? null,
-      ...(registration_complete != null
-        ? { registration_complete: registration_complete ? 1 : 0 }
-        : undefined),
     };
 
     const savedPlayer = await this.db
       .insertInto('player')
-      .values({
-        registration_complete: 0,
-        signup_complete:
-          player.following_santa_uri != null && registration_complete ? 1 : 0,
-        ...player,
-      })
+      .values(player)
       .onConflict((oc) =>
         oc.column('did').doUpdateSet((eb) => ({
-          ...player,
-          ...buildSetSignupComplete(eb, player),
+          handle: eb.ref('excluded.handle'),
+          following_santa_uri: eb.ref('excluded.following_santa_uri'),
+          santa_following_uri: eb.ref('excluded.santa_following_uri'),
         }))
       )
       .returningAll()
@@ -217,7 +181,7 @@ export class PlayerService {
     return {
       ...rest,
       following_santa: following_santa_uri != null,
-      registration_complete: Boolean(rest.registration_complete),
+      profile_complete: Boolean(rest.profile_complete),
       signup_complete: Boolean(rest.signup_complete),
     };
   }
@@ -288,16 +252,17 @@ export class PlayerService {
   async updateHandle(playerDid: string, newHandle: string) {
     const record = await this.db
       .selectFrom('player')
-      .select('handle')
+      .select(['handle', 'signup_complete'])
       .where('did', '=', playerDid)
-      .where('signup_complete', '=', 1)
       .executeTakeFirst();
     if (record != null && newHandle !== record.handle) {
-      await this.handleChangedWebhook({
-        player_did: playerDid,
-        old_handle: record.handle,
-        new_handle: newHandle,
-      });
+      if (record.signup_complete) {
+        await this.handleChangedWebhook({
+          player_did: playerDid,
+          old_handle: record.handle,
+          new_handle: newHandle,
+        });
+      }
       await this.db
         .updateTable('player')
         .set({ handle: newHandle })

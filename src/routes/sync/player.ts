@@ -26,33 +26,33 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     }
   );
 
-  app.put(
-    '/player/:player_did',
-    {
-      schema: {
-        params: z.object({
-          player_did: z.string(),
-        }),
-        body: z.object({
-          registration_complete: z.boolean(),
-        }),
-      },
-    },
-    async function (request, reply) {
-      const { player_did } = request.params;
-      const { registration_complete } = request.body;
-      const { playerService } = this.blueskyBridge;
+  // app.put(
+  //   '/player/:player_did',
+  //   {
+  //     schema: {
+  //       params: z.object({
+  //         player_did: z.string(),
+  //       }),
+  //       body: z.object({
+  //         registration_complete: z.boolean(),
+  //       }),
+  //     },
+  //   },
+  //   async function (request, reply) {
+  //     const { player_did } = request.params;
+  //     const { registration_complete } = request.body;
+  //     const { playerService } = this.blueskyBridge;
 
-      const player = await playerService.createPlayer(
-        player_did,
-        registration_complete
-      );
+  //     const player = await playerService.createPlayer(
+  //       player_did,
+  //       registration_complete
+  //     );
 
-      reply.send({
-        player,
-      });
-    }
-  );
+  //     reply.send({
+  //       player,
+  //     });
+  //   }
+  // );
 
   app.delete(
     '/player/:player_did',
