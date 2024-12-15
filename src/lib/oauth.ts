@@ -57,13 +57,13 @@ export class OauthSessionStore {
       );
     }
 
-    const post_key = base64url.default.encode(randomBytes(9));
-    const auth_code = base64url.default.encode(randomBytes(9));
+    const request_id = base64url.default.encode(randomBytes(27));
+    const auth_code = base64url.default.encode(randomBytes(27));
 
     await this.db
       .insertInto('auth_request')
       .values({
-        post_key,
+        request_id,
         auth_code,
         auth_state: 'pending',
         client_id: opts.client_id,
@@ -75,39 +75,19 @@ export class OauthSessionStore {
       })
       .execute();
 
-    return post_key;
+    return request_id;
   }
 
-  async keyPostSeen(postKey: string, userDid: string) {
-    await this.db
+  async userAuthenticated(requestId: string, userDid: string) {
+    return await this.db
       .updateTable('auth_request')
       .set('user_did', userDid)
       .set('auth_state', 'authenticated')
-      .where('post_key', '=', postKey)
-      // Only update if pending to ensure that a subsequent post
-      // of the secret doesn't allow someone else to take over
+      .where('request_id', '=', requestId)
+      // Only update if pending to ensure that there is no replay or anything
       .where('auth_state', '=', 'pending')
-      .execute();
-  }
-
-  async getAuthCodeForPostKey(postKey: string) {
-    const authentication = await this.db
-      .selectFrom('auth_request')
-      .selectAll()
-      .where('post_key', '=', postKey)
-      .where('auth_state', '=', 'authenticated')
-      .where(
-        'started_at',
-        '>',
-        formatISO(subMinutes(new Date(), AUTH_TIMEOUT_MINUTES))
-      )
-      .executeTakeFirst();
-
-    if (authentication == null) {
-      throw new UnauthorizedError();
-    }
-
-    return authentication;
+      .returningAll()
+      .executeTakeFirstOrThrow();
   }
 
   async completeAuth(

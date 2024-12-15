@@ -49,7 +49,7 @@ migrations['001'] = {
 
     await db.schema
       .createTable('auth_request')
-      .addColumn('post_key', 'varchar', (col) => col.notNull().unique())
+      .addColumn('request_id', 'varchar', (col) => col.primaryKey())
       .addColumn('auth_code', 'varchar', (col) => col.notNull().unique())
       .addColumn('auth_state', 'varchar', (col) =>
         col.notNull().check(sql`auth_state in ('pending', 'authenticated')`)

@@ -35,7 +35,7 @@ export interface AtOauthSession {
 }
 
 export interface AuthRequest {
-  post_key: string;
+  request_id: string;
   auth_code: string;
   auth_state: 'pending' | 'authenticated';
   client_id: string;

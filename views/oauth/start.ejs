@@ -4,23 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Secret Santa Login</title>
-    <script>
-      setInterval(async () => {
-        const result = await fetch('/oauth/poll', {headers: {Authorization: 'Bearer <%= loginToken %>'}});
-        if (result.ok) {
-          const response = await result.json();
-          window.location = response.redirectTo;
-        }
-      }, 1000)
-    </script>
-    <style>[x-cloak] { display: none !important; }</style>
   </head>
   <body>
-    <div>
-      Post to login:
-      <pre>
-        <%= requiredPost %>
-      </pre>
-    </div>
+    <form method="post" action="/atproto-login">
+      <input type="text" name="handle" placeholder="coolplayer.bsky.social"/>
+      <input type="hidden" name="requestId" value="<%= requestId %>"/>
+      <input type="submit" name="login" value="Next"/>
+    </form>
   </body>
 </html>

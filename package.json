@@ -38,6 +38,7 @@
     "@atproto/xrpc-server": "^0.5.1",
     "@fastify/auth": "^4.6.1",
     "@fastify/basic-auth": "^5.1.1",
+    "@fastify/cookie": "^9.4.0",
     "@fastify/formbody": "^7.4.0",
     "@fastify/view": "^9.1.0",
     "base64url": "^3.0.1",

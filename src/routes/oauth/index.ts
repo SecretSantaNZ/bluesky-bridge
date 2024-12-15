@@ -2,7 +2,6 @@ import type { FastifyPluginAsync } from 'fastify';
 import fastifyBasicAuth from '@fastify/basic-auth';
 
 import { start } from './start.js';
-import { poll } from './poll.js';
 import { token } from './token.js';
 import { UnauthorizedError } from 'http-errors-enhanced';
 
@@ -23,6 +22,5 @@ export const oauth: FastifyPluginAsync = async (app) => {
   });
 
   await app.register(start);
-  await app.register(poll);
   await app.register(token);
 };

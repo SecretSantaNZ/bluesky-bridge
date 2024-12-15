@@ -3,11 +3,16 @@ import { UnauthorizedError } from 'http-errors-enhanced';
 import type { TokenManager } from '../lib/TokenManager.js';
 
 export const validateAuth = (
-  tokenManager: (app: fastify.FastifyInstance['blueskyBridge']) => TokenManager
+  tokenManager: (app: fastify.FastifyInstance['blueskyBridge']) => TokenManager,
+  cookieName?: string
 ): fastify.onRequestAbortAsyncHookHandler => {
   return async function validateAuth(request) {
     let { authorization } = request.headers;
-    authorization = authorization?.replace(/^Bearer\s+/, '');
+    if (cookieName != null) {
+      authorization = request.cookies[cookieName];
+    } else {
+      authorization = authorization?.replace(/^Bearer\s+/, '');
+    }
     if (!authorization) {
       throw new UnauthorizedError('No Token');
     }

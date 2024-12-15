@@ -7,6 +7,7 @@ import {
 import fastifyHttpErrorsEnhanced from 'fastify-http-errors-enhanced';
 import fastifyFormBody from '@fastify/formbody';
 import fastifyView from '@fastify/view';
+import fastifyCookie from '@fastify/cookie';
 import ejs from 'ejs';
 import path from 'path';
 
@@ -53,6 +54,7 @@ export const build = async (
   app.decorate('blueskyBridge', blueskyBridge);
   app.decorateRequest('tokenSubject');
 
+  await app.register(fastifyCookie);
   await app.register(fastifyFormBody);
   await app.register(fastifyHttpErrorsEnhanced);
   await app.register(fastifyView, {

@@ -18,11 +18,15 @@ export const start: FastifyPluginAsync = async (app) => {
     },
     async function handler(request, reply) {
       const { oauthSessionStore, loginTokenManager } = this.blueskyBridge;
-      const postKey = await oauthSessionStore.startAuth(request.query);
+      const requestId = await oauthSessionStore.startAuth(request.query);
 
-      const loginToken = await loginTokenManager.generateToken(postKey);
-      const requiredPost = `!SecretSantaNZ let me in ${postKey}`;
-      return reply.view('oauth/start.ejs', { requiredPost, loginToken });
+      const loginToken = await loginTokenManager.generateToken(requestId);
+      reply.setCookie('oauth-login-request', loginToken, {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'strict',
+      });
+      return reply.view('oauth/start.ejs', { requestId });
     }
   );
 };
