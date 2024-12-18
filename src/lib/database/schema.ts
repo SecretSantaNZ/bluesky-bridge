@@ -1,3 +1,4 @@
+import type { GeneratedAlways } from 'kysely';
 export interface DatabaseSchema {
   jwt_mac_key: JwtMacKey;
   jwk_key: JwkKey;
@@ -53,13 +54,18 @@ export interface Message {
 }
 
 export interface Player {
-  id?: number;
+  id: GeneratedAlways<number>;
   did: string;
   handle: string;
   profile_complete: number;
   signup_complete: number;
   following_santa_uri: string | null;
   santa_following_uri: string | null;
+  manual_address: number;
+  address: string | null;
+  address_review_required: number;
+  delivery_instructions: string | null;
+  game_mode: null | 'Regular' | 'Super Santa' | 'Santa Only' | 'Giftee Only';
 }
 
 export interface Settings {

@@ -71,6 +71,15 @@ migrations['001'] = {
       .addColumn('signup_complete', 'int2', (col) => col.notNull())
       .addColumn('following_santa_uri', 'varchar')
       .addColumn('santa_following_uri', 'varchar')
+      .addColumn('manual_address', 'int2', (col) => col.notNull())
+      .addColumn('address', 'varchar')
+      .addColumn('address_review_required', 'int2', (col) => col.notNull())
+      .addColumn('delivery_instructions', 'varchar')
+      .addColumn('game_mode', 'varchar', (col) =>
+        col.check(
+          sql`game_mode is null or game_mode in ('Regular','Super Santa','Santa Only','Giftee Only')`
+        )
+      )
       .execute();
 
     await db.schema

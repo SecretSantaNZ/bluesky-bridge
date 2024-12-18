@@ -9,19 +9,42 @@ import type { Database } from './database/index.js';
 import fetch from 'node-fetch';
 import { InternalServerError } from 'http-errors-enhanced';
 
-import type { Player as DbPlayer } from './database/schema.js';
+import type { DatabaseSchema, Player as DbPlayer } from './database/schema.js';
 import ms from 'ms';
+import type { InsertObject, SelectType } from 'kysely';
+
+type SelectedPlayer = {
+  [K in keyof DbPlayer]: SelectType<DbPlayer[K]>;
+};
 
 export type Player = Omit<
-  DbPlayer,
+  SelectedPlayer,
   | 'following_santa_uri'
   | 'santa_following_uri'
   | 'profile_complete'
   | 'signup_complete'
+  | 'manual_address'
+  | 'address_review_required'
 > & {
   following_santa: boolean;
   profile_complete: boolean;
   signup_complete: boolean;
+  manual_address: boolean;
+  address_review_required: boolean;
+};
+
+const dbPlayerToPlayer = (dbPlayer: SelectedPlayer): Player => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { following_santa_uri, santa_following_uri, id, ...rest } = dbPlayer;
+  return {
+    ...rest,
+    id,
+    following_santa: following_santa_uri != null,
+    profile_complete: Boolean(rest.profile_complete),
+    signup_complete: Boolean(rest.signup_complete),
+    manual_address: Boolean(rest.manual_address),
+    address_review_required: Boolean(rest.address_review_required),
+  };
 };
 
 const fetchRelationships = async (
@@ -142,6 +165,16 @@ export class PlayerService {
     }
   }
 
+  async getPlayer(player_did: string): Promise<Player | undefined> {
+    const dbPlayer = await this.db
+      .selectFrom('player')
+      .selectAll()
+      .where('did', '=', player_did)
+      .executeTakeFirst();
+
+    return dbPlayer == null ? undefined : dbPlayerToPlayer(dbPlayer);
+  }
+
   async createPlayer(player_did: string): Promise<Player> {
     const [{ data: profile }, { relationships }] = await Promise.all([
       unauthenticatedAgent.getProfile({
@@ -153,16 +186,18 @@ export class PlayerService {
       ? relationships[0]
       : undefined;
 
-    const player: DbPlayer = {
+    const player: InsertObject<DatabaseSchema, 'player'> = {
       did: player_did,
       handle: profile.handle,
       profile_complete: 0,
       signup_complete: 0,
       following_santa_uri: relationship?.followedBy ?? null,
       santa_following_uri: relationship?.following ?? null,
+      manual_address: 0,
+      address_review_required: 0,
     };
 
-    const savedPlayer = await this.db
+    const result = await this.db
       .insertInto('player')
       .values(player)
       .onConflict((oc) =>
@@ -175,15 +210,43 @@ export class PlayerService {
       .returningAll()
       .execute();
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { following_santa_uri, santa_following_uri, ...rest } =
-      savedPlayer[0] as DbPlayer;
-    return {
-      ...rest,
-      following_santa: following_santa_uri != null,
-      profile_complete: Boolean(rest.profile_complete),
-      signup_complete: Boolean(rest.signup_complete),
-    };
+    const savedPlayer = result[0];
+    if (savedPlayer == null) {
+      throw new Error('No player returned from save');
+    }
+
+    return dbPlayerToPlayer(savedPlayer);
+  }
+
+  async patchPlayer(
+    player_did: string,
+    updates: Partial<
+      Omit<
+        Player,
+        | 'id'
+        | 'did'
+        | 'following_santa'
+        | 'profile_complete'
+        | 'signup_complete'
+        | 'address_review_required'
+      >
+    >
+  ): Promise<Player | undefined> {
+    const { manual_address, ...rest } = updates;
+
+    const dbPlayer = await this.db
+      .updateTable('player')
+      .set({
+        ...rest,
+        ...(manual_address != null
+          ? { manual_address: manual_address ? 1 : 0 }
+          : undefined),
+      })
+      .where('did', '=', player_did)
+      .returningAll()
+      .executeTakeFirst();
+
+    return dbPlayer == null ? undefined : dbPlayerToPlayer(dbPlayer);
   }
 
   async deletePlayer(player_did: string): Promise<void> {
