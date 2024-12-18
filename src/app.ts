@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type * as http from 'http';
 import fastify, { type FastifyInstance } from 'fastify';
 import {
@@ -8,8 +9,8 @@ import fastifyHttpErrorsEnhanced from 'fastify-http-errors-enhanced';
 import fastifyFormBody from '@fastify/formbody';
 import fastifyView from '@fastify/view';
 import fastifyCookie from '@fastify/cookie';
+import fastifyStatic from '@fastify/static';
 import ejs from 'ejs';
-import path from 'path';
 
 import type { OauthSessionStore } from './lib/oauth.js';
 import type { TokenManager } from './lib/TokenManager.js';
@@ -63,6 +64,11 @@ export const build = async (
       ejs,
     },
     root: path.join(process.cwd(), 'views'),
+  });
+
+  await app.register(fastifyStatic, {
+    prefix: '/public/',
+    root: path.join(process.cwd(), 'public'),
   });
 
   // Add schema validator and serializer

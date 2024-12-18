@@ -1,4 +1,5 @@
 /node_modules
 /dist
+/public/style.css
 /.env
 /bluesky-bridge-creds.creds
