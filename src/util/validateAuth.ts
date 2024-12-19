@@ -2,8 +2,10 @@ import type fastify from 'fastify';
 import { UnauthorizedError } from 'http-errors-enhanced';
 import type { TokenManager } from '../lib/TokenManager.js';
 
-export const validateAuth = (
-  tokenManager: (app: fastify.FastifyInstance['blueskyBridge']) => TokenManager,
+export const validateAuth = <D extends Record<string, unknown>>(
+  tokenManager: (
+    app: fastify.FastifyInstance['blueskyBridge']
+  ) => TokenManager<D>,
   cookieName?: string
 ): fastify.onRequestAbortAsyncHookHandler => {
   return async function validateAuth(request) {
@@ -21,6 +23,7 @@ export const validateAuth = (
         authorization
       );
       request.tokenSubject = result.subject;
+      request.tokenData = result.data;
     } catch (e) {
       const error = e as Error;
       throw new UnauthorizedError(error.message);

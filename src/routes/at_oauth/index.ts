@@ -19,13 +19,17 @@ export const at_oauth: FastifyPluginAsync = async (app) => {
     // Process successful authentication here
     console.log('User authenticated as:', session.did);
 
-    const { requestId } = JSON.parse(state as string);
+    const { returnUrl } = JSON.parse(state as string);
 
-    const player = await app.blueskyBridge.playerService.createPlayer(
-      session.did
+    await app.blueskyBridge.playerService.createPlayer(session.did);
+    const sessionToken = await app.blueskyBridge.authTokenManager.generateToken(
+      session.did,
+      {}
     );
+    reply.setCookie('session', sessionToken, { path: '/', sameSite: 'strict' });
+    reply.setCookie('login-session', '', { path: '/', expires: new Date(0) });
 
-    reply.send({ requestId, player });
+    reply.redirect(303, returnUrl);
   });
 
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -58,6 +62,7 @@ export const at_oauth: FastifyPluginAsync = async (app) => {
       );
       const state = JSON.stringify({
         requestId: request.tokenSubject,
+        returnUrl: request.tokenData?.returnUrl,
       });
 
       const url = await client.authorize(handle, {

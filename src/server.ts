@@ -30,13 +30,13 @@ const main = async () => {
   });
 
   const tokenIssuer = process.env.TOKEN_ISSUER as string;
-  const loginTokenManager = new TokenManager(
+  const loginTokenManager = new TokenManager<{ returnUrl: string }>(
     db,
     tokenIssuer,
     `${tokenIssuer}/oauth/login`,
     '5 minutes'
   );
-  const authTokenManager = new TokenManager(
+  const authTokenManager = new TokenManager<Record<string, unknown>>(
     db,
     tokenIssuer,
     `${tokenIssuer}/endpoints`,

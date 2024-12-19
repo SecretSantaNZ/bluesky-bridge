@@ -17,7 +17,7 @@ import type { TokenManager } from './lib/TokenManager.js';
 
 import { action } from './routes/action/index.js';
 import { sync } from './routes/sync/index.js';
-import { oauth } from './routes/oauth/index.js';
+import { view } from './routes/view/index.js';
 import { bsky } from './routes/bsky/index.js';
 import { player } from './routes/player/index.js';
 import type { Database } from './lib/database/index.js';
@@ -31,8 +31,8 @@ declare module 'fastify' {
   export interface FastifyInstance {
     blueskyBridge: {
       oauthSessionStore: OauthSessionStore;
-      loginTokenManager: TokenManager;
-      authTokenManager: TokenManager;
+      loginTokenManager: TokenManager<{ returnUrl: string }>;
+      authTokenManager: TokenManager<Record<string, unknown>>;
       playerService: PlayerService;
       db: Database;
       atOauthClient: NodeOAuthClient;
@@ -45,6 +45,7 @@ declare module 'fastify' {
 
   export interface FastifyRequest {
     tokenSubject?: string;
+    tokenData?: Record<string, unknown>;
   }
 }
 
@@ -77,10 +78,10 @@ export const build = async (
 
   await app.register(action, { prefix: '/action' });
   await app.register(sync, { prefix: '/sync' });
-  await app.register(oauth, { prefix: '/oauth' });
   await app.register(bsky, { prefix: '/bsky' });
   await app.register(player, { prefix: '/player' });
   await app.register(at_oauth);
+  await app.register(view);
 
   return app;
 };

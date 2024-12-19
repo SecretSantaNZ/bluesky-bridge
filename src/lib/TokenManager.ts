@@ -19,7 +19,7 @@ const verifyJwt: (
   opts: VerifyOptions & { complete?: false }
 ) => Promise<JwtPayload | string> = promisify(jwt.verify);
 
-export class TokenManager {
+export class TokenManager<D extends Record<string, unknown>> {
   private signingKeyId: string | undefined;
   private signingKeyBytes: Buffer | undefined;
   readonly expiresInSeconds: number;
@@ -63,11 +63,11 @@ export class TokenManager {
     return this.rotateKey();
   }
 
-  async generateToken(subject: string): Promise<string> {
+  async generateToken(subject: string, data: D): Promise<string> {
     if (this.signingKeyBytes == null) {
       throw new Error('Cannot issue JWT, no key set');
     }
-    return jwt.sign({}, this.signingKeyBytes, {
+    return jwt.sign(data, this.signingKeyBytes, {
       subject,
       audience: this.audience,
       issuer: this.issuer,
@@ -80,7 +80,7 @@ export class TokenManager {
 
   async validateToken(
     authToken: string
-  ): Promise<{ subject: string; expiresAt: number }> {
+  ): Promise<{ subject: string; data: D; expiresAt: number }> {
     const decodedToken = await verifyJwt(
       authToken,
       (header, callback) =>
@@ -107,10 +107,11 @@ export class TokenManager {
     );
 
     if (typeof decodedToken === 'object' && decodedToken != null) {
-      const { sub, exp } = decodedToken;
+      const { sub, exp, ...rest } = decodedToken;
       return {
         subject: sub as string,
         expiresAt: exp as number,
+        data: rest as D,
       };
     }
     console.warn(`Missing subject in token ${JSON.stringify(decodedToken)}`);
