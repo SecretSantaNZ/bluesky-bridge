@@ -47,6 +47,9 @@ declare module 'fastify' {
     tokenSubject?: string;
     tokenData?: Record<string, unknown>;
   }
+  export interface FastifyReply {
+    locals?: Record<string, unknown>;
+  }
 }
 
 export const build = async (

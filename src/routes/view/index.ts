@@ -8,6 +8,24 @@ export const view: FastifyPluginAsync = async (app) => {
     'onRequest',
     validateAuth(({ authTokenManager }) => authTokenManager, 'session')
   );
+  app.addHook('onRequest', async function (request, reply) {
+    const playerDid = request.tokenSubject as string;
+    const player = await app.blueskyBridge.playerService.getPlayer(playerDid);
+    if (!player) {
+      throw new UnauthorizedError();
+    }
+    reply.locals = { ...reply.locals, player };
+    const hasAddress = Boolean(player.address && player.address.trim());
+    if (!hasAddress) {
+      return reply.view(
+        'player/address.ejs',
+        { player },
+        {
+          layout: 'layouts/base-layout.ejs',
+        }
+      );
+    }
+  });
 
   app.setErrorHandler(async function (error, request, reply) {
     if (error instanceof UnauthorizedError) {
@@ -22,9 +40,20 @@ export const view: FastifyPluginAsync = async (app) => {
         httpOnly: true,
         sameSite: 'strict',
       });
-      return reply.view('auth/login.ejs', { requestId });
+      reply.locals = {
+        player: null,
+        ...reply.locals,
+      };
+      return reply.view(
+        'auth/login.ejs',
+        {
+          requestId,
+        },
+        {
+          layout: 'layouts/base-layout.ejs',
+        }
+      );
     }
-    return this.errorHandler(error, request, reply);
   });
 
   app.get('/', async function (request, reply) {

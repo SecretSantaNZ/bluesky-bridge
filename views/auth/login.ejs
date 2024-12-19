@@ -1,34 +1,13 @@
-
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Secret Santa Login</title>
-    <link href="/public/style.css" rel="stylesheet">
-  </head>
-  <body class="bg-slate-300 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
-    <div class="flex flex-col">
-      <div class="sticky top-0 bg-bsky text-white drop-shadow-lg mb-8 z-50">
-        <div class="flex items-center p-4 gap-4">
-          <h1 class="font-semibold">SecretSantaNZ</h1>
-          <div class="flex-grow"></div>
-        </div>
+<div class="max-w-md w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
+  <form method="post" action="/atproto-login">
+    <input type="hidden" name="requestId" value="<%= requestId %>"/>
+    <div class="space-y-8">
+      <h1 class="text-xl font-semibold">Login or Sign up</h1>
+      <div class="group">
+        <label for="handle" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300">Handle</label>
+        <input type="text" id="handle" name="handle" placeholder="coolplayer.bsky.social" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none"/>
       </div>
-      <div class="flex-grow flex justify-center px-4 pb-4">
-        <div class="max-w-md w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
-          <form method="post" action="/atproto-login">
-            <input type="hidden" name="requestId" value="<%= requestId %>"/>
-            <div class="space-y-8">
-              <h1 class="text-xl font-semibold">Login or Sign up</h1>
-              <div class="group">
-                <label for="handle" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300">Handle</label>
-                <input type="text" id="handle" name="handle" placeholder="coolplayer.bsky.social" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none"/>
-              </div>
-              <input type="submit" name="login" value="Login" class="rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
-            </div>
-          </form>
-        </div>
-      </div>
+      <input type="submit" name="login" value="Login" class="rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
     </div>
-  </body>
-</html>
+  </form>
+</div>
