@@ -1,9 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./views/**/*.ejs"],
+  // darkMode: 'selector',
+  content: ['./views/**/*.ejs'],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        bsky: '#0070ff',
+      },
+    },
   },
   plugins: [],
-}
-
+};

@@ -21,18 +21,11 @@ export const at_oauth: FastifyPluginAsync = async (app) => {
 
     const { requestId } = JSON.parse(state as string);
 
-    const authentication =
-      await app.blueskyBridge.oauthSessionStore.userAuthenticated(
-        requestId,
-        session.did
-      );
+    const player = await app.blueskyBridge.playerService.createPlayer(
+      session.did
+    );
 
-    await app.blueskyBridge.playerService.createPlayer(session.did);
-
-    const redirectTo = new URL(authentication.redirect_uri);
-    redirectTo.searchParams.set('code', authentication.auth_code);
-    redirectTo.searchParams.set('state', authentication.state);
-    reply.redirect(303, redirectTo.toString());
+    reply.send({ requestId, player });
   });
 
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -41,7 +34,7 @@ export const at_oauth: FastifyPluginAsync = async (app) => {
       // Type to any to avoid this messing with the type of request and breaking the schema
       onRequest: validateAuth(
         ({ loginTokenManager }) => loginTokenManager,
-        'oauth-login-request'
+        'login-session'
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ) as any,
       schema: {
