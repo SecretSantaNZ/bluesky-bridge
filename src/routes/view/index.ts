@@ -4,6 +4,11 @@ import { UnauthorizedError } from 'http-errors-enhanced';
 import { validateAuth } from '../../util/validateAuth.js';
 
 export const view: FastifyPluginAsync = async (app) => {
+  app.addHook(
+    'onRequest',
+    validateAuth(({ authTokenManager }) => authTokenManager, 'session')
+  );
+
   app.setErrorHandler(async function (error, request, reply) {
     if (error instanceof UnauthorizedError) {
       const { loginTokenManager } = this.blueskyBridge;
@@ -17,15 +22,10 @@ export const view: FastifyPluginAsync = async (app) => {
         httpOnly: true,
         sameSite: 'strict',
       });
-      return reply.view('oauth/start.ejs', { requestId });
+      return reply.view('auth/login.ejs', { requestId });
     }
     return this.errorHandler(error, request, reply);
   });
-
-  app.addHook(
-    'onRequest',
-    validateAuth(({ authTokenManager }) => authTokenManager, 'session')
-  );
 
   app.get('/', async function (request, reply) {
     return reply.send({ hello: 'world' });

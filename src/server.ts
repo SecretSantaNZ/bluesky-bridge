@@ -34,7 +34,7 @@ const main = async () => {
     db,
     tokenIssuer,
     `${tokenIssuer}/oauth/login`,
-    '5 minutes'
+    '15 minutes'
   );
   const authTokenManager = new TokenManager<Record<string, unknown>>(
     db,
