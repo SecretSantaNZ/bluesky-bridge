@@ -18,7 +18,7 @@ export const view: FastifyPluginAsync = async (app) => {
     const hasAddress = Boolean(player.address && player.address.trim());
     if (!hasAddress) {
       return reply.view(
-        'player/address.ejs',
+        'player/address-card.ejs',
         { player },
         {
           layout: 'layouts/base-layout.ejs',

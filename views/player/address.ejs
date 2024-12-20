@@ -1,30 +1,25 @@
-<div class="max-w-md w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
-  <form action="/player" method="patch" hx-boost="true" x-data="{address: '<%= player.address %>', delivery_instructions: ''}" @ss-address-changed.window="address = $event.detail.address;" class="m-0">
-    <div class="space-y-8">
-      <h1 class="text-xl font-semibold">Enter address</h1>
-      <%- include('../partials/input-text.ejs', {id: 'address', label: 'Address', placeholder: '123 Candy Cane Lane, North Pole', xModel: 'address'}); %>
-      <%- include('../partials/input-text.ejs', {id: 'delivery_instructions', label: 'Delivery instructions', placeholder: 'Leave by back door', xModel: 'delivery_instructions'}); %>
-      <div class="flex">
-        <div class="flex-grow"></div>
-        <input type="submit" name="save" value="Save" x-bind:disabled="!address" class="rounded-lg w-lg px-8 py-2 bg-bsky disabled:bg-gray-600 hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
-      </div>
+<form action="/player" method="patch" hx-boost="true" x-data="{address: '<%= player.address %>', delivery_instructions: ''}" @ss-address-changed.window="address = $event.detail.address;" class="m-0">
+  <div class="space-y-8">
+    <h1 class="text-xl font-semibold">Enter address</h1>
+    <%- include('../partials/input-text.ejs', {id: 'address', label: 'Address', placeholder: '123 Candy Cane Lane, North Pole', xModel: 'address'}); %>
+    <%- include('../partials/input-text.ejs', {id: 'delivery_instructions', label: 'Delivery instructions', placeholder: 'Leave by back door', xModel: 'delivery_instructions'}); %>
+    <div class="flex">
+      <div class="flex-grow"></div>
+      <input type="submit" name="save" value="Save" x-bind:disabled="!address" class="rounded-lg w-lg px-8 py-2 bg-bsky disabled:bg-gray-600 hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
     </div>
-  </form>
-  <script>
-    function initAutocomplete() {
-      var input = document.getElementById("address");
-      var addressAutocomplete = new google.maps.places.Autocomplete(input, {
-        componentRestrictions: {
-          country: 'nz'
-        }
-      });
-      addressAutocomplete.addListener("place_changed", () => {
-        const place = addressAutocomplete.getPlace();
-        window.dispatchEvent(new CustomEvent('ss-address-changed', {detail: {address: place.formatted_address}}))
-      });
-    }
-  </script>
-</div>
-<script async
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBN9m5sRKCu9Ra1rjBd2hnKqrGMm5xLjoM&loading=async&libraries=places&callback=initAutocomplete">
+  </div>
+</form>
+<script>
+  function initAutocomplete() {
+    var input = document.getElementById("address");
+    var addressAutocomplete = new google.maps.places.Autocomplete(input, {
+      componentRestrictions: {
+        country: 'nz'
+      }
+    });
+    addressAutocomplete.addListener("place_changed", () => {
+      const place = addressAutocomplete.getPlace();
+      window.dispatchEvent(new CustomEvent('ss-address-changed', {detail: {address: place.formatted_address}}))
+    });
+  }
 </script>
