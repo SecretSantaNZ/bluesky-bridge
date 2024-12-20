@@ -1,3 +1,32 @@
 <div class="max-w-md w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
-  Fill out address??
+  <form action="/set-address" method="post" hx-boost="true" x-data="{address: ''}" @ss-address-changed.window="address = $event.detail.address;">
+    <div class="space-y-8">
+      <%- include('../partials/input-text.ejs', {id: 'address', name: 'address', placeholder: '123 Candy Cane Lane, North Pole', xModel: 'address'}); %>
+      <div class="flex">
+        <div class="flex-grow"></div>
+        <input type="submit" name="save" value="Save" x-bind:disabled="!address" class="rounded-lg w-lg px-8 py-2 bg-bsky disabled:bg-gray-600 hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+      </div>
+    </div>
+  </form>
+  <script>
+    function initAutocomplete() {
+      var input = document.getElementById("address");
+      var addressAutocomplete = new google.maps.places.Autocomplete(input, {
+        componentRestrictions: {
+          country: 'nz'
+        }
+      });
+      addressAutocomplete.addListener("place_changed", () => {
+        const place = addressAutocomplete.getPlace();
+        // input.value = place.formatted_address;
+
+        window.dispatchEvent(new CustomEvent('ss-address-changed', {detail: {address: place.formatted_address}}))
+        // input.dispatchEvent(new C('change'));
+        console.log(place)
+      });
+    }
+  </script>
 </div>
+<script async
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBN9m5sRKCu9Ra1rjBd2hnKqrGMm5xLjoM&loading=async&libraries=places&callback=initAutocomplete">
+</script>
