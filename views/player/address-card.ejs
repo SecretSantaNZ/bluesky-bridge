@@ -1,4 +1,18 @@
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/address.ejs' }) %>
+<script>
+  function initAutocomplete() {
+    var input = document.getElementById("address");
+    var addressAutocomplete = new google.maps.places.Autocomplete(input, {
+      componentRestrictions: {
+        country: 'nz'
+      }
+    });
+    addressAutocomplete.addListener("place_changed", () => {
+      const place = addressAutocomplete.getPlace();
+      window.dispatchEvent(new CustomEvent('ss-address-changed', {detail: {address: place.formatted_address}}))
+    });
+  }
+</script>
 <script async
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBN9m5sRKCu9Ra1rjBd2hnKqrGMm5xLjoM&loading=async&libraries=places&callback=initAutocomplete">
 </script>

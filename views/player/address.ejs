@@ -9,17 +9,3 @@
     </div>
   </div>
 </form>
-<script>
-  function initAutocomplete() {
-    var input = document.getElementById("address");
-    var addressAutocomplete = new google.maps.places.Autocomplete(input, {
-      componentRestrictions: {
-        country: 'nz'
-      }
-    });
-    addressAutocomplete.addListener("place_changed", () => {
-      const place = addressAutocomplete.getPlace();
-      window.dispatchEvent(new CustomEvent('ss-address-changed', {detail: {address: place.formatted_address}}))
-    });
-  }
-</script>
