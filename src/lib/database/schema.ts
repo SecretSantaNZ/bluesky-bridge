@@ -61,7 +61,6 @@ export interface Player {
   signup_complete: number;
   following_santa_uri: string | null;
   santa_following_uri: string | null;
-  manual_address: number;
   address: string | null;
   address_review_required: number;
   delivery_instructions: string | null;

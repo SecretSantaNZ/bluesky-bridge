@@ -71,7 +71,6 @@ migrations['001'] = {
       .addColumn('signup_complete', 'int2', (col) => col.notNull())
       .addColumn('following_santa_uri', 'varchar')
       .addColumn('santa_following_uri', 'varchar')
-      .addColumn('manual_address', 'int2', (col) => col.notNull())
       .addColumn('address', 'varchar')
       .addColumn('address_review_required', 'int2', (col) => col.notNull())
       .addColumn('delivery_instructions', 'varchar')
