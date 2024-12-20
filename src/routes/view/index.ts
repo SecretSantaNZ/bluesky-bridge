@@ -66,7 +66,13 @@ export const view: FastifyPluginAsync = async (app) => {
   });
 
   app.get('/', async function (request, reply) {
-    return reply.send({ hello: 'world' });
+    return reply.view(
+      'player/home.ejs',
+      {},
+      {
+        layout: 'layouts/base-layout.ejs',
+      }
+    );
   });
 
   app.get('/test', async function (request, reply) {
