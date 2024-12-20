@@ -19,7 +19,16 @@ export const view: FastifyPluginAsync = async (app) => {
     if (!hasAddress) {
       return reply.view(
         'player/address-card.ejs',
-        { player },
+        {},
+        {
+          layout: 'layouts/base-layout.ejs',
+        }
+      );
+    }
+    if (!player.game_mode) {
+      return reply.view(
+        'player/game-mode-card.ejs',
+        {},
         {
           layout: 'layouts/base-layout.ejs',
         }

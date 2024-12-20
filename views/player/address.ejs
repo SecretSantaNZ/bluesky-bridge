@@ -1,4 +1,4 @@
-<form action="/player" method="patch" hx-boost="true" x-data="{address: '<%= player.address %>', delivery_instructions: ''}" @ss-address-changed.window="address = $event.detail.address;" class="m-0">
+<form action="/player" method="patch" hx-boost="true" x-data="<%= JSON.stringify({address: player.address, delivery_instructions: player.delivery_instructions })%>" @ss-address-changed.window="address = $event.detail.address;" class="m-0">
   <div class="space-y-8">
     <h1 class="text-xl font-semibold">Enter address</h1>
     <%- include('../partials/input-text.ejs', {id: 'address', label: 'Address', placeholder: '123 Candy Cane Lane, North Pole', xModel: 'address'}); %>

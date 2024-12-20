@@ -65,6 +65,7 @@ export interface Player {
   address_review_required: number;
   delivery_instructions: string | null;
   game_mode: null | 'Regular' | 'Super Santa' | 'Santa Only' | 'Giftee Only';
+  max_giftees: number;
 }
 
 export interface Settings {

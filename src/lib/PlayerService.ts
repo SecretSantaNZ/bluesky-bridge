@@ -191,6 +191,7 @@ export class PlayerService {
       following_santa_uri: relationship?.followedBy ?? null,
       santa_following_uri: relationship?.following ?? null,
       address_review_required: 0,
+      max_giftees: 0,
     };
 
     const result = await this.db

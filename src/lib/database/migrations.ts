@@ -79,6 +79,7 @@ migrations['001'] = {
           sql`game_mode is null or game_mode in ('Regular','Super Santa','Santa Only','Giftee Only')`
         )
       )
+      .addColumn('max_giftees', 'integer', (col) => col.notNull())
       .execute();
 
     await db.schema
