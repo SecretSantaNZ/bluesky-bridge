@@ -8,7 +8,7 @@
     "start": "run-p start:tailwind start:server-with-secrets",
     "start:server": "ts-node-esm src/server.ts",
     "start:tailwind": "npx tailwindcss -i ./src/input.css -o ./public/style.css --watch",
-    "start:server-with-secrets": "sudo systemd-run --collect --pty --same-dir -p LoadCredentialEncrypted=bluesky-bridge-creds:$(pwd)/bluesky-bridge-creds.creds -p User=$(whoami) -E PATH=\"$PATH\" sh -c 'npm run start:server'"
+    "start:server-with-secrets": "sudo systemd-run --pty --same-dir --wait --collect --service-type=exec --pipe -p LoadCredentialEncrypted=bluesky-bridge-creds:$(pwd)/bluesky-bridge-creds.creds -p User=$(whoami) -E PATH=\"$PATH\" sh -c 'npm run start:server'"
   },
   "author": "",
   "license": "ISC",
