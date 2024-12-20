@@ -47,7 +47,7 @@ export const view: FastifyPluginAsync = async (app) => {
       reply.setCookie('login-session', loginToken, {
         path: '/',
         httpOnly: true,
-        sameSite: 'strict',
+        sameSite: 'lax',
       });
       reply.locals = {
         player: null,

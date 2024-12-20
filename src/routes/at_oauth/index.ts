@@ -26,7 +26,7 @@ export const at_oauth: FastifyPluginAsync = async (app) => {
       session.did,
       {}
     );
-    reply.setCookie('session', sessionToken, { path: '/', sameSite: 'strict' });
+    reply.setCookie('session', sessionToken, { path: '/', sameSite: 'lax' });
     reply.setCookie('login-session', '', { path: '/', expires: new Date(0) });
 
     reply.redirect(303, returnUrl);
