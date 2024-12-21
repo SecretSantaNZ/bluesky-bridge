@@ -59,7 +59,7 @@ export const view: FastifyPluginAsync = async (app) => {
         ...reply.locals,
       };
       return reply.view(
-        'auth/login.ejs',
+        'auth/login-card.ejs',
         {
           requestId,
         },

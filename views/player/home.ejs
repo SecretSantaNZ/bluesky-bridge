@@ -1,6 +1,7 @@
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/my-giftee.ejs' }) %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/presents-for-me.ejs' }) %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/my-details.ejs' }) %>
+<div class="hidden xl:block 2xl:hidden"></div>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/presents-ive-sent.ejs' }) %>
 <div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;">
   <template x-teleport="body">
