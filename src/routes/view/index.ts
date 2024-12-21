@@ -19,6 +19,16 @@ export const view: FastifyPluginAsync = async (app) => {
       csrfToken: request.tokenData?.csrfToken,
       player,
     };
+
+    if (player.opted_out) {
+      return reply.view(
+        'player/opted-out-card.ejs',
+        {},
+        {
+          layout: 'layouts/base-layout.ejs',
+        }
+      );
+    }
     const hasAddress = Boolean(player.address && player.address.trim());
     if (!hasAddress) {
       return reply.view(

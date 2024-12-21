@@ -1,0 +1,11 @@
+<form action="/player/opt-in" method="post" hx-boost="true" class="m-0">
+  <div class="space-y-8">
+    <h1 class="text-xl font-semibold">You have opted out</h1>
+    <p>You opted out of the game, but it's okay, if it was a mistake you can opt back in to play.</p>
+    <div class="flex items-center">
+      <div class="flex-grow"></div>
+      <%- include('../partials/input-submit-with-activity.ejs', {xBindDisabled: false, label: 'Opt back in'}); %>
+    </div>
+  </div>
+  <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+<form>

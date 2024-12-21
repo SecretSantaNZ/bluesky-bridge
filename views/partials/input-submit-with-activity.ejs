@@ -1,2 +1,2 @@
-<%- include('activity-spinner.ejs') %>
-<input type="submit" name="save" value="Save" x-bind:disabled="<%= locals.xBindDisabled %>" class="rounded-lg w-lg px-8 py-2 bg-bsky disabled:dark:bg-gray-600 disabled:bg-gray-400 hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+<%- include('./activity-spinner.ejs') %>
+<input type="submit" name="save" value="<%= locals.label != null ? locals.label : 'Save' %>" x-bind:disabled="<%= locals.xBindDisabled %>" class="rounded-lg w-lg px-8 py-2 bg-bsky disabled:dark:bg-gray-600 disabled:bg-gray-400 hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
