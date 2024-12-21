@@ -1,20 +1,20 @@
-<form action="/player" method="patch" hx-boost="true" x-data="<%= JSON.stringify({game_mode: player.game_mode || 'Regular', max_giftees: Math.max(player.max_giftees, 2) })%>" class="m-0">
+<form action="/player" method="patch" hx-boost="true" class="m-0">
   <div class="space-y-8">
     <h1 class="text-xl font-semibold">How do you want to play?</h1>
     <div class="group">
       <label for="game_mode" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300">Game mode</label>
-      <select x-model="game_mode" type="number" id="game_mode" name="game_mode" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
+      <select x-model="modalData.game_mode" type="number" id="game_mode" name="game_mode" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
         <option>Regular</option>
         <option>Super Santa</option>
       </select>
     </div>
-    <div class="group" x-show="game_mode === 'Super Santa'">
+    <div class="group" x-show="modalData.game_mode === 'Super Santa'">
       <label for="max_giftees" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300">How many giftees would you buy for?</label>
-      <input x-model="max_giftees" type="number" id="max_giftees" name="max_giftees" min="2" max="5" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
+      <input x-model="modalData.max_giftees" type="number" id="max_giftees" name="max_giftees" min="2" max="5" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
     </div>
     <div class="flex items-center">
       <div class="flex-grow"></div>
-      <%- include('../partials/input-submit-with-activity.ejs'); %>
+      <%- include('../partials/input-submit-with-activity.ejs', {xBindDisabled: false}); %>
     </div>
   </div>
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>

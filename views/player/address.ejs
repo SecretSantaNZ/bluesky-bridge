@@ -1,12 +1,29 @@
-<form action="/player" method="patch" hx-boost="true" x-data="<%= JSON.stringify({address: player.address, delivery_instructions: player.delivery_instructions })%>" @ss-address-changed.window="address = $event.detail.address;" class="m-0">
+<form action="/player" method="patch" hx-boost="true" @ss-address-changed.window="modalData.address = $event.detail.address;" class="m-0">
   <div class="space-y-8">
     <h1 class="text-xl font-semibold">Enter address</h1>
-    <%- include('../partials/input-text.ejs', {id: 'address', label: 'Address', placeholder: '123 Candy Cane Lane, North Pole', xModel: 'address'}); %>
-    <%- include('../partials/input-text.ejs', {id: 'delivery_instructions', label: 'Delivery instructions', placeholder: 'Leave by back door', xModel: 'delivery_instructions'}); %>
+    <%- include('../partials/input-text.ejs', {id: 'address', label: 'Address', placeholder: '123 Candy Cane Lane, North Pole', xModel: 'modalData.address'}); %>
+    <%- include('../partials/input-text.ejs', {id: 'delivery_instructions', label: 'Delivery instructions', placeholder: 'Leave by back door', xModel: 'modalData.delivery_instructions'}); %>
     <div class="flex items-center">
       <div class="flex-grow"></div>
-      <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: '!address' }); %>
+      <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: '!modalData.address' }); %>
     </div>
   </div>
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
 </form>
+<script>
+  function initAutocomplete() {
+    var input = document.getElementById("address");
+    var addressAutocomplete = new google.maps.places.Autocomplete(input, {
+      componentRestrictions: {
+        country: 'nz'
+      }
+    });
+    addressAutocomplete.addListener("place_changed", () => {
+      const place = addressAutocomplete.getPlace();
+      window.dispatchEvent(new CustomEvent('ss-address-changed', {detail: {address: place.formatted_address}}))
+    });
+  }
+</script>
+<script async
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBN9m5sRKCu9Ra1rjBd2hnKqrGMm5xLjoM&loading=async&libraries=places&callback=initAutocomplete">
+</script>
