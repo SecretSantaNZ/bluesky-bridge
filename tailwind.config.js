@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+import { iconsPlugin } from '@egoist/tailwindcss-icons';
+
 export default {
   // darkMode: 'selector',
   content: ['./views/**/*.ejs'],
@@ -9,5 +11,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [iconsPlugin()],
 };

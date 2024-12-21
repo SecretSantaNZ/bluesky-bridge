@@ -13,6 +13,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@egoist/tailwindcss-icons": "^1.8.2",
+    "@iconify-json/mdi": "^1.2.2",
     "@total-typescript/tsconfig": "^1.0.4",
     "@types/base64url": "^2.0.0",
     "@types/bcrypt": "^5.0.2",

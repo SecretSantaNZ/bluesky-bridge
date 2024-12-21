@@ -1,1 +1,20 @@
 <h1 class="text-xl font-semibold">My details</h1>
+<div class="mt-4 flex items-start">
+  <div class="flex-grow flex-shrink">
+    <h2 class="text-md font-semibold">My address</h2>
+    <p><%= player.address %></p>
+    <p><%= player.delivery_instructions %></p>
+  </div>
+  <button class="hover:text-sky-500 size-10 p-2 drop-shadow-lg focus:text-sky-500 focus:ring rounded-full ring-sky-500 outline-none">
+    <span class="i-mdi-pencil size-full"><span class="sr-only">Edit addreess</span></span>
+  </button>
+</div>
+<div class="mt-4 flex items-start">
+  <div class="flex-grow flex-shrink">
+    <h2 class="text-md font-semibold">My game</h2>
+    <p>Playing as a <b><%= player.game_mode %></b><%= player.game_mode === 'Regular' ? '' : ' for up to ' + player.max_giftees + ' giftees' %></p>
+  </div>
+  <button class="hover:text-sky-500 size-10 p-2 drop-shadow-lg focus:text-sky-500 focus:ring rounded-full ring-sky-500 outline-none">
+    <span class="i-mdi-pencil size-full"><span class="sr-only">Edit addreess</span></span>
+  </button>
+</div>
