@@ -22,36 +22,45 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     }
   });
 
-  app.get('/', async function handler(request, reply) {
-    const did = request.tokenSubject as string;
-    const { playerService } = app.blueskyBridge;
-    const player = await playerService.getPlayer(did);
-
-    if (player == null) {
-      throw new NotFoundError();
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, address_review_required, ...noIdPlayer } = player;
-
-    return reply.send(noIdPlayer);
-  });
-
-  app.patch(
-    '/',
+  app.post(
+    '/update-address',
     {
       schema: {
-        body: z
-          .object({
-            address: z.string(),
-            delivery_instructions: z.string(),
-            game_mode: z.enum(['Regular', 'Super Santa']),
-            max_giftees: z.coerce.number(),
-          })
-          .partial(),
+        body: z.object({
+          address: z.string(),
+          delivery_instructions: z.string(),
+        }),
       },
     },
     async function handler(request, reply) {
-      const { address, game_mode, max_giftees } = request.body;
+      const { address } = request.body;
+      const did = request.tokenSubject as string;
+      const { playerService } = app.blueskyBridge;
+      const player = await playerService.patchPlayer(did, {
+        ...request.body,
+        address_review_required:
+          address == null ? undefined : !address.match(/new zealand|aotearoa/i),
+      });
+      if (player == null) {
+        throw new NotFoundError();
+      }
+
+      return reply.code(204).header('HX-Refresh', 'true').send();
+    }
+  );
+
+  app.post(
+    '/update-game-mode',
+    {
+      schema: {
+        body: z.object({
+          game_mode: z.enum(['Regular', 'Super Santa']),
+          max_giftees: z.coerce.number(),
+        }),
+      },
+    },
+    async function handler(request, reply) {
+      const { game_mode, max_giftees } = request.body;
       const did = request.tokenSubject as string;
       if (game_mode === 'Super Santa' && (!max_giftees || max_giftees < 2)) {
         throw new BadRequestError(
@@ -64,14 +73,10 @@ export const player: FastifyPluginAsync = async (rawApp) => {
         ...(request.body.game_mode === 'Regular'
           ? { max_giftees: 1 }
           : undefined),
-        address_review_required:
-          address == null ? undefined : !address.match(/new zealand|aotearoa/i),
       });
       if (player == null) {
         throw new NotFoundError();
       }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, address_review_required, ...noIdPlayer } = player;
 
       return reply.code(204).header('HX-Refresh', 'true').send();
     }
