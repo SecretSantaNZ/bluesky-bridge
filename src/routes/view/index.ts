@@ -14,7 +14,11 @@ export const view: FastifyPluginAsync = async (app) => {
     if (!player) {
       throw new UnauthorizedError();
     }
-    reply.locals = { ...reply.locals, player };
+    reply.locals = {
+      ...reply.locals,
+      csrfToken: request.tokenData?.csrfToken,
+      player,
+    };
     const hasAddress = Boolean(player.address && player.address.trim());
     if (!hasAddress) {
       return reply.view(
@@ -48,6 +52,7 @@ export const view: FastifyPluginAsync = async (app) => {
         path: '/',
         httpOnly: true,
         sameSite: 'lax',
+        secure: true,
       });
       reply.locals = {
         player: null,

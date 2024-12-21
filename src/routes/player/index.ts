@@ -11,6 +11,17 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     validateAuth(({ authTokenManager }) => authTokenManager, 'session')
   );
 
+  app.addHook('preValidation', function (request) {
+    if (request.method === 'get') return;
+
+    const { csrfToken } = z
+      .object({ csrfToken: z.string() })
+      .parse(request.body);
+    if (csrfToken !== request.tokenData?.csrfToken || !csrfToken) {
+      throw new BadRequestError('invalid csrf token');
+    }
+  });
+
   app.get('/', async function handler(request, reply) {
     const did = request.tokenSubject as string;
     const { playerService } = app.blueskyBridge;
@@ -40,8 +51,8 @@ export const player: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function handler(request, reply) {
-      const did = request.tokenSubject as string;
       const { address, game_mode, max_giftees } = request.body;
+      const did = request.tokenSubject as string;
       if (game_mode === 'Super Santa' && (!max_giftees || max_giftees < 2)) {
         throw new BadRequestError(
           'Must opt in to at least 2 giftees if super santa'

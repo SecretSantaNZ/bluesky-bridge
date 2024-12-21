@@ -3,6 +3,7 @@ import { validateAuth } from '../../util/validateAuth.js';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { UnauthorizedError } from 'http-errors-enhanced';
+import { randomUUID } from 'crypto';
 
 export const at_oauth: FastifyPluginAsync = async (app) => {
   app.get('/client-metadata.json', (_, reply) =>
@@ -20,13 +21,19 @@ export const at_oauth: FastifyPluginAsync = async (app) => {
     console.log('User authenticated as:', session.did);
 
     const { returnUrl } = JSON.parse(state as string);
+    const csrfToken = randomUUID();
 
     await app.blueskyBridge.playerService.createPlayer(session.did);
     const sessionToken = await app.blueskyBridge.authTokenManager.generateToken(
       session.did,
-      {}
+      { csrfToken }
     );
-    reply.setCookie('session', sessionToken, { path: '/', sameSite: 'lax' });
+    reply.setCookie('session', sessionToken, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: true,
+    });
     reply.setCookie('login-session', '', { path: '/', expires: new Date(0) });
 
     reply.redirect(303, returnUrl);

@@ -8,4 +8,5 @@
       <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: '!address' }); %>
     </div>
   </div>
+  <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
 </form>
