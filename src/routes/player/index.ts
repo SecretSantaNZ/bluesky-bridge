@@ -11,9 +11,9 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     validateAuth(({ authTokenManager }) => authTokenManager, 'session')
   );
 
-  app.addHook('preValidation', function (request) {
-    if (request.method === 'get') return;
-
+  app.addHook('preValidation', async function (request) {
+    if (request.method === 'GET') return;
+    if (request.method === 'OPTIONS') return;
     const { csrfToken } = z
       .object({ csrfToken: z.string() })
       .parse(request.body);
