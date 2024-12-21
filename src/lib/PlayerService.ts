@@ -24,11 +24,15 @@ export type Player = Omit<
   | 'profile_complete'
   | 'signup_complete'
   | 'address_review_required'
+  | 'opted_out'
+  | 'booted'
 > & {
   following_santa: boolean;
   profile_complete: boolean;
   signup_complete: boolean;
   address_review_required: boolean;
+  opted_out: boolean;
+  booted: boolean;
 };
 
 const dbPlayerToPlayer = (dbPlayer: SelectedPlayer): Player => {
@@ -41,6 +45,8 @@ const dbPlayerToPlayer = (dbPlayer: SelectedPlayer): Player => {
     profile_complete: Boolean(rest.profile_complete),
     signup_complete: Boolean(rest.signup_complete),
     address_review_required: Boolean(rest.address_review_required),
+    opted_out: Boolean(rest.opted_out),
+    booted: Boolean(rest.booted),
   };
 };
 
@@ -192,6 +198,8 @@ export class PlayerService {
       santa_following_uri: relationship?.following ?? null,
       address_review_required: 0,
       max_giftees: 0,
+      opted_out: 0,
+      booted: 0,
     };
 
     const result = await this.db
@@ -228,7 +236,7 @@ export class PlayerService {
       >
     >
   ): Promise<Player | undefined> {
-    const { address_review_required, ...rest } = updates;
+    const { address_review_required, opted_out, booted, ...rest } = updates;
 
     const dbPlayer = await this.db
       .updateTable('player')
@@ -237,6 +245,8 @@ export class PlayerService {
         ...(address_review_required == null
           ? undefined
           : { address_review_required: address_review_required ? 1 : 0 }),
+        ...(opted_out == null ? undefined : { opted_out: opted_out ? 1 : 0 }),
+        ...(booted == null ? undefined : { booted: booted ? 1 : 0 }),
       })
       .where('did', '=', player_did)
       .returningAll()

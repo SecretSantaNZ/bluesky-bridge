@@ -66,6 +66,10 @@ export interface Player {
   delivery_instructions: string | null;
   game_mode: null | 'Regular' | 'Super Santa' | 'Santa Only' | 'Giftee Only';
   max_giftees: number;
+  opted_out: number;
+  booted: number;
+  booted_by?: string;
+  booted_at?: string;
 }
 
 export interface Settings {

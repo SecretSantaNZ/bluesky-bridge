@@ -3,7 +3,7 @@
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/my-details.ejs' }) %>
 <div class="hidden xl:block 2xl:hidden"></div>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/presents-ive-sent.ejs' }) %>
-<div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;">
+<div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
   <template x-teleport="body">
     <div x-show="showModal">
       <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
@@ -14,6 +14,9 @@
         </div>
         <div x-show="showModal === 'game-mode'">
           <%- include('../layouts/card.ejs', { bodyTemplate: 'player/game-mode.ejs' }) %>
+        </div>
+        <div x-show="showModal === 'opt-out'">
+          <%- include('../layouts/card.ejs', { bodyTemplate: 'player/confirm-opt-out.ejs' }) %>
         </div>
       </div>
     </div>

@@ -80,6 +80,10 @@ migrations['001'] = {
         )
       )
       .addColumn('max_giftees', 'integer', (col) => col.notNull())
+      .addColumn('opted_out', 'int2', (col) => col.notNull())
+      .addColumn('booted', 'int2', (col) => col.notNull())
+      .addColumn('booted_by', 'varchar')
+      .addColumn('booted_at', 'varchar')
       .execute();
 
     await db.schema
