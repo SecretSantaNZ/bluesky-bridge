@@ -78,7 +78,7 @@ migrations['001'] = {
       .addColumn('following_santa_uri', 'varchar')
       .addColumn('santa_following_uri', 'varchar')
       .addColumn('address', 'varchar')
-      .addColumn('address_review_required', 'varchar', (col) => col.notNull())
+      .addColumn('address_review_required', 'varchar')
       .addColumn('delivery_instructions', 'varchar')
       .addColumn('game_mode', 'varchar', (col) =>
         col.check(
@@ -86,8 +86,8 @@ migrations['001'] = {
         )
       )
       .addColumn('max_giftees', 'integer', (col) => col.notNull())
-      .addColumn('opted_out', 'varchar', (col) => col.notNull())
-      .addColumn('booted', 'varchar', (col) => col.notNull())
+      .addColumn('opted_out', 'varchar')
+      .addColumn('booted', 'varchar')
       .addColumn('booted_by', 'varchar')
       .addColumn('booted_at', 'varchar')
       .execute();
@@ -97,7 +97,7 @@ migrations['001'] = {
       .addColumn('id', 'integer', (col) => col.primaryKey())
       .addColumn('santa', 'integer', (col) => col.notNull())
       .addColumn('giftee', 'integer', (col) => col.notNull())
-      .addColumn('deactivated', 'varchar', (col) => col.notNull())
+      .addColumn('deactivated', 'varchar')
       .addColumn('has_present', 'int2', (col) => col.notNull())
       .addColumn('invalid_player', 'int2', (col) => col.notNull())
       .addColumn('match_status', 'varchar', (col) =>
