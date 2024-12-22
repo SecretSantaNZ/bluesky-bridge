@@ -57,3 +57,196 @@ export const initialMessages = {
     'Your Secret Santa thinks your gift must have arrived by now and is asking for a tweet with some photos/video (with alt-text). Use $hashtag$ -)',
   ],
 };
+
+export const initialNudgeGreetings = [
+  {
+    nudge_type: ['Hint', 'Arrival', 'Present Update', 'Opening'],
+    text: 'Hai!!',
+  },
+  {
+    nudge_type: ['Hint', 'Present Update', 'Opening', 'Arrival'],
+    text: 'Well, hullo',
+  },
+  {
+    nudge_type: ['Hint', 'Present Update'],
+    text: 'Listen up,',
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'Dear',
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening', 'Present Update'],
+    text: 'Tēnā koe',
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening', 'Present Update'],
+    text: "Season's Greetings,",
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'Oi!',
+  },
+  {
+    nudge_type: ['Hint'],
+    text: 'HINTS! Need HINTS,',
+  },
+  {
+    nudge_type: ['Hint', 'Opening'],
+    text: 'Not to come across as pushy,',
+  },
+  {
+    nudge_type: ['Hint', 'Present Update', 'Opening', 'Arrival'],
+    text: 'Kia ora e hoa,',
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'Santa, here. AGAIN.',
+  },
+];
+
+export const initialNudgeSignoffs = [
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'Thank you!',
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: "The glue's just drying, it will go in the post soon!",
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'Please!',
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: 'Your Secret Santa got distracted by the naked gift thing, back on track now!',
+  },
+  {
+    nudge_type: ['Arrival', 'Opening'],
+    text: 'How exciting is Secret Santa?!',
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: 'Your Secret Santa is just waiting for the last bit to arrive, then it will be ready!',
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'Please. PLEEAAASE.',
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: 'A crisis occurred but your Secret Santa promises it will be sent soon!',
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'Pretty please!',
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: 'Your Secret Santa is shite at hitting deadlines (their words), but you will get a present from them before Opening Day!',
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'Mā te wā.',
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: 'Soon my precious; soon.',
+  },
+  {
+    nudge_type: ['Opening'],
+    text: 'If you ate it already, we understand. No judgement here!',
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: 'Your Santa lost their making mojo for a bit there, but is back on track now.',
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'Thank you from your Secret Santa.',
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: "Your Santa is sorry. Hunting out that perfect gift wasn't as easy as they assumed it'd be. A few more days & it's yours.",
+  },
+  {
+    nudge_type: ['Arrival'],
+    text: 'I  love my courier! Essential worker super stars!!',
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: 'Your Santa saw the queue at the Post Office and thought "Yeah, nah!". Trying again tomorrow. ',
+  },
+  {
+    nudge_type: ['Opening'],
+    text: 'A picture says more than 1000 words!',
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: 'Your Secret Santa checked with the carrier and it will be there soon! Sorry for the wait.',
+  },
+  {
+    nudge_type: ['Hint'],
+    text: "C'mon - this is your last chance, or it'll be socks.",
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: 'Your Santa is having generalised problems but is working with Santa to sort things out. And you *will* get a present for Opening Day. Much love!',
+  },
+  {
+    nudge_type: ['Hint'],
+    text: 'Very last chance: or it will be dirty socks.',
+  },
+  {
+    nudge_type: ['Present Update'],
+    text: "NZ Post is a tad busy and your Secret Santa is told things take a bit longer to get to you.  Please don't worry!",
+  },
+  {
+    nudge_type: ['Arrival'],
+    text: 'I know, global supply chains, ey?',
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: "I've asked before! Pretty please.",
+  },
+  {
+    nudge_type: ['Arrival'],
+    text: 'Love thy postman, and they love you back!',
+  },
+  {
+    nudge_type: ['Opening'],
+    text: "IT'S TIME TO SHARE THE EXCITEMENT!",
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'Ngā mihi.',
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'TTFN.',
+  },
+  {
+    nudge_type: ['Arrival', 'Opening'],
+    text: 'Kia pai tō rā.',
+  },
+  {
+    nudge_type: ['Hint'],
+    text: 'By the way, do you wear earrings?',
+  },
+  {
+    nudge_type: ['Hint', 'Arrival', 'Opening'],
+    text: 'Chur bro.',
+  },
+];
+
+export const initialCarriers = [
+  'NZ Post',
+  'Aramax',
+  'Fastway',
+  'NZ Courier',
+  'PBT',
+  'Post Haste',
+  'Toll',
+  'Other carrier',
+];

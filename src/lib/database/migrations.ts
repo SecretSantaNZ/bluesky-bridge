@@ -4,7 +4,12 @@ import {
   type Migration,
   type MigrationProvider,
 } from 'kysely';
-import { initialMessages } from './initialMessages.js';
+import {
+  initialCarriers,
+  initialMessages,
+  initialNudgeGreetings,
+  initialNudgeSignoffs,
+} from './initialMessages.js';
 import type { Database } from './index.js';
 import type { Message } from './schema.js';
 
@@ -277,6 +282,64 @@ migrations['001'] = {
         .values(
           messages.map((message) => ({ message_type, message }) as Message)
         )
+        .execute();
+    }
+
+    await (db as Database)
+      .insertInto('nudge_type')
+      .values([
+        { id: 1, name: 'Hint', order_index: 1 },
+        { id: 2, name: 'Arrival', order_index: 2 },
+        { id: 3, name: 'Present Update', order_index: 3 },
+        { id: 4, name: 'Opening', order_index: 4 },
+      ])
+      .execute();
+    const nudgeTypeIds: Record<string, number> = {
+      Hint: 1,
+      Arrival: 2,
+      'Present Update': 3,
+      Opening: 4,
+    };
+    for (const greeting of initialNudgeGreetings) {
+      const greetingResult = await (db as Database)
+        .insertInto('nudge_greeting')
+        .values({
+          text: greeting.text,
+        })
+        .executeTakeFirst();
+      for (const nudgeType of greeting.nudge_type) {
+        await (db as Database)
+          .insertInto('nudge_type_greeting')
+          .values({
+            greeting: Number(greetingResult.insertId!),
+            nudge_type: nudgeTypeIds[nudgeType]!,
+          })
+          .execute();
+      }
+    }
+    for (const signoff of initialNudgeSignoffs) {
+      const signoffResult = await (db as Database)
+        .insertInto('nudge_signoff')
+        .values({
+          text: signoff.text,
+        })
+        .executeTakeFirst();
+      for (const nudgeType of signoff.nudge_type) {
+        await (db as Database)
+          .insertInto('nudge_type_signoff')
+          .values({
+            signoff: Number(signoffResult.insertId!),
+            nudge_type: nudgeTypeIds[nudgeType]!,
+          })
+          .execute();
+      }
+    }
+    for (const carrier of initialCarriers) {
+      await (db as Database)
+        .insertInto('carrier')
+        .values({
+          text: carrier,
+        })
         .execute();
     }
   },

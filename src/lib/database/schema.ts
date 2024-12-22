@@ -1,4 +1,5 @@
-import type { GeneratedAlways } from 'kysely';
+import type { GeneratedAlways, Generated } from 'kysely';
+
 export interface DatabaseSchema {
   jwt_mac_key: JwtMacKey;
   jwk_key: JwkKey;
@@ -98,7 +99,7 @@ export interface Match {
 }
 
 export interface NudgeType {
-  id: GeneratedAlways<number>;
+  id: Generated<number>;
   name: string;
   order_index: number;
 }
