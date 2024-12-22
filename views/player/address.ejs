@@ -3,10 +3,7 @@
     <h1 class="text-xl font-semibold">Enter address</h1>
     <%- include('../partials/input-text.ejs', {id: 'address', label: 'Address', placeholder: '123 Candy Cane Lane, North Pole', xModel: 'modalData.address'}); %>
     <%- include('../partials/input-text.ejs', {id: 'delivery_instructions', label: 'Delivery instructions', placeholder: 'Leave by back door', xModel: 'modalData.delivery_instructions'}); %>
-    <div class="flex items-center">
-      <div class="flex-grow"></div>
-      <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: '!modalData.address' }); %>
-    </div>
+    <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: '!modalData.address' }); %>
   </div>
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
 </form>

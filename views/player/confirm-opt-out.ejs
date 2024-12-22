@@ -4,7 +4,7 @@
     <p>You can opt out at any time, life happens sometimes and we'd rather you told us than ghost us,</p>
     <p>If you opt out after the Giftees are assigned you will not be able to opt back in so make sure you are sure.</p>
     <div class="flex items-center">
-      <button @click="$dispatch('ss-close-modal')" class="text-gray-400">Close</button>
+      <button @click.prevent="$dispatch('ss-close-modal')" class="text-gray-400">Close</button>
       <div class="flex-grow"></div>
       <%- include('../partials/activity-spinner.ejs') %>
       <input type="submit" name="save" value="Opt out" class="rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />

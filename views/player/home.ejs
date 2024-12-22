@@ -8,16 +8,10 @@
     <div x-show="showModal">
       <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
       </div>
-      <div class="fixed h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
-        <div x-show="showModal === 'address'">
-          <%- include('../layouts/card.ejs', { bodyTemplate: 'player/address.ejs' }) %>
-        </div>
-        <div x-show="showModal === 'game-mode'">
-          <%- include('../layouts/card.ejs', { bodyTemplate: 'player/game-mode.ejs' }) %>
-        </div>
-        <div x-show="showModal === 'opt-out'">
-          <%- include('../layouts/card.ejs', { bodyTemplate: 'player/confirm-opt-out.ejs' }) %>
-        </div>
+      <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/address.ejs', xShow: "showModal === 'address'" }) %>
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/game-mode.ejs', xShow: "showModal === 'game-mode'" }) %>
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/confirm-opt-out.ejs', xShow: "showModal === 'opt-out'" }) %>
       </div>
     </div>
   </template>

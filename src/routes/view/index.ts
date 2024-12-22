@@ -24,7 +24,7 @@ export const view: FastifyPluginAsync = async (app) => {
     if (player.opted_out) {
       return reply.view(
         'player/opted-out-card.ejs',
-        {},
+        { hideClose: true },
         {
           layout: 'layouts/base-layout.ejs',
         }
@@ -34,7 +34,7 @@ export const view: FastifyPluginAsync = async (app) => {
     if (!hasAddress) {
       return reply.view(
         'player/address-card.ejs',
-        {},
+        { hideClose: true },
         {
           layout: 'layouts/base-layout.ejs',
         }
@@ -43,7 +43,7 @@ export const view: FastifyPluginAsync = async (app) => {
     if (!player.game_mode) {
       return reply.view(
         'player/game-mode-card.ejs',
-        {},
+        { hideClose: true },
         {
           layout: 'layouts/base-layout.ejs',
         }
