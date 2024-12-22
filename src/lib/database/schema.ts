@@ -8,6 +8,14 @@ export interface DatabaseSchema {
   message: Message;
   player: Player;
   match: Match;
+  nudge_type: NudgeType;
+  nudge_greeting: NudgeGreeting;
+  nudge_type_greeting: NudgeTypeGreeting;
+  nudge_signoff: NudgeSignoff;
+  nudge_type_signoff: NudgeTypeSignoff;
+  nudge: Nudge;
+  carrier: Carrier;
+  tracking: Tracking;
   settings: Settings;
 }
 
@@ -82,12 +90,67 @@ export interface Match {
   has_no_present: number;
   invalid_player: number;
   match_status: 'draft' | 'shared' | 'locked';
-  dm_handle_status: 'queued' | 'sent';
-  dm_address_status: 'queued' | 'sent';
+  dm_handle_status: 'queued' | 'sent' | 'error';
+  dm_address_status: 'queued' | 'sent' | 'error';
   nudge_count: number;
   nudge_present_update_count: number;
   tracking_count: number;
   tracking_missing_count: number;
+}
+
+export interface NudgeType {
+  id: GeneratedAlways<number>;
+  name: string;
+  order_index: number;
+}
+
+export interface NudgeGreeting {
+  id: GeneratedAlways<number>;
+  text: string;
+}
+
+export interface NudgeTypeGreeting {
+  nudge_type: number;
+  greeting: number;
+}
+
+export interface NudgeSignoff {
+  id: GeneratedAlways<number>;
+  text: string;
+}
+
+export interface NudgeTypeSignoff {
+  nudge_type: number;
+  signoff: number;
+}
+
+export interface Nudge {
+  id: GeneratedAlways<number>;
+  nudge_type: number;
+  nudge_greeting: number;
+  nudge_signoff: number;
+  match: number;
+  nudge_status: 'queued' | 'sent' | 'error';
+  created_at: string;
+  created_by: string;
+}
+
+export interface Carrier {
+  id: GeneratedAlways<number>;
+  text: string;
+}
+
+export interface Tracking {
+  id: GeneratedAlways<number>;
+  carrier: number;
+  shipped_date: string;
+  tracking_number: string;
+  giftwrap_status: number;
+  missing: string;
+  match: number;
+  tracking_status: 'queued' | 'sent' | 'error';
+  created_at: string;
+  created_by: string;
 }
 
 export interface Settings {

@@ -100,12 +100,12 @@ migrations['001'] = {
       )
       .addColumn('dm_handle_status', 'varchar', (col) =>
         col
-          .check(sql`dm_handle_status in ('queued','sent')`)
+          .check(sql`dm_handle_status in ('queued','sent', 'error')`)
           .defaultTo('queued')
       )
       .addColumn('dm_address_status', 'varchar', (col) =>
         col
-          .check(sql`dm_address_status in ('queued','sent')`)
+          .check(sql`dm_address_status in ('queued','sent', 'error')`)
           .defaultTo('queued')
       )
       .addColumn('nudge_count', 'integer', (col) => col.notNull())
@@ -116,6 +116,135 @@ migrations['001'] = {
       .addColumn('tracking_missing_count', 'integer', (col) => col.notNull())
       .addForeignKeyConstraint('fk_match_santa', ['santa'], 'player', ['id'])
       .addForeignKeyConstraint('fk_match_giftee', ['giftee'], 'player', ['id'])
+      .execute();
+
+    await db.schema
+      .createTable('nudge_type')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('name', 'varchar', (col) => col.notNull().unique())
+      .addColumn('order_index', 'integer', (col) => col.notNull().unique())
+      .execute();
+
+    await db.schema
+      .createTable('nudge_greeting')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('text', 'varchar', (col) => col.notNull().unique())
+      .execute();
+
+    await db.schema
+      .createTable('nudge_type_greeting')
+      .addColumn('nudge_type', 'integer', (col) => col.notNull())
+      .addColumn('greeting', 'integer', (col) => col.notNull())
+      .addPrimaryKeyConstraint('pk_nudge_type_greeting', [
+        'nudge_type',
+        'greeting',
+      ])
+      .addForeignKeyConstraint(
+        'fk_nudge_type_greeting_greeting',
+        ['greeting'],
+        'nudge_greeting',
+        ['id']
+      )
+      .addForeignKeyConstraint(
+        'fk_nudge_type_greeting_type',
+        ['nudge_type'],
+        'nudge_type',
+        ['id']
+      )
+      .execute();
+
+    await db.schema
+      .createTable('nudge_signoff')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('text', 'varchar', (col) => col.notNull().unique())
+      .execute();
+
+    await db.schema
+      .createTable('nudge_type_signoff')
+      .addColumn('nudge_type', 'integer', (col) => col.notNull())
+      .addColumn('signoff', 'integer', (col) => col.notNull())
+      .addPrimaryKeyConstraint('pk_nudge_type_signoff', [
+        'nudge_type',
+        'signoff',
+      ])
+      .addForeignKeyConstraint(
+        'fk_nudge_type_signoff_signoff',
+        ['signoff'],
+        'nudge_signoff',
+        ['id']
+      )
+      .addForeignKeyConstraint(
+        'fk_nudge_type_signoff_type',
+        ['nudge_type'],
+        'nudge_type',
+        ['id']
+      )
+      .execute();
+
+    await db.schema
+      .createTable('nudge')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('nudge_type', 'integer', (col) => col.notNull())
+      .addColumn('nudge_greeting', 'integer', (col) => col.notNull())
+      .addColumn('nudge_signoff', 'integer', (col) => col.notNull())
+      .addColumn('match', 'integer', (col) => col.notNull())
+      .addColumn('nudge_status', 'varchar', (col) =>
+        col
+          .check(sql`nudge_status in ('queued','sent', 'error')`)
+          .defaultTo('queued')
+      )
+      .addColumn('created_at', 'integer', (col) => col.notNull())
+      .addColumn('created_by', 'integer', (col) => col.notNull())
+      .addForeignKeyConstraint(
+        'fk_nudge_nudge_type',
+        ['nudge_type'],
+        'nudge_type',
+        ['id']
+      )
+      .addForeignKeyConstraint(
+        'fk_nudge_nudge_greeting',
+        ['nudge_greeting'],
+        'nudge_greeting',
+        ['id']
+      )
+      .addForeignKeyConstraint(
+        'fk_nudge_nudge_signoff',
+        ['nudge_signoff'],
+        'nudge_signoff',
+        ['id']
+      )
+      .addForeignKeyConstraint('fk_nudge_match', ['match'], 'match', ['id'])
+      .execute();
+
+    await db.schema
+      .createTable('carrier')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('text', 'varchar', (col) => col.notNull().unique())
+      .execute();
+
+    await db.schema
+      .createTable('tracking')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('carrier', 'integer', (col) => col.notNull())
+      .addColumn('shipped_date', 'varchar', (col) => col.notNull())
+      .addColumn('tracking_number', 'varchar', (col) => col.notNull())
+      .addColumn('giftwrap_status', 'int2', (col) => col.notNull())
+      .addColumn('missing', 'varchar', (col) => col.notNull())
+      .addColumn('match', 'integer', (col) => col.notNull())
+      .addColumn('tracking_status', 'varchar', (col) =>
+        col
+          .check(sql`tracking_status in ('queued','sent', 'error')`)
+          .defaultTo('queued')
+      )
+      .addColumn('created_at', 'integer', (col) => col.notNull())
+      .addColumn('created_by', 'integer', (col) => col.notNull())
+      .addForeignKeyConstraint(
+        'fk_tracking_carrier',
+        ['carrier'],
+        'nudge_type',
+        ['id']
+      )
+      .addForeignKeyConstraint('fk_nudge_match', ['match'], 'match', ['id'])
       .execute();
 
     await db.schema
