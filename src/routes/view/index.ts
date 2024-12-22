@@ -88,7 +88,7 @@ export const view: FastifyPluginAsync = async (app) => {
       .innerJoin('player', 'player.id', 'match.giftee')
       .selectAll()
       .where('match.santa', '=', player.id)
-      .where('match.deactivated', '=', 0)
+      .where('match.deactivated', 'is', null)
       .where('match.match_status', '<>', 'draft')
       .execute();
     return reply.view(

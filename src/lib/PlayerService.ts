@@ -197,10 +197,10 @@ export class PlayerService {
       signup_complete: 0,
       following_santa_uri: relationship?.followedBy ?? null,
       santa_following_uri: relationship?.following ?? null,
-      address_review_required: 0,
+      address_review_required: null,
       max_giftees: 0,
-      opted_out: 0,
-      booted: 0,
+      opted_out: null,
+      booted: null,
     };
 
     const result = await this.db
@@ -239,15 +239,18 @@ export class PlayerService {
   ): Promise<Player | undefined> {
     const { address_review_required, opted_out, booted, ...rest } = updates;
 
+    const now = new Date().toISOString();
     const dbPlayer = await this.db
       .updateTable('player')
       .set({
         ...rest,
         ...(address_review_required == null
           ? undefined
-          : { address_review_required: address_review_required ? 1 : 0 }),
-        ...(opted_out == null ? undefined : { opted_out: opted_out ? 1 : 0 }),
-        ...(booted == null ? undefined : { booted: booted ? 1 : 0 }),
+          : { address_review_required: address_review_required ? now : null }),
+        ...(opted_out == null
+          ? undefined
+          : { opted_out: opted_out ? now : null }),
+        ...(booted == null ? undefined : { booted: booted ? now : null }),
       })
       .where('did', '=', player_did)
       .returningAll()

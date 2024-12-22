@@ -72,22 +72,21 @@ export interface Player {
   following_santa_uri: string | null;
   santa_following_uri: string | null;
   address: string | null;
-  address_review_required: number;
+  address_review_required: string | null;
   delivery_instructions: string | null;
   game_mode: null | 'Regular' | 'Super Santa' | 'Santa Only' | 'Giftee Only';
   max_giftees: number;
-  opted_out: number;
-  booted: number;
+  opted_out: string | null;
+  booted: string | null;
   booted_by?: string;
-  booted_at?: string;
 }
 
 export interface Match {
   id: GeneratedAlways<number>;
   santa: number;
   giftee: number;
-  deactivated: number;
-  has_no_present: number;
+  deactivated: string;
+  has_present: number;
   invalid_player: number;
   match_status: 'draft' | 'shared' | 'locked';
   dm_handle_status: 'queued' | 'sent' | 'error';
