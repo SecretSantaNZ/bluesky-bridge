@@ -7,6 +7,7 @@ export interface DatabaseSchema {
   auth_request: AuthRequest;
   message: Message;
   player: Player;
+  match: Match;
   settings: Settings;
 }
 
@@ -57,6 +58,7 @@ export interface Player {
   id: GeneratedAlways<number>;
   did: string;
   handle: string;
+  avatar_url?: string;
   profile_complete: number;
   signup_complete: number;
   following_santa_uri: string | null;
@@ -70,6 +72,20 @@ export interface Player {
   booted: number;
   booted_by?: string;
   booted_at?: string;
+}
+
+export interface Match {
+  id: GeneratedAlways<number>;
+  santa: number;
+  giftee: number;
+  deactivated: number;
+  has_no_present: number;
+  invalid_player: number;
+  match_status: 'draft' | 'shared' | 'locked';
+  nudge_count: number;
+  nudge_present_update_count: number;
+  tracking_count: number;
+  tracking_missing_count: number;
 }
 
 export interface Settings {

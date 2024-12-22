@@ -67,6 +67,7 @@ migrations['001'] = {
       .addColumn('id', 'integer', (col) => col.primaryKey())
       .addColumn('did', 'varchar', (col) => col.notNull().unique())
       .addColumn('handle', 'varchar', (col) => col.notNull())
+      .addColumn('avatar_url', 'varchar')
       .addColumn('profile_complete', 'int2', (col) => col.notNull())
       .addColumn('signup_complete', 'int2', (col) => col.notNull())
       .addColumn('following_santa_uri', 'varchar')
@@ -84,6 +85,27 @@ migrations['001'] = {
       .addColumn('booted', 'int2', (col) => col.notNull())
       .addColumn('booted_by', 'varchar')
       .addColumn('booted_at', 'varchar')
+      .execute();
+
+    await db.schema
+      .createTable('match')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('santa', 'integer', (col) => col.notNull())
+      .addColumn('giftee', 'integer', (col) => col.notNull())
+      .addColumn('deactivated', 'int2', (col) => col.notNull())
+      .addColumn('has_no_present', 'int2', (col) => col.notNull())
+      .addColumn('invalid_player', 'int2', (col) => col.notNull())
+      .addColumn('match_status', 'varchar', (col) =>
+        col.check(sql`match_status in ('draft','shared','locked')`)
+      )
+      .addColumn('nudge_count', 'integer', (col) => col.notNull())
+      .addColumn('nudge_present_update_count', 'integer', (col) =>
+        col.notNull()
+      )
+      .addColumn('tracking_count', 'integer', (col) => col.notNull())
+      .addColumn('tracking_missing_count', 'integer', (col) => col.notNull())
+      .addForeignKeyConstraint('fk_match_santa', ['santa'], 'player', ['id'])
+      .addForeignKeyConstraint('fk_match_giftee', ['giftee'], 'player', ['id'])
       .execute();
 
     await db.schema

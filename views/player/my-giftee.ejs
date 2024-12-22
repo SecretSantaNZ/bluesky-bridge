@@ -1,1 +1,30 @@
 <h1 class="text-xl font-semibold">My giftee</h1>
+<p>Meet your Giftee, sleuth their socials, learn about them and then find them the perfect gift</p>
+<% if (giftees.length === 0) { %>
+<p class="mt-8 italic">Your Giftee isn't assigned yet, check back soon.</p>
+<% } else { giftees.forEach(function (giftee) { %>
+<div class="mt-8">
+  <div class="flex items-center">
+    <div class="size-10 block flex-shrink-0 rounded-full overflow-hidden">
+      <% if (giftee.avatar_url) { %>
+        <img src="<%= giftee.avatar_url %>" alt=""/>
+      <% } else { %>
+        <svg viewBox="0 0 24 24" fill="none" stroke="none"><circle cx="12" cy="12" r="12" fill="#0070ff"></circle><circle cx="12" cy="9.5" r="3.5" fill="#fff"></circle><path stroke-linecap="round" stroke-linejoin="round" fill="#fff" d="M 12.058 22.784 C 9.422 22.784 7.007 21.836 5.137 20.262 C 5.667 17.988 8.534 16.25 11.99 16.25 C 15.494 16.25 18.391 18.036 18.864 20.357 C 17.01 21.874 14.64 22.784 12.058 22.784 Z"></path></svg>
+      <% } %>
+    </div>
+    <div class="font-semibold ml-4"><a href="https://bsky.app/profile/<%= giftee.handle %>" target="_blank" class="hover:text-sky-500 rounded-sm drop-shadow-lg focus:text-sky-500 focus:ring ring-sky-500 outline-none underline">@<%= giftee.handle %></a></div>
+  </div>
+  <% if (giftee.match_status === 'locked') { %>
+    <div>
+      <p><%= giftee.address %></p>
+      <p><%= giftee.delivery_instructions %></p>
+    </div>
+    <div class="flex justify-evenly mt-2">
+      <button class="flex items-center hover:text-sky-500 rounded-sm drop-shadow-lg focus:text-sky-500 focus:ring ring-sky-500 outline-none"><div class="i-mdi-message-bubble mr-1 size-5"></div><div>Nudge</div></button>
+      <button class="flex items-center hover:text-sky-500 rounded-sm drop-shadow-lg focus:text-sky-500 focus:ring ring-sky-500 outline-none"><div class="i-mdi-email mr-1 size-5"></div><div>Add sent present</div></button>
+    </div>
+  <% } else { %>
+    <p class="italic">Address will be released soon.</p>
+  <% } %>
+</div>
+<% }); } %>

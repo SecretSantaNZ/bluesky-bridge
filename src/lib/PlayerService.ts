@@ -192,6 +192,7 @@ export class PlayerService {
     const player: InsertObject<DatabaseSchema, 'player'> = {
       did: player_did,
       handle: profile.handle,
+      avatar_url: profile.avatar,
       profile_complete: 0,
       signup_complete: 0,
       following_santa_uri: relationship?.followedBy ?? null,

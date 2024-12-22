@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import type { FastifyPluginAsync } from 'fastify';
 import { UnauthorizedError } from 'http-errors-enhanced';
 import { validateAuth } from '../../util/validateAuth.js';
+import type { Player } from '../../lib/PlayerService.js';
 
 export const view: FastifyPluginAsync = async (app) => {
   app.addHook(
@@ -81,16 +82,21 @@ export const view: FastifyPluginAsync = async (app) => {
   });
 
   app.get('/', async function (request, reply) {
+    const player = reply.locals?.player as Player;
+    const giftees = await this.blueskyBridge.db
+      .selectFrom('match')
+      .innerJoin('player', 'player.id', 'match.giftee')
+      .selectAll()
+      .where('match.santa', '=', player.id)
+      .where('match.deactivated', '=', 0)
+      .where('match.match_status', '<>', 'draft')
+      .execute();
     return reply.view(
       'player/home.ejs',
-      {},
+      { giftees },
       {
         layout: 'layouts/base-layout.ejs',
       }
     );
-  });
-
-  app.get('/test', async function (request, reply) {
-    return reply.send({ hello: 'world' });
   });
 };
