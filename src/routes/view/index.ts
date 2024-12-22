@@ -91,9 +91,56 @@ export const view: FastifyPluginAsync = async (app) => {
       .where('match.deactivated', 'is', null)
       .where('match.match_status', '<>', 'draft')
       .execute();
+
+    const carriers = await this.blueskyBridge.db
+      .selectFrom('carrier')
+      .selectAll()
+      .orderBy('text asc')
+      .execute();
+
+    const nudgeTypesFromDb = await this.blueskyBridge.db
+      .selectFrom('nudge_type')
+      .selectAll()
+      .orderBy('order_index asc')
+      .execute();
+    const greetings = await this.blueskyBridge.db
+      .selectFrom('nudge_type_greeting')
+      .innerJoin(
+        'nudge_greeting',
+        'nudge_greeting.id',
+        'nudge_type_greeting.greeting'
+      )
+      .selectAll()
+      .orderBy('nudge_greeting.text asc')
+      .execute();
+    const signoffs = await this.blueskyBridge.db
+      .selectFrom('nudge_type_signoff')
+      .innerJoin(
+        'nudge_signoff',
+        'nudge_signoff.id',
+        'nudge_type_signoff.signoff'
+      )
+      .selectAll()
+      .orderBy('nudge_signoff.text asc')
+      .execute();
+    const nudgeTypes = nudgeTypesFromDb.map((nudgeType) => ({
+      ...nudgeType,
+      greetings: greetings
+        .filter((row) => row.nudge_type === nudgeType.id)
+        .map((row) => ({
+          id: row.id,
+          text: row.text,
+        })),
+      signoffs: signoffs
+        .filter((row) => row.nudge_type === nudgeType.id)
+        .map((row) => ({
+          id: row.id,
+          text: row.text,
+        })),
+    }));
     return reply.view(
       'player/home.ejs',
-      { giftees },
+      { giftees, carriers, nudgeTypes },
       {
         layout: 'layouts/base-layout.ejs',
       }
