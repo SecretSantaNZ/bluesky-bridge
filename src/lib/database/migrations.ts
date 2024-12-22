@@ -98,6 +98,16 @@ migrations['001'] = {
       .addColumn('match_status', 'varchar', (col) =>
         col.check(sql`match_status in ('draft','shared','locked')`)
       )
+      .addColumn('dm_handle_status', 'varchar', (col) =>
+        col
+          .check(sql`dm_handle_status in ('queued','sent')`)
+          .defaultTo('queued')
+      )
+      .addColumn('dm_address_status', 'varchar', (col) =>
+        col
+          .check(sql`dm_address_status in ('queued','sent')`)
+          .defaultTo('queued')
+      )
       .addColumn('nudge_count', 'integer', (col) => col.notNull())
       .addColumn('nudge_present_update_count', 'integer', (col) =>
         col.notNull()

@@ -82,6 +82,8 @@ export interface Match {
   has_no_present: number;
   invalid_player: number;
   match_status: 'draft' | 'shared' | 'locked';
+  dm_handle_status: 'queued' | 'sent';
+  dm_address_status: 'queued' | 'sent';
   nudge_count: number;
   nudge_present_update_count: number;
   tracking_count: number;
