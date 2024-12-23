@@ -146,7 +146,7 @@ export interface Tracking {
   shipped_date: string;
   tracking_number: string;
   giftwrap_status: number;
-  missing: string;
+  missing: string | null;
   match: number;
   tracking_status: 'queued' | 'sent' | 'error';
   created_at: string;

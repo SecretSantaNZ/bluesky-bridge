@@ -1,1 +1,24 @@
-TRACKING
+<form action="/player/add-tracking" method="post" hx-boost="true" class="m-0">
+  <div class="space-y-8">
+    <h1 class="text-xl font-semibold">Add tracking for @<span x-text="modalData.giftee_handle"></span></h1>
+    <p>Let @<span x-text="modalData.giftee_handle"></span> (and the elves) know that their present is on their way by adding the tracking number here.</p>
+    <p>This will DM @<span x-text="modalData.giftee_handle"></span> the tracking number so they can watch out for your gift.</p>
+    <%- include('../partials/input-text.ejs', {id: 'shipped_date', label: 'Date shipped', placeholder: '', xModel: 'modalData.shipped_date', input_type: 'date'}); %>
+    <%- include('../partials/drop-down.ejs', {id: 'carrier', xModel: 'modalData.carrier', label: 'Carrier', options: carriers}); %>
+    <%- include('../partials/input-text.ejs', {id: 'tracking_number', label: 'Tracking number', placeholder: 'AA123456789NZ', xModel: 'modalData.tracking_number'}); %>
+    <fieldset  class="p-2 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50">
+      <legend class="pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300">Giftwrap situation</legend>
+      <div>
+        <input type="radio" id="giftwrap_status_wrapped" name="giftwrap_status" value="1"/>
+        <label for="giftwrap_status_wrapped">Gifts are wrapped</label>
+      </div>
+      <div>
+        <input type="radio" id="giftwrap_status_naked" name="giftwrap_status" value="0" checked />
+        <label for="giftwrap_status_naked">Gifts are naked (do not remove postal wrapper / box)</label>
+      </div>
+    </fieldset>
+    <%- include('../partials/input-submit-with-activity.ejs', {xBindDisabled: '!modalData.shipped_date || !modalData.tracking_number', label: 'Save'}); %>
+  </div>
+  <input type="hidden" name="match_id" x-bind:value="modalData.match_id"/>
+  <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+<form>  

@@ -234,7 +234,7 @@ migrations['001'] = {
       .addColumn('shipped_date', 'varchar', (col) => col.notNull())
       .addColumn('tracking_number', 'varchar', (col) => col.notNull())
       .addColumn('giftwrap_status', 'int2', (col) => col.notNull())
-      .addColumn('missing', 'varchar', (col) => col.notNull())
+      .addColumn('missing', 'varchar')
       .addColumn('match', 'integer', (col) => col.notNull())
       .addColumn('tracking_status', 'varchar', (col) =>
         col
