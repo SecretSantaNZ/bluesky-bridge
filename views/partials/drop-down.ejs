@@ -1,0 +1,12 @@
+<div class="group">
+  <label for="<%= id %>" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300"><%= label %></label>
+  <select x-model="<%= xModel %>" id="<%= id %>" name="<%= id %>" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
+    <% if (locals.options) { options.forEach(({id, text}) => { %>
+      <option value="<%= id %>"><%= text %></option>
+    <% }); } else if (locals.optionsExp) { %>
+      <template x-for="opt in <%= optionsExp %>">
+        <option x-bind:value="opt.id" x-text="opt.text"></option>
+      </template>
+    <% } %>
+  </select>
+</div>

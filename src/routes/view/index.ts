@@ -86,7 +86,16 @@ export const view: FastifyPluginAsync = async (app) => {
     const giftees = await this.blueskyBridge.db
       .selectFrom('match')
       .innerJoin('player', 'player.id', 'match.giftee')
-      .selectAll()
+      .select([
+        'player.avatar_url',
+        'player.handle',
+        'player.address',
+        'player.delivery_instructions',
+        'match.id as match_id',
+        'match.match_status',
+        'match.nudge_count',
+        'match.tracking_count',
+      ])
       .where('match.santa', '=', player.id)
       .where('match.deactivated', 'is', null)
       .where('match.match_status', '<>', 'draft')
@@ -111,7 +120,7 @@ export const view: FastifyPluginAsync = async (app) => {
         'nudge_type_greeting.greeting'
       )
       .selectAll()
-      .orderBy('nudge_greeting.text asc')
+      .orderBy('nudge_greeting.id asc')
       .execute();
     const signoffs = await this.blueskyBridge.db
       .selectFrom('nudge_type_signoff')
@@ -121,26 +130,37 @@ export const view: FastifyPluginAsync = async (app) => {
         'nudge_type_signoff.signoff'
       )
       .selectAll()
-      .orderBy('nudge_signoff.text asc')
+      .orderBy('nudge_signoff.id asc')
       .execute();
+    const nudgeGreetings: Record<
+      string,
+      Array<{ id: number; text: string }>
+    > = {};
+    const nudgeSignoffs: Record<
+      string,
+      Array<{ id: number; text: string }>
+    > = {};
     const nudgeTypes = nudgeTypesFromDb.map((nudgeType) => ({
-      ...nudgeType,
-      greetings: greetings
-        .filter((row) => row.nudge_type === nudgeType.id)
-        .map((row) => ({
-          id: row.id,
-          text: row.text,
-        })),
-      signoffs: signoffs
-        .filter((row) => row.nudge_type === nudgeType.id)
-        .map((row) => ({
-          id: row.id,
-          text: row.text,
-        })),
+      id: String(nudgeType.id),
+      text: nudgeType.name,
     }));
+    nudgeTypesFromDb.forEach((nudgeType) => {
+      nudgeGreetings[String(nudgeType.id)] = greetings
+        .filter((row) => row.nudge_type === nudgeType.id)
+        .map((row) => ({
+          id: row.id,
+          text: row.text,
+        }));
+      nudgeSignoffs[String(nudgeType.id)] = signoffs
+        .filter((row) => row.nudge_type === nudgeType.id)
+        .map((row) => ({
+          id: row.id,
+          text: row.text,
+        }));
+    });
     return reply.view(
       'player/home.ejs',
-      { giftees, carriers, nudgeTypes },
+      { giftees, carriers, nudgeTypes, nudgeGreetings, nudgeSignoffs },
       {
         layout: 'layouts/base-layout.ejs',
       }
