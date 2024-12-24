@@ -243,13 +243,10 @@ migrations['001'] = {
       )
       .addColumn('created_at', 'integer', (col) => col.notNull())
       .addColumn('created_by', 'integer', (col) => col.notNull())
-      .addForeignKeyConstraint(
-        'fk_tracking_carrier',
-        ['carrier'],
-        'nudge_type',
-        ['id']
-      )
-      .addForeignKeyConstraint('fk_nudge_match', ['match'], 'match', ['id'])
+      .addForeignKeyConstraint('fk_tracking_carrier', ['carrier'], 'carrier', [
+        'id',
+      ])
+      .addForeignKeyConstraint('fk_tracking_match', ['match'], 'match', ['id'])
       .execute();
 
     await db.schema

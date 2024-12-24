@@ -9,6 +9,7 @@ import { optIn } from './opt-in.js';
 import { optOut } from './opt-out.js';
 import { sendNudge } from './send-nudge.js';
 import { addTracking } from './add-tracking.js';
+import { tracking } from './tracking.js';
 
 export const player: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -34,4 +35,5 @@ export const player: FastifyPluginAsync = async (rawApp) => {
   await app.register(optIn);
   await app.register(sendNudge);
   await app.register(addTracking);
+  await app.register(tracking);
 };

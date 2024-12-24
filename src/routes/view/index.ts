@@ -84,60 +84,100 @@ export const view: FastifyPluginAsync = async (app) => {
 
   app.get('/', async function (request, reply) {
     const player = reply.locals?.player as Player;
-    const [giftees, settings, carriers, nudgeTypesFromDb, greetings, signoffs] =
-      await Promise.all([
-        this.blueskyBridge.db
-          .selectFrom('match')
-          .innerJoin('player', 'player.id', 'match.giftee')
-          .select([
-            'player.avatar_url',
-            'player.handle',
-            'player.address',
-            'player.delivery_instructions',
-            'match.id as match_id',
-            'match.match_status',
-            'match.nudge_count',
-            'match.tracking_count',
-          ])
-          .where('match.santa', '=', player.id)
-          .where('match.deactivated', 'is', null)
-          .where('match.match_status', '<>', 'draft')
-          .execute(),
-        this.blueskyBridge.db
-          .selectFrom('settings')
-          .selectAll()
-          .executeTakeFirstOrThrow(),
-        this.blueskyBridge.db
-          .selectFrom('carrier')
-          .selectAll()
-          .orderBy('id asc')
-          .execute(),
-        this.blueskyBridge.db
-          .selectFrom('nudge_type')
-          .selectAll()
-          .orderBy('order_index asc')
-          .execute(),
-        this.blueskyBridge.db
-          .selectFrom('nudge_type_greeting')
-          .innerJoin(
-            'nudge_greeting',
-            'nudge_greeting.id',
-            'nudge_type_greeting.greeting'
-          )
-          .selectAll()
-          .orderBy('nudge_greeting.id asc')
-          .execute(),
-        this.blueskyBridge.db
-          .selectFrom('nudge_type_signoff')
-          .innerJoin(
-            'nudge_signoff',
-            'nudge_signoff.id',
-            'nudge_type_signoff.signoff'
-          )
-          .selectAll()
-          .orderBy('nudge_signoff.id asc')
-          .execute(),
-      ]);
+    const [
+      giftees,
+      settings,
+      carriers,
+      nudgeTypesFromDb,
+      greetings,
+      signoffs,
+      myGifts,
+      giftsIveSent,
+    ] = await Promise.all([
+      this.blueskyBridge.db
+        .selectFrom('match')
+        .innerJoin('player', 'player.id', 'match.giftee')
+        .select([
+          'player.avatar_url',
+          'player.handle',
+          'player.address',
+          'player.delivery_instructions',
+          'match.id as match_id',
+          'match.match_status',
+          'match.nudge_count',
+          'match.tracking_count',
+        ])
+        .where('match.santa', '=', player.id)
+        .where('match.deactivated', 'is', null)
+        .where('match.match_status', '<>', 'draft')
+        .execute(),
+      this.blueskyBridge.db
+        .selectFrom('settings')
+        .selectAll()
+        .executeTakeFirstOrThrow(),
+      this.blueskyBridge.db
+        .selectFrom('carrier')
+        .selectAll()
+        .orderBy('id asc')
+        .execute(),
+      this.blueskyBridge.db
+        .selectFrom('nudge_type')
+        .selectAll()
+        .orderBy('order_index asc')
+        .execute(),
+      this.blueskyBridge.db
+        .selectFrom('nudge_type_greeting')
+        .innerJoin(
+          'nudge_greeting',
+          'nudge_greeting.id',
+          'nudge_type_greeting.greeting'
+        )
+        .selectAll()
+        .orderBy('nudge_greeting.id asc')
+        .execute(),
+      this.blueskyBridge.db
+        .selectFrom('nudge_type_signoff')
+        .innerJoin(
+          'nudge_signoff',
+          'nudge_signoff.id',
+          'nudge_type_signoff.signoff'
+        )
+        .selectAll()
+        .orderBy('nudge_signoff.id asc')
+        .execute(),
+      this.blueskyBridge.db
+        .selectFrom('tracking')
+        .innerJoin('match', 'match.id', 'tracking.match')
+        .innerJoin('carrier', 'carrier.id', 'tracking.carrier')
+        .select([
+          'tracking.id',
+          'tracking.shipped_date',
+          'tracking.tracking_number',
+          'carrier.text as carrier',
+          'tracking.giftwrap_status',
+          'tracking.missing',
+        ])
+        .where('match.giftee', '=', player.id)
+        .orderBy('shipped_date asc')
+        .execute(),
+      this.blueskyBridge.db
+        .selectFrom('tracking')
+        .innerJoin('match', 'match.id', 'tracking.match')
+        .innerJoin('player', 'player.id', 'match.giftee')
+        .innerJoin('carrier', 'carrier.id', 'tracking.carrier')
+        .select([
+          'tracking.id',
+          'player.handle as giftee_handle',
+          'tracking.shipped_date',
+          'tracking.tracking_number',
+          'carrier.text as carrier',
+          'tracking.giftwrap_status',
+          'tracking.missing',
+        ])
+        .where('match.santa', '=', player.id)
+        .orderBy('shipped_date asc')
+        .execute(),
+    ]);
     const nudgeGreetings: Record<
       string,
       Array<{ id: number; text: string }>
@@ -174,6 +214,8 @@ export const view: FastifyPluginAsync = async (app) => {
         nudgeTypes,
         nudgeGreetings,
         nudgeSignoffs,
+        myGifts,
+        giftsIveSent,
       },
       {
         layout: 'layouts/base-layout.ejs',
