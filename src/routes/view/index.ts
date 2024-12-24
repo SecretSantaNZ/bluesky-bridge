@@ -3,6 +3,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { UnauthorizedError } from 'http-errors-enhanced';
 import { validateAuth } from '../../util/validateAuth.js';
 import type { Player } from '../../lib/PlayerService.js';
+import * as dateUtils from '../../lib/dates.js';
 
 export const view: FastifyPluginAsync = async (app) => {
   app.addHook(
@@ -83,7 +84,7 @@ export const view: FastifyPluginAsync = async (app) => {
 
   app.get('/', async function (request, reply) {
     const player = reply.locals?.player as Player;
-    const [giftees, carriers, nudgeTypesFromDb, greetings, signoffs] =
+    const [giftees, settings, carriers, nudgeTypesFromDb, greetings, signoffs] =
       await Promise.all([
         this.blueskyBridge.db
           .selectFrom('match')
@@ -102,6 +103,10 @@ export const view: FastifyPluginAsync = async (app) => {
           .where('match.deactivated', 'is', null)
           .where('match.match_status', '<>', 'draft')
           .execute(),
+        this.blueskyBridge.db
+          .selectFrom('settings')
+          .selectAll()
+          .executeTakeFirstOrThrow(),
         this.blueskyBridge.db
           .selectFrom('carrier')
           .selectAll()
@@ -161,7 +166,15 @@ export const view: FastifyPluginAsync = async (app) => {
     });
     return reply.view(
       'player/home.ejs',
-      { giftees, carriers, nudgeTypes, nudgeGreetings, nudgeSignoffs },
+      {
+        ...dateUtils,
+        giftees,
+        settings,
+        carriers,
+        nudgeTypes,
+        nudgeGreetings,
+        nudgeSignoffs,
+      },
       {
         layout: 'layouts/base-layout.ejs',
       }

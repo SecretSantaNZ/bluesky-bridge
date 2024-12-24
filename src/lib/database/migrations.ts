@@ -342,6 +342,20 @@ migrations['001'] = {
         })
         .execute();
     }
+
+    await (db as Database)
+      .insertInto('settings')
+      .values({
+        id: 0,
+        signups_open: 1,
+        matches_sent_date: '2025-04-17',
+        send_by_date: '2025-05-01',
+        opening_date: '2025-05-14',
+        hashtag: '#SecretSantaNZ',
+        elf_list:
+          '@ninjakitty.bsky.social, @eloquentsonia.bsky.social, @larissacomments.bsky.social and @witchnwords.bsky.social',
+      })
+      .execute();
   },
   async down(db: Kysely<unknown>) {
     await db.schema.dropIndex('idx_message_type').execute();

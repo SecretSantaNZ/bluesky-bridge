@@ -4,8 +4,8 @@
     <ul class="list-disc">
       <li><b>Hint</b><br/>Asks your Giftee to tweet a hint so you can choose the perfect gift.</li>
       <li><b>Arrival</b><br/>Checks that your Giftee has got their parcel in their hot little hands. Before you use this, please be reasonably sure the parcel should have arrived and check the delivery status.</li>
-      <li><b>Opening</b><br/>On and after opening day (TODO), this asks your Giftee to tweet about their gift: with photos or a wee video. THE BEST PART. Before you do this, please be reasonably sure the parcel should have arrived and check the delivery status.</li>
-      <li><b>Present Update</b><br/>Let your Giftee know that you're onto it, even though 6th December sending deadline may be making that swooshing sound as it goes past.</li>
+      <li><b>Opening</b><br/>On and after opening day (<%= formatDate(settings.opening_date) %>), this asks your Giftee to tweet about their gift: with photos or a wee video. THE BEST PART. Before you do this, please be reasonably sure the parcel should have arrived and check the delivery status.</li>
+      <li><b>Present Update</b><br/>Let your Giftee know that you're onto it, even though <%= formatDate(settings.send_by_date) %> sending deadline may be making that swooshing sound as it goes past.</li>
     </ul>
     <%- include('../partials/drop-down.ejs', {id: 'nudge_type', xModel: 'nudge_type', label: 'Type of nudge', options: nudgeTypes}); %>
     <%- include('../partials/drop-down.ejs', {id: 'nudge_greeting', xModel: 'nudge_greeting', label: 'Greeting', optionsExp: 'nudgeGreetings[nudge_type]'}); %>
