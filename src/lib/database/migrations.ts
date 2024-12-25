@@ -162,7 +162,7 @@ migrations['001'] = {
       create trigger match_on_insert after insert on match for each row when new.deactivated is null begin
         update player set giftee_for_count = giftee_for_count + 1 where id = new.giftee;
         update player set locked_giftee_for_count = locked_giftee_for_count + 1 where id = new.giftee and new.match_status = 'locked';
-        update player set giftees_count = giftees_count + 1 where id = new.santa;
+        update player set giftee_count = giftee_count + 1 where id = new.santa;
       end;
     `.execute(db);
 
@@ -170,7 +170,7 @@ migrations['001'] = {
       create trigger match_on_deactivated after update of deactivated on match for each row when old.deactivated is null and new.deactivated is not null begin
         update player set giftee_for_count = giftee_for_count - 1 where id = old.giftee;
         update player set locked_giftee_for_count = locked_giftee_for_count - 1 where id = old.giftee and old.match_status = 'locked';
-        update player set giftees_count = giftees_count - 1 where id = old.santa;
+        update player set giftee_count = giftee_count - 1 where id = old.santa;
       end;
     `.execute(db);
 
@@ -178,7 +178,7 @@ migrations['001'] = {
       create trigger match_on_reactivated after update of deactivated on match for each row when old.deactivated is not null and new.deactivated is null begin
         update player set giftee_for_count = giftee_for_count + 1 where id = new.giftee;
         update player set locked_giftee_for_count = locked_giftee_for_count + 1 where id = new.giftee and new.match_status = 'locked';
-        update player set giftees_count = giftees_count + 1 where id = new.santa;
+        update player set giftee_count = giftee_count + 1 where id = new.santa;
       end;
     `.execute(db);
 
@@ -198,7 +198,7 @@ migrations['001'] = {
       create trigger match_on_delete after delete on match for each row when old.deactivated is null begin
         update player set giftee_for_count = giftee_for_count - 1 where id = old.giftee;
         update player set locked_giftee_for_count = locked_giftee_for_count - 1 where id = old.giftee and old.match_status = 'locked';
-        update player set giftees_count = giftees_count - 1 where id = old.santa;
+        update player set giftee_count = giftee_count - 1 where id = old.santa;
       end;
     `.execute(db);
 
