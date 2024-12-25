@@ -69,7 +69,7 @@ export interface Player {
   handle: string;
   avatar_url?: string;
   profile_complete: number;
-  signup_complete: number;
+  signup_complete: number; // TODO - trigger on upddate for both profile and following
   following_santa_uri: string | null;
   santa_following_uri: string | null;
   address: string | null;
@@ -77,6 +77,11 @@ export interface Player {
   delivery_instructions: string | null;
   game_mode: null | 'Regular' | 'Super Santa' | 'Santa Only' | 'Giftee Only';
   max_giftees: number;
+  // can_have_more_giftees
+  giftee_for_count: Generated<number>;
+  locked_giftee_for_count: Generated<number>;
+  giftees_count: Generated<number>;
+  // has_too_many_giftees
   opted_out: string | null;
   booted: string | null;
   booted_by?: string;
