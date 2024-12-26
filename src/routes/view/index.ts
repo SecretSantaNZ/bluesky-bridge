@@ -22,6 +22,15 @@ export const view: FastifyPluginAsync = async (app) => {
       player,
     };
 
+    if (player.booted) {
+      return reply.view(
+        'player/booted-out-card.ejs',
+        { hideClose: true },
+        {
+          layout: 'layouts/base-layout.ejs',
+        }
+      );
+    }
     if (player.opted_out) {
       return reply.view(
         'player/opted-out-card.ejs',
