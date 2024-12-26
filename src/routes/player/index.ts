@@ -29,6 +29,10 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     }
   });
 
+  app.setErrorHandler(async function (error, request, reply) {
+    return reply.view('error.ejs');
+  });
+
   await app.register(updateAddress);
   await app.register(updateGameMode);
   await app.register(optOut);

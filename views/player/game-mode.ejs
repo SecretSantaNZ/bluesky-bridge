@@ -1,4 +1,4 @@
-<form action="/player/update-game-mode" method="post" hx-boost="true" class="m-0">
+<form hx-post="/player/update-game-mode" class="m-0">
   <div class="space-y-8">
     <h1 class="text-xl font-semibold">How do you want to play?</h1>
     <%- include('../partials/drop-down.ejs', {id: 'game_mode', xModel: 'modalData.game_mode', label: 'Game mode', options: [

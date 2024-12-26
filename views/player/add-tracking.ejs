@@ -1,4 +1,4 @@
-<form action="/player/add-tracking" method="post" hx-boost="true" class="m-0" x-data="<%= JSON.stringify({shipped_date: formatDateIso(new Date())}) %>">
+<form hx-post="/player/add-tracking" class="m-0" x-data="<%= JSON.stringify({shipped_date: formatDateIso(new Date())}) %>">
   <div class="space-y-8">
     <h1 class="text-xl font-semibold">Add tracking for @<span x-text="modalData.giftee_handle"></span></h1>
     <p>Let @<span x-text="modalData.giftee_handle"></span> (and the elves) know that their present is on their way by adding the tracking number here.</p>

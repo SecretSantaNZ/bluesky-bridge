@@ -1,4 +1,4 @@
-<form action="/player/send-nudge" method="post" hx-boost="true" class="m-0" x-data="<%= JSON.stringify({nudge_type: nudgeTypes[0].id, nudgeGreetings, nudgeSignoffs}) %>">
+<form hx-post="/player/send-nudge" class="m-0" x-data="<%= JSON.stringify({nudge_type: nudgeTypes[0].id, nudgeGreetings, nudgeSignoffs}) %>">
   <div class="space-y-8">
     <h1 class="text-xl font-semibold">Nudge @<span x-text="modalData.giftee_handle"></span></h1>
     <ul class="list-disc">
