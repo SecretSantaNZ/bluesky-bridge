@@ -71,7 +71,7 @@ export const at_oauth: FastifyPluginAsync = async (app) => {
           : 'atproto',
       });
 
-      reply.redirect(303, url.href);
+      return reply.code(204).header('HX-Redirect', url.href).send();
     }
   );
 };

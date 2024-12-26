@@ -1,9 +1,12 @@
-<form method="post" action="/atproto-login" class="m-0">
+<form method="post" action="/atproto-login" class="m-0" hx-boost="true">
   <input type="hidden" name="requestId" value="<%= requestId %>"/>
   <input type="hidden" name="returnToken" value="<%= returnToken %>"/>
   <div class="space-y-8">
     <h1 class="text-xl font-semibold">Login or Sign up</h1>
     <%- include('../partials/input-text.ejs', {id: 'handle', label: 'Handle', placeholder: 'secretsantanz.bsky.social'}); %>
-    <input type="submit" name="login" value="Login" class="rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+    <div class="flex flex-col items-center">
+      <%- include('../partials/activity-spinner.ejs') %>
+      <input type="submit" name="login" value="Login" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+    </div>
   </div>
 </form>

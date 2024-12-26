@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+import plugin from 'tailwindcss/plugin.js';
 import { iconsPlugin } from '@egoist/tailwindcss-icons';
 
 export default {
@@ -11,5 +12,10 @@ export default {
       },
     },
   },
-  plugins: [iconsPlugin()],
+  plugins: [
+    iconsPlugin(),
+    plugin(function ({ addVariant }) {
+      addVariant('htmx-request', ['&.htmx-request', '.htmx-request &']);
+    }),
+  ],
 };
