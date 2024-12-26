@@ -1,5 +1,6 @@
 <form method="post" action="/atproto-login" class="m-0">
   <input type="hidden" name="requestId" value="<%= requestId %>"/>
+  <input type="hidden" name="returnToken" value="<%= returnToken %>"/>
   <div class="space-y-8">
     <h1 class="text-xl font-semibold">Login or Sign up</h1>
     <%- include('../partials/input-text.ejs', {id: 'handle', label: 'Handle', placeholder: 'secretsantanz.bsky.social'}); %>

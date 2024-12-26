@@ -54,17 +54,11 @@ export const view: FastifyPluginAsync = async (app) => {
 
   app.setErrorHandler(async function (error, request, reply) {
     if (error instanceof UnauthorizedError) {
-      const { loginTokenManager } = this.blueskyBridge;
+      const { returnTokenManager } = this.blueskyBridge;
       const requestId = randomUUID();
 
-      const loginToken = await loginTokenManager.generateToken(requestId, {
+      const returnToken = await returnTokenManager.generateToken(requestId, {
         returnUrl: request.url,
-      });
-      reply.setCookie('login-session', loginToken, {
-        path: '/',
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: true,
       });
       reply.locals = {
         player: null,
@@ -74,6 +68,7 @@ export const view: FastifyPluginAsync = async (app) => {
         'auth/login-card.ejs',
         {
           requestId,
+          returnToken,
         },
         {
           layout: 'layouts/base-layout.ejs',

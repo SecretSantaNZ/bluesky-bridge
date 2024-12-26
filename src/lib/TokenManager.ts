@@ -33,30 +33,41 @@ export class TokenManager<D extends Record<string, unknown>> {
   ) {
     const expiresInMs = ms(expiresIn);
     this.expiresInSeconds = expiresInMs / 1000;
-    this.cleanupInterval = setInterval(() => this.rotateKey(), expiresInMs);
+    this.cleanupInterval = setInterval(
+      () => this.rotateKey(),
+      Math.min(expiresInMs, ms('4 hours'))
+    );
   }
 
   private async rotateKey() {
-    const key: JwtMacKey = {
-      kid: uuidv4(),
-      audience: this.audience,
-      key_bytes: randomBytes(32),
-      created_at: formatISO(new Date()),
-    };
-    this.signingKeyId = key.kid;
-    this.signingKeyBytes = key.key_bytes;
-
     const removeBefore = formatISO(
       subSeconds(new Date(), this.expiresInSeconds * 2)
     );
-    await Promise.all([
-      this.db.insertInto('jwt_mac_key').values(key).execute(),
-      this.db
-        .deleteFrom('jwt_mac_key')
-        .where('audience', '=', this.audience)
-        .where('created_at', '<', removeBefore)
-        .execute(),
-    ]);
+    await this.db
+      .deleteFrom('jwt_mac_key')
+      .where('audience', '=', this.audience)
+      .where('created_at', '<', removeBefore)
+      .execute();
+    const keys = await this.db
+      .selectFrom('jwt_mac_key')
+      .selectAll()
+      .where('audience', '=', this.audience)
+      .orderBy('created_at asc')
+      .execute();
+
+    if (keys.length < 2) {
+      const key: JwtMacKey = {
+        kid: uuidv4(),
+        audience: this.audience,
+        key_bytes: randomBytes(32),
+        created_at: formatISO(new Date()),
+      };
+      await this.db.insertInto('jwt_mac_key').values(key).execute();
+      keys.push(key);
+    }
+    const key = keys.pop() as JwtMacKey;
+    this.signingKeyId = key.kid;
+    this.signingKeyBytes = key.key_bytes;
   }
 
   async initialize() {

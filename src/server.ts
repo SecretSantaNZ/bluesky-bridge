@@ -30,11 +30,11 @@ const main = async () => {
   });
 
   const tokenIssuer = process.env.TOKEN_ISSUER as string;
-  const loginTokenManager = new TokenManager<{ returnUrl: string }>(
+  const returnTokenManager = new TokenManager<{ returnUrl: string }>(
     db,
     tokenIssuer,
     `${tokenIssuer}/oauth/login`,
-    '15 minutes'
+    '7 days'
   );
   const authTokenManager = new TokenManager<Record<string, unknown>>(
     db,
@@ -48,7 +48,7 @@ const main = async () => {
       database: db,
       basePath: process.env.PUBLIC_BASE_URL as string,
     }),
-    loginTokenManager.initialize(),
+    returnTokenManager.initialize(),
     authTokenManager.initialize(),
   ]);
   const santaHandle = process.env.SANTA_BLUESKY_HANDLE as string;
@@ -76,7 +76,7 @@ const main = async () => {
     { logger: true },
     {
       oauthSessionStore,
-      loginTokenManager,
+      returnTokenManager,
       authTokenManager,
       playerService,
       db,

@@ -31,7 +31,7 @@ declare module 'fastify' {
   export interface FastifyInstance {
     blueskyBridge: {
       oauthSessionStore: OauthSessionStore;
-      loginTokenManager: TokenManager<{ returnUrl: string }>;
+      returnTokenManager: TokenManager<{ returnUrl: string }>;
       authTokenManager: TokenManager<Record<string, unknown>>;
       playerService: PlayerService;
       db: Database;
