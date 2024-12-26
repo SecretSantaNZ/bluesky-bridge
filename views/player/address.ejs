@@ -1,6 +1,6 @@
 <form hx-post="/player/update-address" @ss-address-changed.window="modalData.address = $event.detail.address;" class="m-0">
   <div class="space-y-8">
-    <h1 class="text-xl font-semibold">Enter address</h1>
+    <h1 class="text-xl font-semibold">Enter address for @<%= player.handle %></h1>
     <%- include('../partials/input-text.ejs', {id: 'address', label: 'Address', placeholder: '123 Candy Cane Lane, North Pole', xModel: 'modalData.address'}); %>
     <%- include('../partials/input-text.ejs', {id: 'delivery_instructions', label: 'Delivery instructions', placeholder: 'Leave by back door', xModel: 'modalData.delivery_instructions'}); %>
     <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: '!modalData.address' }); %>

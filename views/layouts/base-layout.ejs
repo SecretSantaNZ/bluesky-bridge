@@ -9,12 +9,27 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   </head>
   <body class="scheme-light dark:scheme-dark bg-slate-300 text-slate-800 dark:bg-slate-800 dark:text-slate-200" hx-disabled-elt
-="input, select, form"  >
+="input, select, form" x-data="{userMenuOpen: false}" @click="userMenuOpen = false">
     <div class="flex flex-col">
       <div class="sticky top-0 bg-bsky text-white drop-shadow-lg mb-8 z-50">
         <div class="flex items-center p-4 gap-4">
           <h1 class="font-semibold">Secret Santa NZ</h1>
           <div class="flex-grow"></div>
+          <% if (player) { %>
+            <div class="relative">
+              <button @click.stop.prevent="userMenuOpen = !userMenuOpen" class="hover:text-sky-500 drop-shadow-lg focus:text-sky-500 focus:ring rounded-full ring-sky-500 outline-none flex-shrink-0">
+                <%- include('../partials/avatar.ejs', {avatar_url: player.avatar_url}) %>
+                <span class="sr-only">Open menu</span>
+              </button>
+              <div x-show="userMenuOpen" class="absolute top-10 right-0 min-w-48  border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
+                <ul>
+                  <li>
+                    <button hx-post="/player/logout?csrfToken=<%= csrfToken %>" class="hover:text-sky-500 drop-shadow-lg focus:text-sky-500 focus:ring rounded-lg p-2 w-full text-left ring-sky-500 outline-none flex-shrink-0">Logout</button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          <% } %>
         </div>
       </div>
       <div class="flex-grow grid gap-8 p-4 justify-items-center lg:grid-cols-2 xl:grid-cols-3 2xl:grid-4" x-data x-cloak>
