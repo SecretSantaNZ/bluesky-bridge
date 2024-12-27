@@ -12,7 +12,13 @@ export const view: FastifyPluginAsync = async (app) => {
   );
   app.addHook('onRequest', async function (request, reply) {
     const playerDid = request.tokenSubject as string;
-    const player = await app.blueskyBridge.playerService.getPlayer(playerDid);
+    const [player, settings] = await Promise.all([
+      app.blueskyBridge.playerService.getPlayer(playerDid),
+      this.blueskyBridge.db
+        .selectFrom('settings')
+        .selectAll()
+        .executeTakeFirstOrThrow(),
+    ]);
     if (!player) {
       throw new UnauthorizedError();
     }
@@ -20,6 +26,7 @@ export const view: FastifyPluginAsync = async (app) => {
       ...reply.locals,
       csrfToken: request.tokenData?.csrfToken,
       player,
+      settings,
     };
 
     if (player.booted) {
@@ -84,13 +91,13 @@ export const view: FastifyPluginAsync = async (app) => {
         }
       );
     }
+    request.log.error(error);
   });
 
   app.get('/', async function (request, reply) {
     const player = reply.locals?.player as Player;
     const [
       giftees,
-      settings,
       carriers,
       nudgeTypesFromDb,
       greetings,
@@ -115,10 +122,6 @@ export const view: FastifyPluginAsync = async (app) => {
         .where('match.deactivated', 'is', null)
         .where('match.match_status', '<>', 'draft')
         .execute(),
-      this.blueskyBridge.db
-        .selectFrom('settings')
-        .selectAll()
-        .executeTakeFirstOrThrow(),
       this.blueskyBridge.db
         .selectFrom('carrier')
         .selectAll()
@@ -213,7 +216,6 @@ export const view: FastifyPluginAsync = async (app) => {
       {
         ...dateUtils,
         giftees,
-        settings,
         carriers,
         nudgeTypes,
         nudgeGreetings,

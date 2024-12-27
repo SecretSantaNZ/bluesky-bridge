@@ -24,6 +24,13 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
           'Must opt in to at least 2 giftees if super santa'
         );
       }
+      const settings = await this.blueskyBridge.db
+        .selectFrom('settings')
+        .selectAll()
+        .executeTakeFirstOrThrow();
+      if (!settings.signups_open) {
+        throw new BadRequestError('Signups are closed');
+      }
       const { playerService } = app.blueskyBridge;
       const player = await playerService.patchPlayer(did, {
         ...request.body,

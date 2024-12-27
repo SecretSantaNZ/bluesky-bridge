@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { NotFoundError } from 'http-errors-enhanced';
+import { BadRequestError, NotFoundError } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 
@@ -16,6 +16,13 @@ export const optIn: FastifyPluginAsync = async (rawApp) => {
     async function handler(request, reply) {
       const did = request.tokenSubject as string;
       const { playerService } = app.blueskyBridge;
+      const settings = await this.blueskyBridge.db
+        .selectFrom('settings')
+        .selectAll()
+        .executeTakeFirstOrThrow();
+      if (!settings.signups_open) {
+        throw new BadRequestError('Signups are closed');
+      }
       const player = await playerService.patchPlayer(did, {
         opted_out: false,
       });
