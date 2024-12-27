@@ -71,6 +71,7 @@ migrations['001'] = {
       .createTable('player')
       .addColumn('id', 'integer', (col) => col.primaryKey())
       .addColumn('did', 'varchar', (col) => col.notNull().unique())
+      .addColumn('admin', 'int2', (col) => col.notNull().defaultTo(0))
       .addColumn('handle', 'varchar', (col) => col.notNull())
       .addColumn('avatar_url', 'varchar')
       .addColumn('profile_complete', 'int2', (col) => col.notNull())

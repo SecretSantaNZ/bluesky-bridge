@@ -21,6 +21,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       playerService,
       db,
       didResolver,
+      fullScopeHandles,
     } = app.blueskyBridge;
     const params = new URLSearchParams(request.query as Record<string, string>);
     const { session, state } = await client.callback(params);
@@ -67,7 +68,14 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
     const csrfToken = randomUUID();
     const sessionToken = await app.blueskyBridge.authTokenManager.generateToken(
       session.did,
-      { csrfToken, startedAt: new Date().toISOString() }
+      {
+        csrfToken,
+        startedAt: new Date().toISOString(),
+        admin:
+          player.admin || fullScopeHandles.has(player.handle.toLowerCase())
+            ? true
+            : undefined,
+      }
     );
     reply.setCookie('session', sessionToken, {
       path: '/',
@@ -156,6 +164,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         await app.blueskyBridge.authTokenManager.generateToken(playerDid, {
           csrfToken: request.tokenData?.csrfToken as string,
           startedAt,
+          admin: request.tokenData?.admin as true | undefined,
         });
       reply.setCookie('session', sessionToken, {
         path: '/',

@@ -66,6 +66,7 @@ export interface Message {
 export interface Player {
   id: GeneratedAlways<number>;
   did: string;
+  admin: Generated<number>;
   handle: string;
   avatar_url?: string;
   profile_complete: number;

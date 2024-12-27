@@ -39,6 +39,7 @@ const main = async () => {
   const authTokenManager = new TokenManager<{
     csrfToken: string;
     startedAt: string;
+    admin?: true;
   }>(db, tokenIssuer, `${tokenIssuer}/endpoints`, '15 minutes');
 
   const [atOauthClient] = await Promise.all([
