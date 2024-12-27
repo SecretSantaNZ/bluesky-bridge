@@ -105,6 +105,18 @@ migrations['001'] = {
       .addColumn('booted_by', 'varchar')
       .execute();
 
+    await db.schema
+      .createIndex('idx_player_signup_complete_santa_following')
+      .on('player')
+      .columns(['signup_complete', 'santa_following_uri'])
+      .execute();
+
+    await db.schema
+      .createIndex('idx_player_did')
+      .on('player')
+      .column('did')
+      .execute();
+
     await sql`
       create trigger player_update_profile_complete after update of address, game_mode on player for each row begin
         update player set profile_complete = 1 where id = new.id and new.address is not null and new.address <> '' and game_mode is not null and old.profile_complete = 0;
@@ -156,6 +168,18 @@ migrations['001'] = {
       .addColumn('tracking_missing_count', 'integer', (col) => col.notNull())
       .addForeignKeyConstraint('fk_match_santa', ['santa'], 'player', ['id'])
       .addForeignKeyConstraint('fk_match_giftee', ['giftee'], 'player', ['id'])
+      .execute();
+
+    await db.schema
+      .createIndex('idx_match_santa')
+      .on('match')
+      .column('santa')
+      .execute();
+
+    await db.schema
+      .createIndex('idx_match_giftee')
+      .on('match')
+      .column('giftee')
       .execute();
 
     await sql`
@@ -238,6 +262,11 @@ migrations['001'] = {
       .execute();
 
     await db.schema
+      .createIndex('idx_nudge_type_greeting_greeting')
+      .columns(['greeting', 'nudge_type'])
+      .execute();
+
+    await db.schema
       .createTable('nudge_signoff')
       .addColumn('id', 'integer', (col) => col.primaryKey())
       .addColumn('text', 'varchar', (col) => col.notNull().unique())
@@ -263,6 +292,11 @@ migrations['001'] = {
         'nudge_type',
         ['id']
       )
+      .execute();
+
+    await db.schema
+      .createIndex('idx_nudge_type_signoff_signoff')
+      .columns(['signoff', 'nudge_type'])
       .execute();
 
     await db.schema
@@ -340,6 +374,12 @@ migrations['001'] = {
         'id',
       ])
       .addForeignKeyConstraint('fk_tracking_match', ['match'], 'match', ['id'])
+      .execute();
+
+    await db.schema
+      .createIndex('idx_tracking_match')
+      .on('tracking')
+      .column('match')
       .execute();
 
     await sql`
