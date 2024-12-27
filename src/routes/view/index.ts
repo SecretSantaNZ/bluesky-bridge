@@ -23,7 +23,7 @@ export const view: FastifyPluginAsync = async (app) => {
     };
 
     if (player.booted) {
-      return reply.view(
+      return reply.clearCookie('session').view(
         'player/booted-out-card.ejs',
         { hideClose: true },
         {

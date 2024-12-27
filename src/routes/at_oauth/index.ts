@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { randomUUID } from 'crypto';
 import { validateAuth } from '../../util/validateAuth.js';
 import { addHours, addSeconds, isBefore } from 'date-fns';
+import type { Player } from '../../lib/PlayerService.js';
 
 export const at_oauth: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -15,17 +16,35 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
   );
 
   app.get('/atproto-oauth-callback', async (request, reply) => {
-    const client = app.blueskyBridge.atOauthClient;
+    const { atOauthClient: client, playerService, db } = app.blueskyBridge;
     const params = new URLSearchParams(request.query as Record<string, string>);
     const { session, state } = await client.callback(params);
 
-    // Process successful authentication here
-    console.log('User authenticated as:', session.did);
+    const settings = await db
+      .selectFrom('settings')
+      .selectAll()
+      .executeTakeFirstOrThrow();
+
+    let player: Player | undefined;
+    if (settings.signups_open) {
+      player = await playerService.createPlayer(session.did);
+    } else {
+      player = await playerService.getPlayer(session.did);
+    }
+    if (player == null) {
+      // TODO, go to signups closed screen
+    } else if (player.booted) {
+      return reply.view(
+        'player/booted-out-card.ejs',
+        { hideClose: true, replaceUrl: '/', player },
+        {
+          layout: 'layouts/base-layout.ejs',
+        }
+      );
+    }
 
     const { returnUrl } = JSON.parse(state as string);
     const csrfToken = randomUUID();
-
-    await app.blueskyBridge.playerService.createPlayer(session.did);
     const sessionToken = await app.blueskyBridge.authTokenManager.generateToken(
       session.did,
       { csrfToken, startedAt: new Date().toISOString() }
