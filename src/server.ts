@@ -36,12 +36,10 @@ const main = async () => {
     `${tokenIssuer}/oauth/login`,
     '7 days'
   );
-  const authTokenManager = new TokenManager<Record<string, unknown>>(
-    db,
-    tokenIssuer,
-    `${tokenIssuer}/endpoints`,
-    '1 day'
-  );
+  const authTokenManager = new TokenManager<{
+    csrfToken: string;
+    startedAt: string;
+  }>(db, tokenIssuer, `${tokenIssuer}/endpoints`, '15 minutes');
 
   const [atOauthClient] = await Promise.all([
     initAtLoginClient({

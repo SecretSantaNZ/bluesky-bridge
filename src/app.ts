@@ -32,7 +32,7 @@ declare module 'fastify' {
     blueskyBridge: {
       oauthSessionStore: OauthSessionStore;
       returnTokenManager: TokenManager<{ returnUrl: string }>;
-      authTokenManager: TokenManager<Record<string, unknown>>;
+      authTokenManager: TokenManager<{ csrfToken: string; startedAt: string }>;
       playerService: PlayerService;
       db: Database;
       atOauthClient: NodeOAuthClient;

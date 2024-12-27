@@ -29,6 +29,9 @@
                 </ul>
               </div>
             </div>
+            <% if (!player.booted) { %>
+              <div class="hidden" hx-get="/session-keep-alive" hx-trigger="every 1m"></div>
+            <% } %>
           <% } %>
         </div>
       </div>
