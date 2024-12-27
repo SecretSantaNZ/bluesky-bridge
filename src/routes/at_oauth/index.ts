@@ -16,7 +16,12 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
   );
 
   app.get('/atproto-oauth-callback', async (request, reply) => {
-    const { atOauthClient: client, playerService, db } = app.blueskyBridge;
+    const {
+      atOauthClient: client,
+      playerService,
+      db,
+      didResolver,
+    } = app.blueskyBridge;
     const params = new URLSearchParams(request.query as Record<string, string>);
     const { session, state } = await client.callback(params);
 
@@ -32,7 +37,22 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       player = await playerService.getPlayer(session.did);
     }
     if (player == null) {
-      // TODO, go to signups closed screen
+      const didDoc = await didResolver.resolve(session.did);
+      const player_handle = (didDoc?.alsoKnownAs?.[0] ?? '').replace(
+        'at://',
+        ''
+      );
+      return reply.view(
+        'player/signups-closed-card.ejs',
+        {
+          replaceUrl: '/',
+          player: undefined,
+          player_handle,
+        },
+        {
+          layout: 'layouts/base-layout.ejs',
+        }
+      );
     } else if (player.booted) {
       return reply.view(
         'player/booted-out-card.ejs',
