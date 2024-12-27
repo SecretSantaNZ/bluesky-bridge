@@ -55,7 +55,10 @@ export class TokenManager<D extends Record<string, unknown>> {
       .orderBy('created_at asc')
       .execute();
 
-    if (keys.length < 2) {
+    const countAfter = formatISO(subSeconds(new Date(), this.expiresInSeconds));
+    const keysInInterval = keys.filter((key) => key.created_at > countAfter);
+
+    if (keysInInterval.length == 0) {
       const key: JwtMacKey = {
         kid: uuidv4(),
         audience: this.audience,
