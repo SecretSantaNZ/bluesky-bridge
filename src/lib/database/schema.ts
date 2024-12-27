@@ -85,6 +85,7 @@ export interface Player {
   opted_out: string | null;
   booted: string | null;
   booted_by?: string;
+  deactivated: GeneratedAlways<number>;
 }
 
 export interface Match {

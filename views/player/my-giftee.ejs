@@ -6,7 +6,7 @@
 <div class="mt-8">
   <div class="flex items-center">
     <%- include('../partials/avatar.ejs', {avatar_url: giftee.avatar_url}) %>
-    <div class="font-semibold ml-4"><a href="https://bsky.app/profile/<%= giftee.handle %>" target="_blank" class="hover:text-sky-500 rounded-sm drop-shadow-lg focus:text-sky-500 focus:ring ring-sky-500 outline-none underline">@<%= giftee.handle %></a></div>
+    <div class="font-semibold ml-4"><a href="https://bsky.app/profile/<%= giftee.handle %>" target="_blank">@<%= giftee.handle %></a></div>
   </div>
   <% if (giftee.match_status === 'locked') { %>
     <div>

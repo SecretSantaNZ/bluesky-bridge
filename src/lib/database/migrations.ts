@@ -104,6 +104,7 @@ migrations['001'] = {
       .addColumn('opted_out', 'varchar')
       .addColumn('booted', 'varchar')
       .addColumn('booted_by', 'varchar')
+      .addColumn('deactivated', 'int2', (col) => col.notNull().defaultTo(0))
       .execute();
 
     await db.schema
@@ -118,17 +119,32 @@ migrations['001'] = {
       .column('did')
       .execute();
 
+    await db.schema
+      .createIndex('idx_player_signup_complete_handle')
+      .on('player')
+      .columns(['signup_complete', 'handle'])
+      .execute();
+
+    await db.schema
+      .createIndex('idx_player_deactivated_handle')
+      .on('player')
+      .columns(['deactivated', 'handle'])
+      .execute();
+
     await sql`
       create trigger player_update_profile_complete after update of address, game_mode on player for each row begin
-        update player set profile_complete = 1 where id = new.id and new.address is not null and new.address <> '' and game_mode is not null and old.profile_complete = 0;
-        update player set profile_complete = 0 where id = new.id and not (new.address is not null and new.address <> '' and game_mode is not null) and old.profile_complete = 1;
+        update player set profile_complete = 1 where id = new.id and new.address is not null and new.address <> '' and new.game_mode is not null and old.profile_complete = 0;
+        update player set profile_complete = 0 where id = new.id and not (new.address is not null and new.address <> '' and new.game_mode is not null) and old.profile_complete = 1;
       end;
     `.execute(db);
 
     await sql`
       create trigger player_update_signup_complete after update of profile_complete, following_santa_uri, opted_out, booted on player for each row begin
-        update player set signup_complete = 1 where id = new.id and new.profile_complete = 1 and following_santa_uri is not null and opted_out is null and booted is null and old.signup_complete = 0;
-        update player set signup_complete = 0 where id = new.id and not (new.profile_complete = 1 and following_santa_uri is not null and opted_out is null and booted is null) and old.signup_complete = 1;
+        update player set signup_complete = 1 where id = new.id and new.profile_complete = 1 and new.following_santa_uri is not null and new.opted_out is null and new.booted is null and old.signup_complete = 0;
+        update player set signup_complete = 0 where id = new.id and not (new.profile_complete = 1 and new.following_santa_uri is not null and new.opted_out is null and new.booted is null) and old.signup_complete = 1;
+
+        update player set deactivated = 0 where id = new.id and new.opted_out is null and new.booted is null and old.deactivated = 1;
+        update player set deactivated = 1 where id = new.id and not (new.opted_out is null and new.booted is null) and old.deactivated = 0;
       end;
     `.execute(db);
 
