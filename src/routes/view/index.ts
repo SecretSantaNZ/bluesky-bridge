@@ -3,7 +3,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { UnauthorizedError } from 'http-errors-enhanced';
 import { validateAuth } from '../../util/validateAuth.js';
 import { playerHome } from './player-home.js';
-import { adminHome } from './admin-home.js';
+import { admin } from './admin/index.js';
 
 export const view: FastifyPluginAsync = async (app) => {
   app.addHook(
@@ -38,5 +38,5 @@ export const view: FastifyPluginAsync = async (app) => {
   });
 
   await app.register(playerHome);
-  await app.register(adminHome);
+  await app.register(admin, { prefix: '/admin' });
 };

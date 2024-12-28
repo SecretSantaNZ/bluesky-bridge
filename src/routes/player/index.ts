@@ -29,6 +29,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
   });
 
   app.setErrorHandler(async function (error, request, reply) {
+    request.log.error(error);
     return reply.view('error.ejs');
   });
 

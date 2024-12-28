@@ -13,12 +13,16 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
         body: z.object({
           game_mode: z.enum(['Regular', 'Super Santa']),
           max_giftees: z.coerce.number(),
+          player_did: z.string().optional(),
         }),
       },
     },
     async function handler(request, reply) {
-      const { game_mode, max_giftees } = request.body;
-      const did = request.tokenSubject as string;
+      const { game_mode, max_giftees, player_did, ...rest } = request.body;
+      let did = request.tokenSubject as string;
+      if (request.tokenData?.admin && player_did) {
+        did = player_did;
+      }
       if (game_mode === 'Super Santa' && (!max_giftees || max_giftees < 2)) {
         throw new BadRequestError(
           'Must opt in to at least 2 giftees if super santa'
@@ -28,12 +32,14 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
         .selectFrom('settings')
         .selectAll()
         .executeTakeFirstOrThrow();
-      if (!settings.signups_open) {
+      if (!request.tokenData?.admin && !settings.signups_open) {
         throw new BadRequestError('Signups are closed');
       }
       const { playerService } = app.blueskyBridge;
       const player = await playerService.patchPlayer(did, {
-        ...request.body,
+        ...rest,
+        game_mode,
+        max_giftees,
         ...(request.body.game_mode === 'Regular'
           ? { max_giftees: 1 }
           : undefined),

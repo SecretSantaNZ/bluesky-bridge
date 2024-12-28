@@ -12,22 +12,27 @@ export const updateAddress: FastifyPluginAsync = async (rawApp) => {
         body: z.object({
           address: z.string(),
           delivery_instructions: z.string(),
+          player_did: z.string().optional(),
         }),
       },
     },
     async function handler(request, reply) {
-      const { address } = request.body;
-      const did = request.tokenSubject as string;
+      const { address, player_did, ...rest } = request.body;
+      let did = request.tokenSubject as string;
+      if (request.tokenData?.admin && player_did) {
+        did = player_did;
+      }
       const { playerService } = app.blueskyBridge;
       const player = await playerService.getPlayer(did);
       if (player == null) {
         throw new NotFoundError();
       }
-      if (player.locked_giftee_for_count) {
+      if (!request.tokenData?.admin && player.locked_giftee_for_count) {
         throw new BadRequestError('Address has been sent');
       }
       await playerService.patchPlayer(did, {
-        ...request.body,
+        ...rest,
+        address,
         address_review_required:
           address == null ? undefined : !address.match(/new zealand|aotearoa/i),
       });

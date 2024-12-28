@@ -1,0 +1,60 @@
+<div x-data="<%= JSON.stringify({ players }) %>">
+  <h1 class="text-xl">Players who haven't completed signup</h1>
+  <div class="grid-cols-5 space-x-4 spacey-4 hidden sm:grid">
+    <div class="flex justify-center"><b>Player</b></div>
+    <div class="flex justify-center"><b>Following santa</b></div>
+    <div class="flex justify-center"><b>Has address</b></div>
+    <div class="flex justify-center"><b>Game mode</b></div>
+    <div class="flex justify-center"><b>Remove player</b></div>
+  </div>
+  <!-- <template x-for="player in players.filter(player => !player.deactivated && !player.signup_complete)"> -->
+  <template x-for="player in players">
+    <div class="grid sm:grid-cols-5 space-x-4 spacey-4 border-b py-2">
+      <div class="flex justify-center items-center text-lg font-semibold">
+        <a x-bind:href="'https://bsky.app/profile/' + player.handle" x-text="'@' + player.handle"></a>
+      </div>
+      <button>
+        <div class="flex sm:justify-center items-center">
+          <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.following_santa_uri"></div>
+          <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.following_santa_uri"></div>
+          <div class="sm:hidden"><b>Following santa</b> <span class="italic">(Click to recheck)</span></div>
+        </div>
+        <div class="italic hidden sm:block">Click to recheck</div>
+      </button>
+      <button @click="$dispatch('ss-open-modal', {modal: 'address', modalData: player})">
+        <div class="flex sm:justify-center items-center">
+          <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.address"></div>
+          <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.address"></div>
+          <div class="sm:hidden"><b>Has address</b> <span class="italic">(Click to edit)</span></div>
+        </div>
+        <div class="italic hidden sm:block">Click to edit</div>
+      </button>
+      <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: {...player, game_mode: player.game_mode || 'Regular', max_giftees: Math.max(player.max_giftees, 2) }})">
+        <div class="flex sm:justify-center items-center">
+          <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.game_mode"></div>
+          <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.game_mode"></div>
+          <div class="sm:hidden"><b>Game mode</b> <span class="italic">(Click to edit)</span></div>
+        </div>
+        <div class="italic hidden sm:block">Click to edit</div>
+      </button>
+      <button>
+        <div class="flex sm:justify-center items-center ">
+          <div class="i-mdi-trash-can-outline size-12"></div>
+          <div class="sm:hidden"><b>Remove player</b></div>
+        </div>
+      </button>
+    </div>
+  </template>
+</div>
+<div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
+  <template x-teleport="body">
+    <div x-show="showModal">
+      <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
+      </div>
+      <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/address.ejs', xShow: "showModal === 'address'", adminMode: true }) %>
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/game-mode.ejs', xShow: "showModal === 'game-mode'", adminMode: true }) %>
+      </div>
+    </div>
+  </template>
+</div>

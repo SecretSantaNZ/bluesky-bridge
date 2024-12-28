@@ -10,7 +10,7 @@
     <p><%= player.delivery_instructions %></p>
   </div>
   <% if (!player.locked_giftee_for_count) { %>
-    <button @click="$dispatch('ss-open-modal', {modal: 'address', modalData: <%= JSON.stringify({address: player.address, delivery_instructions: player.delivery_instructions }) %>})" class="hover:text-sky-500 size-10 p-2 drop-shadow-lg focus:text-sky-500 focus:ring rounded-full ring-sky-500 outline-none flex-shrink-0">
+    <button @click="$dispatch('ss-open-modal', {modal: 'address', modalData: <%= JSON.stringify({address: player.address, delivery_instructions: player.delivery_instructions }) %>})" class="size-10 p-2 rounded-full flex-shrink-0">
       <span class="i-mdi-pencil size-full"><span class="sr-only">Edit addreess</span></span>
     </button>
   <% } %>
@@ -21,10 +21,10 @@
     <p>Playing as a <b><%= player.game_mode %></b><%= player.game_mode === 'Regular' ? '' : ' for up to ' + player.max_giftees + ' giftees' %></p>
   </div>
   <% if (settings.signups_open) { %>
-    <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: <%= JSON.stringify({game_mode: player.game_mode || 'Regular', max_giftees: Math.max(player.max_giftees, 2) }) %>})" class="hover:text-sky-500 size-10 p-2 drop-shadow-lg focus:text-sky-500 focus:ring rounded-full ring-sky-500 outline-none flex-shrink-0">
+    <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: <%= JSON.stringify({game_mode: player.game_mode || 'Regular', max_giftees: Math.max(player.max_giftees, 2) }) %>})" class="size-10 p-2 rounded-full flex-shrink-0">
       <span class="i-mdi-pencil size-full"><span class="sr-only">Edit game mood</span></span>
     </button>
   <% } %>
 </div>
 <div class="flex-grow flex-shrink"></div>
-<button @click="$dispatch('ss-open-modal', {modal: 'opt-out', modalData: {}})" id="opt-out-button" class="rounded-lg w-lg px-8 py-2 mt-12 border-4 border-red-600 hover:bg-red-300 text-red-600 drop-shadow-lg focus:ring ring-sky-500 outline-none">Opt out</button>
+<button @click="$dispatch('ss-open-modal', {modal: 'opt-out', modalData: {}})" id="opt-out-button" class="w-lg px-8 py-2 mt-12 border-4 border-red-600 hover:bg-red-300 text-red-600">Opt out</button>
