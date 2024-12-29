@@ -1,4 +1,4 @@
-<div x-data="<%= JSON.stringify({ players }) %>" @ss-player-updated.window="players = players.map((player) => (player.did === event.detail.did ? event.detail : player))">
+<div x-data="<%= JSON.stringify({ players, showConfirm: '' }) %>" @ss-player-updated.window="players = players.map((player) => (player.did === event.detail.did ? event.detail : player))">
   <h1 class="text-xl">Players who haven't completed signup</h1>
   <div class="grid-cols-5 space-x-4 spacey-4 hidden sm:grid">
     <div class="flex justify-center"><b>Player</b></div>
@@ -8,13 +8,14 @@
     <div class="flex justify-center"><b>Remove player</b></div>
   </div>
   <!-- <template x-for="player in players.filter(player => !player.deactivated && !player.signup_complete)"> -->
-  <template x-for="player in players">
+  <template x-for="player in players.filter(player => !player.deactivated)">
     <div class="grid sm:grid-cols-5 space-x-4 spacey-4 border-b py-2">
       <div class="flex justify-center items-center text-lg font-semibold">
         <a x-bind:href="'https://bsky.app/profile/' + player.handle" x-text="'@' + player.handle"></a>
       </div>
-      <form hx-post="/player/refresh-following">
-        <button>
+      <form hx-post="/player/refresh-following" class="flex items-center sm:justify-center">
+        <%- include('../partials/activity-spinner.ejs') %>
+        <button class="htmx-request:hidden">
           <div class="flex sm:justify-center items-center">
             <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.following_santa_uri"></div>
             <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.following_santa_uri"></div>
@@ -41,12 +42,53 @@
         </div>
         <div class="italic hidden sm:block">Click to edit</div>
       </button>
-      <button>
-        <div class="flex sm:justify-center items-center ">
-          <div class="i-mdi-trash-can-outline size-12"></div>
-          <div class="sm:hidden"><b>Remove player</b></div>
-        </div>
-      </button>
+      <form hx-post="/player/boot-player" class="flex items-center sm:justify-center">
+        <button x-show="`remove-${player.did}` !== showConfirm" @click.prevent.stop="showConfirm = `remove-${player.did}`">
+          <div class="flex sm:justify-center items-center ">
+            <div class="i-mdi-trash-can-outline size-12"></div>
+            <div class="sm:hidden"><b>Remove player</b></div>
+          </div>
+        </button>
+        <%- include('../partials/activity-spinner.ejs') %>
+        <input x-show="`remove-${player.did}` === showConfirm" type="submit" name="save" value="Remove player" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+        <button x-show="`remove-${player.did}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+          <div class="i-mdi-close size-12 text-gray-400"></div>
+        </button>
+        <input type="hidden" name="player_did" x-bind:value="player.did"/>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+      </form>
+    </div>
+  </template>
+
+  <h1 class="text-xl mt-12">Deactivated players</h1>
+  <div class="grid-cols-3 space-x-4 spacey-4 hidden sm:grid">
+    <div class="flex justify-center"><b>Player</b></div>
+    <div class="flex justify-center"><b>Type</b></div>
+    <div class="flex justify-center"><b>Reactivate player</b></div>
+  </div>
+  <template x-for="player in players.filter((player) => player.deactivated)">
+    <div class="grid sm:grid-cols-3 space-x-4 spacey-4 border-b py-2">
+      <div class="flex justify-center items-center text-lg font-semibold">
+        <a x-bind:href="'https://bsky.app/profile/' + player.handle" x-text="'@' + player.handle"></a>
+      </div>
+      <div class="flex justify-center items-center">
+        <span x-text="player.booted ? 'Booted out' : 'Opted out'"></span>
+      </div>
+      <form hx-post="/player/restore-player" class="flex items-center sm:justify-center">
+        <button x-show="`restore-${player.did}` !== showConfirm" @click.prevent.stop="showConfirm = `restore-${player.did}`">
+          <div class="flex sm:justify-center items-center ">
+            <div class="i-mdi-restore size-12"></div>
+            <div class="sm:hidden"><b>Restore player</b></div>
+          </div>
+        </button>
+        <%- include('../partials/activity-spinner.ejs') %>
+        <input x-show="`restore-${player.did}` === showConfirm" type="submit" name="save" value="Restore player" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-green-600 hover:bg-green-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+        <button x-show="`restore-${player.did}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+          <div class="i-mdi-close size-12 text-gray-400"></div>
+        </button>
+        <input type="hidden" name="player_did" x-bind:value="player.did"/>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+      </form>
     </div>
   </template>
 </div>

@@ -84,7 +84,7 @@ export interface Player {
   giftees_count_status: Generated<'can_have_more' | 'full' | 'too_many'>;
   opted_out: string | null;
   booted: string | null;
-  booted_by?: string;
+  booted_by?: string | null;
   deactivated: GeneratedAlways<number>;
 }
 

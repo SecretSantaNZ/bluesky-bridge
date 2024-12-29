@@ -31,7 +31,7 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
       if (!request.tokenData?.admin && !settings.signups_open) {
         throw new BadRequestError('Signups are closed');
       }
-      const { playerService } = app.blueskyBridge;
+      const { playerService, db } = app.blueskyBridge;
       const player = await playerService.patchPlayer(playerDid, {
         ...request.body,
         ...(request.body.game_mode === 'Regular'
@@ -43,10 +43,15 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
       }
 
       if (request.adminMode) {
+        const updatedPlayer = await db
+          .selectFrom('player')
+          .selectAll()
+          .where('did', '=', playerDid)
+          .executeTakeFirst();
         reply.header(
           'HX-Trigger',
           JSON.stringify({
-            'ss-player-updated': player,
+            'ss-player-updated': updatedPlayer,
             'ss-close-modal': true,
           })
         );

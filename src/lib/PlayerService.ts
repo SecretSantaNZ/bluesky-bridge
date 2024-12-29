@@ -25,14 +25,12 @@ export type Player = Omit<
   | 'signup_complete'
   | 'address_review_required'
   | 'opted_out'
-  | 'booted'
 > & {
   following_santa: boolean;
   profile_complete: boolean;
   signup_complete: boolean;
   address_review_required: boolean;
   opted_out: boolean;
-  booted: boolean;
 };
 
 const dbPlayerToPlayer = (dbPlayer: SelectedPlayer): Player => {
@@ -46,7 +44,6 @@ const dbPlayerToPlayer = (dbPlayer: SelectedPlayer): Player => {
     signup_complete: Boolean(rest.signup_complete),
     address_review_required: Boolean(rest.address_review_required),
     opted_out: Boolean(rest.opted_out),
-    booted: Boolean(rest.booted),
   };
 };
 
@@ -261,7 +258,7 @@ export class PlayerService {
       >
     >
   ): Promise<SelectedPlayer | undefined> {
-    const { address_review_required, opted_out, booted, ...rest } = updates;
+    const { address_review_required, opted_out, ...rest } = updates;
 
     const now = new Date().toISOString();
     const dbPlayer = await this.db
@@ -274,7 +271,6 @@ export class PlayerService {
         ...(opted_out == null
           ? undefined
           : { opted_out: opted_out ? now : null }),
-        ...(booted == null ? undefined : { booted: booted ? now : null }),
       })
       .where('did', '=', player_did)
       .returningAll()

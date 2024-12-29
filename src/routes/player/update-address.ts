@@ -18,7 +18,7 @@ export const updateAddress: FastifyPluginAsync = async (rawApp) => {
     async function handler(request, reply) {
       const { address } = request.body;
       const playerDid = request.playerDid as string;
-      const { playerService } = app.blueskyBridge;
+      const { playerService, db } = app.blueskyBridge;
       const player = await playerService.getPlayer(playerDid);
       if (player == null) {
         throw new NotFoundError();
@@ -26,13 +26,18 @@ export const updateAddress: FastifyPluginAsync = async (rawApp) => {
       if (!request.tokenData?.admin && player.locked_giftee_for_count) {
         throw new BadRequestError('Address has been sent');
       }
-      const updatedPlayer = await playerService.patchPlayer(playerDid, {
+      await playerService.patchPlayer(playerDid, {
         ...request.body,
         address_review_required:
           address == null ? undefined : !address.match(/new zealand|aotearoa/i),
       });
 
       if (request.adminMode) {
+        const updatedPlayer = await db
+          .selectFrom('player')
+          .selectAll()
+          .where('did', '=', playerDid)
+          .executeTakeFirst();
         reply.header(
           'HX-Trigger',
           JSON.stringify({
