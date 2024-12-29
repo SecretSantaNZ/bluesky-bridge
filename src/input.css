@@ -9,6 +9,9 @@
   button {
     @apply hover:text-sky-500 drop-shadow-lg focus:text-sky-500 focus:ring ring-sky-500 outline-none rounded-lg;
   }
+  form {
+    @apply m-0
+  }
 }
 
 @layer utilities {

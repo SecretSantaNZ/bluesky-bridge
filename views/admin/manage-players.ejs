@@ -13,14 +13,18 @@
       <div class="flex justify-center items-center text-lg font-semibold">
         <a x-bind:href="'https://bsky.app/profile/' + player.handle" x-text="'@' + player.handle"></a>
       </div>
-      <button>
-        <div class="flex sm:justify-center items-center">
-          <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.following_santa_uri"></div>
-          <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.following_santa_uri"></div>
-          <div class="sm:hidden"><b>Following santa</b> <span class="italic">(Click to recheck)</span></div>
-        </div>
-        <div class="italic hidden sm:block">Click to recheck</div>
-      </button>
+      <form hx-post="/player/refresh-following">
+        <button>
+          <div class="flex sm:justify-center items-center">
+            <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.following_santa_uri"></div>
+            <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.following_santa_uri"></div>
+            <div class="sm:hidden"><b>Following santa</b> <span class="italic">(Click to recheck)</span></div>
+          </div>
+          <div class="italic hidden sm:block">Click to recheck</div>
+        </button>
+        <input type="hidden" name="player_did" x-bind:value="player.did"/>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+      </form>
       <button @click="$dispatch('ss-open-modal', {modal: 'address', modalData: player})">
         <div class="flex sm:justify-center items-center">
           <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.address"></div>

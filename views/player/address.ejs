@@ -1,4 +1,4 @@
-<form hx-post="/player/update-address" @ss-address-changed.window="modalData.address = $event.detail.address;" class="m-0">
+<form hx-post="/player/update-address" @ss-address-changed.window="modalData.address = $event.detail.address;">
   <div class="space-y-8">
     <% if (locals.adminMode) { %>
       <h1 class="text-xl font-semibold" x-text="'Enter address for @' + modalData.handle"></h1>

@@ -10,6 +10,7 @@ import { sendNudge } from './send-nudge.js';
 import { addTracking } from './add-tracking.js';
 import { tracking } from './tracking.js';
 import { logout } from './logout.js';
+import { refreshFollowing } from './refresh-following.js';
 
 export const player: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -45,6 +46,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
   await app.register(logout);
   await app.register(updateAddress);
   await app.register(updateGameMode);
+  await app.register(refreshFollowing);
   await app.register(optOut);
   await app.register(optIn);
   await app.register(sendNudge);

@@ -178,6 +178,30 @@ export class PlayerService {
     return dbPlayer == null ? undefined : dbPlayerToPlayer(dbPlayer);
   }
 
+  async refreshFollowing(
+    player_did: string
+  ): Promise<SelectedPlayer | undefined> {
+    const { relationships } = await fetchRelationships(
+      this.santaAccountDid,
+      player_did
+    );
+    const relationship = AppBskyGraphDefs.isRelationship(relationships[0])
+      ? relationships[0]
+      : undefined;
+
+    const dbPlayer = await this.db
+      .updateTable('player')
+      .set({
+        following_santa_uri: relationship?.followedBy ?? null,
+        santa_following_uri: relationship?.following ?? null,
+      })
+      .where('did', '=', player_did)
+      .returningAll()
+      .executeTakeFirst();
+
+    return dbPlayer;
+  }
+
   async createPlayer(player_did: string): Promise<Player> {
     const [{ data: profile }, { relationships }] = await Promise.all([
       unauthenticatedAgent.getProfile({
@@ -236,7 +260,7 @@ export class PlayerService {
         | 'signup_complete'
       >
     >
-  ): Promise<Player | undefined> {
+  ): Promise<SelectedPlayer | undefined> {
     const { address_review_required, opted_out, booted, ...rest } = updates;
 
     const now = new Date().toISOString();
@@ -256,7 +280,7 @@ export class PlayerService {
       .returningAll()
       .executeTakeFirst();
 
-    return dbPlayer == null ? undefined : dbPlayerToPlayer(dbPlayer);
+    return dbPlayer;
   }
 
   async deletePlayer(player_did: string): Promise<void> {
