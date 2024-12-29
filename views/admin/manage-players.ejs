@@ -1,4 +1,4 @@
-<div x-data="<%= JSON.stringify({ players }) %>">
+<div x-data="<%= JSON.stringify({ players }) %>" @ss-player-updated.window="players = players.map((player) => (player.did === event.detail.did ? event.detail : player))">
   <h1 class="text-xl">Players who haven't completed signup</h1>
   <div class="grid-cols-5 space-x-4 spacey-4 hidden sm:grid">
     <div class="flex justify-center"><b>Player</b></div>

@@ -13,21 +13,17 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
         body: z.object({
           game_mode: z.enum(['Regular', 'Super Santa']),
           max_giftees: z.coerce.number(),
-          player_did: z.string().optional(),
         }),
       },
     },
     async function handler(request, reply) {
-      const { game_mode, max_giftees, player_did, ...rest } = request.body;
-      let did = request.tokenSubject as string;
-      if (request.tokenData?.admin && player_did) {
-        did = player_did;
-      }
+      const { game_mode, max_giftees } = request.body;
       if (game_mode === 'Super Santa' && (!max_giftees || max_giftees < 2)) {
         throw new BadRequestError(
           'Must opt in to at least 2 giftees if super santa'
         );
       }
+      const playerDid = request.playerDid as string;
       const settings = await this.blueskyBridge.db
         .selectFrom('settings')
         .selectAll()
@@ -36,10 +32,8 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
         throw new BadRequestError('Signups are closed');
       }
       const { playerService } = app.blueskyBridge;
-      const player = await playerService.patchPlayer(did, {
-        ...rest,
-        game_mode,
-        max_giftees,
+      const player = await playerService.patchPlayer(playerDid, {
+        ...request.body,
         ...(request.body.game_mode === 'Regular'
           ? { max_giftees: 1 }
           : undefined),
@@ -48,7 +42,18 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
         throw new NotFoundError();
       }
 
-      return reply.code(204).header('HX-Refresh', 'true').send();
+      if (request.adminMode) {
+        reply.header(
+          'HX-Trigger',
+          JSON.stringify({
+            'ss-player-updated': player,
+            'ss-close-modal': true,
+          })
+        );
+      } else {
+        reply.header('HX-Refresh', 'true');
+      }
+      return reply.code(204).send();
     }
   );
 };

@@ -50,6 +50,8 @@ declare module 'fastify' {
   export interface FastifyRequest {
     tokenSubject?: string;
     tokenData?: Record<string, unknown>;
+    playerDid?: string;
+    adminMode?: boolean;
   }
   export interface FastifyReply {
     locals?: Record<string, unknown>;

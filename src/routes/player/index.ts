@@ -26,6 +26,15 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     if (csrfToken !== request.tokenData?.csrfToken || !csrfToken) {
       throw new BadRequestError('invalid csrf token');
     }
+
+    // @ts-expect-error body is not typed here
+    const bodyPlayerDid = request.body?.player_did;
+    request.playerDid = request.tokenSubject as string;
+    request.adminMode = false;
+    if (request.tokenData?.admin && bodyPlayerDid) {
+      request.playerDid = bodyPlayerDid;
+      request.adminMode = true;
+    }
   });
 
   app.setErrorHandler(async function (error, request, reply) {

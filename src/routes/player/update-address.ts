@@ -12,32 +12,38 @@ export const updateAddress: FastifyPluginAsync = async (rawApp) => {
         body: z.object({
           address: z.string(),
           delivery_instructions: z.string(),
-          player_did: z.string().optional(),
         }),
       },
     },
     async function handler(request, reply) {
-      const { address, player_did, ...rest } = request.body;
-      let did = request.tokenSubject as string;
-      if (request.tokenData?.admin && player_did) {
-        did = player_did;
-      }
+      const { address } = request.body;
+      const playerDid = request.playerDid as string;
       const { playerService } = app.blueskyBridge;
-      const player = await playerService.getPlayer(did);
+      const player = await playerService.getPlayer(playerDid);
       if (player == null) {
         throw new NotFoundError();
       }
       if (!request.tokenData?.admin && player.locked_giftee_for_count) {
         throw new BadRequestError('Address has been sent');
       }
-      await playerService.patchPlayer(did, {
-        ...rest,
-        address,
+      const updatedPlayer = await playerService.patchPlayer(playerDid, {
+        ...request.body,
         address_review_required:
           address == null ? undefined : !address.match(/new zealand|aotearoa/i),
       });
 
-      return reply.code(204).header('HX-Refresh', 'true').send();
+      if (request.adminMode) {
+        reply.header(
+          'HX-Trigger',
+          JSON.stringify({
+            'ss-player-updated': updatedPlayer,
+            'ss-close-modal': true,
+          })
+        );
+      } else {
+        reply.header('HX-Refresh', 'true');
+      }
+      return reply.code(204).send();
     }
   );
 };
