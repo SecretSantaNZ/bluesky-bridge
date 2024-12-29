@@ -1,5 +1,5 @@
 <div x-data="<%= JSON.stringify({ players, showConfirm: '' }) %>" @ss-player-updated.window="players = players.map((player) => (player.did === event.detail.did ? event.detail : player))">
-  <h1 class="text-xl">Players who haven't completed signup</h1>
+  <h1 class="text-xl">Active players</h1>
   <div class="grid-cols-5 space-x-4 spacey-4 hidden sm:grid">
     <div class="flex justify-center"><b>Player</b></div>
     <div class="flex justify-center"><b>Following santa</b></div>
@@ -7,9 +7,8 @@
     <div class="flex justify-center"><b>Game mode</b></div>
     <div class="flex justify-center"><b>Remove player</b></div>
   </div>
-  <!-- <template x-for="player in players.filter(player => !player.deactivated && !player.signup_complete)"> -->
   <template x-for="player in players.filter(player => !player.deactivated)">
-    <div class="grid sm:grid-cols-5 space-x-4 spacey-4 border-b py-2">
+    <div class="grid sm:grid-cols-5 space-x-4 spacey-4 border-b py-2" x-init="htmx && htmx.process($el)">
       <div class="flex justify-center items-center text-lg font-semibold">
         <a x-bind:href="'https://bsky.app/profile/' + player.handle" x-text="'@' + player.handle"></a>
       </div>
@@ -67,7 +66,7 @@
     <div class="flex justify-center"><b>Reactivate player</b></div>
   </div>
   <template x-for="player in players.filter((player) => player.deactivated)">
-    <div class="grid sm:grid-cols-3 space-x-4 spacey-4 border-b py-2">
+    <div class="grid sm:grid-cols-3 space-x-4 spacey-4 border-b py-2" x-init="htmx && htmx.process($el)">
       <div class="flex justify-center items-center text-lg font-semibold">
         <a x-bind:href="'https://bsky.app/profile/' + player.handle" x-text="'@' + player.handle"></a>
       </div>
