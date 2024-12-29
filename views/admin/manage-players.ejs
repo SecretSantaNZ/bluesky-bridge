@@ -1,5 +1,18 @@
-<div x-data="<%= JSON.stringify({ players, showConfirm: '' }) %>" @ss-player-updated.window="players = players.map((player) => (player.did === event.detail.did ? event.detail : player))">
-  <h1 class="text-xl">Active players</h1>
+<div class="w-full px-12" x-data="<%= JSON.stringify({ players, showConfirm: '', showSignupComplete: true, showSignupIncomplete: true, activePlayersFilter: '' }) %>" @ss-player-updated.window="players = players.map((player) => (player.did === event.detail.did ? event.detail : player))">
+  <fieldset class="flex space-x-8 items-center mb-2">
+    <h1 class="text-xl">Active players</h1>
+    <div>
+      <input type="checkbox" id="show-signup-complete" name="show-signup-complete" x-model="showSignupComplete"/>
+      <label for="show-signup-complete">Signup complete</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-signup-incomplete" name="show-signup-incomplete" x-model="showSignupIncomplete" />
+      <label for="show-signup-incomplete">Signup incomplete</label>
+    </div>
+  </fieldset>
+  <div class="w-full mb-2">
+    <input type="text" x-model="activePlayersFilter" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
   <div class="grid-cols-5 space-x-4 spacey-4 hidden sm:grid">
     <div class="flex justify-center"><b>Player</b></div>
     <div class="flex justify-center"><b>Following santa</b></div>
@@ -7,7 +20,7 @@
     <div class="flex justify-center"><b>Game mode</b></div>
     <div class="flex justify-center"><b>Remove player</b></div>
   </div>
-  <template x-for="player in players.filter(player => !player.deactivated)">
+  <template x-for="player in players.filter(player => !player.deactivated && (player.signup_complete ? showSignupComplete : showSignupIncomplete) && (!activePlayersFilter.replace(/@/g, '') || player.handle.toLowerCase().includes(activePlayersFilter.replace(/@/g, '').toLowerCase())))">
     <div class="grid sm:grid-cols-5 space-x-4 spacey-4 border-b py-2" x-init="htmx && htmx.process($el)">
       <div class="flex justify-center items-center text-lg font-semibold">
         <a x-bind:href="'https://bsky.app/profile/' + player.handle" x-text="'@' + player.handle"></a>
@@ -59,13 +72,18 @@
     </div>
   </template>
 
-  <h1 class="text-xl mt-12">Deactivated players</h1>
+  <fieldset class="flex space-x-8 items-center mt-12 mb-2">
+    <h1 class="text-xl">Deactivated players</h1>
+  </fieldset>
+  <div class="w-full mb-2">
+    <input type="text" x-model="activePlayersFilter" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
   <div class="grid-cols-3 space-x-4 spacey-4 hidden sm:grid">
     <div class="flex justify-center"><b>Player</b></div>
     <div class="flex justify-center"><b>Type</b></div>
     <div class="flex justify-center"><b>Reactivate player</b></div>
   </div>
-  <template x-for="player in players.filter((player) => player.deactivated)">
+  <template x-for="player in players.filter((player) => player.deactivated && (!activePlayersFilter.replace(/@/g, '') || player.handle.toLowerCase().includes(activePlayersFilter.replace(/@/g, '').toLowerCase())))">
     <div class="grid sm:grid-cols-3 space-x-4 spacey-4 border-b py-2" x-init="htmx && htmx.process($el)">
       <div class="flex justify-center items-center text-lg font-semibold">
         <a x-bind:href="'https://bsky.app/profile/' + player.handle" x-text="'@' + player.handle"></a>
