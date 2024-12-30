@@ -54,7 +54,7 @@
         </div>
         <div class="italic hidden sm:block">Click to edit</div>
       </button>
-      <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: {...player, game_mode: player.game_mode || 'Regular', max_giftees: Math.max(player.max_giftees, 2) }})">
+      <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: {...player, game_mode: player.game_mode || 'Regular' }})">
         <div class="flex sm:justify-center items-center">
           <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.game_mode"></div>
           <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.game_mode"></div>

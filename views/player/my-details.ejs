@@ -18,10 +18,10 @@
 <div class="mt-4 flex items-start">
   <div class="flex-grow flex-shrink">
     <h2 class="text-md font-semibold">My game</h2>
-    <p>Playing as a <b><%= player.game_mode %></b><%= player.game_mode === 'Regular' ? '' : ' for up to ' + player.max_giftees + ' giftees' %></p>
+    <p>Playing as a <b><%= player.game_mode %></b><%= player.game_mode === 'Regular' || player.game_mode === 'Giftee Only' ? '' : ' for up to ' + player.max_giftees + ' giftees' %></p>
   </div>
   <% if (settings.signups_open) { %>
-    <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: <%= JSON.stringify({game_mode: player.game_mode || 'Regular', max_giftees: Math.max(player.max_giftees, 2) }) %>})" class="size-10 p-2 rounded-full flex-shrink-0">
+    <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: <%= JSON.stringify({game_mode: player.game_mode || 'Regular', max_giftees: player.max_giftees }) %>})" class="size-10 p-2 rounded-full flex-shrink-0">
       <span class="i-mdi-pencil size-full"><span class="sr-only">Edit game mood</span></span>
     </button>
   <% } %>

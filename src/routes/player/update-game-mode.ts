@@ -1,5 +1,9 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { BadRequestError, NotFoundError } from 'http-errors-enhanced';
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 
@@ -11,13 +15,25 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
     {
       schema: {
         body: z.object({
-          game_mode: z.enum(['Regular', 'Super Santa']),
+          game_mode: z.enum([
+            'Regular',
+            'Super Santa',
+            'Santa Only',
+            'Giftee Only',
+          ]),
           max_giftees: z.coerce.number(),
         }),
       },
     },
     async function handler(request, reply) {
       const { game_mode, max_giftees } = request.body;
+      if (
+        !request.tokenData?.admin &&
+        game_mode !== 'Super Santa' &&
+        game_mode !== 'Regular'
+      ) {
+        throw new ForbiddenError();
+      }
       if (game_mode === 'Super Santa' && (!max_giftees || max_giftees < 2)) {
         throw new BadRequestError(
           'Must opt in to at least 2 giftees if super santa'
@@ -31,12 +47,16 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
       if (!request.tokenData?.admin && !settings.signups_open) {
         throw new BadRequestError('Signups are closed');
       }
+      let defaultedMaxGiftees = max_giftees;
+      if (game_mode === 'Regular') {
+        defaultedMaxGiftees = 1;
+      } else if (game_mode === 'Giftee Only') {
+        defaultedMaxGiftees = 0;
+      }
       const { playerService, db } = app.blueskyBridge;
       const player = await playerService.patchPlayer(playerDid, {
         ...request.body,
-        ...(request.body.game_mode === 'Regular'
-          ? { max_giftees: 1 }
-          : undefined),
+        max_giftees: defaultedMaxGiftees,
       });
       if (player == null) {
         throw new NotFoundError();
