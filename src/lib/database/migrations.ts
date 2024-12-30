@@ -217,6 +217,12 @@ migrations['001'] = {
       .column('giftee')
       .execute();
 
+    await db.schema
+      .createIndex('idx_match_invalid_player')
+      .on('match')
+      .column('invalid_player')
+      .execute();
+
     await sql`
       create trigger match_on_insert after insert on match for each row when new.deactivated is null begin
         update player set giftee_for_count = giftee_for_count + 1 where id = new.giftee;

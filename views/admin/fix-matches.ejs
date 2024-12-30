@@ -1,0 +1,51 @@
+<div class="grid grid-cols-3"
+    x-data="<%= JSON.stringify({brokenMatches, showConfirm: ''}) %>"
+    @ss-match-deactivated.window="brokenMatches = brokenMatches.filter((match) => match.id !== event.detail.id)"
+  >
+  <div class="col-span-2 pr-4">
+    <h1>Broken matches</h1>
+    <p>These matches have been broken by a player deactivating, either opting out or us booting them out.</p>
+    <p>We will need to delete the match and assign new santa / giftee as appropraite.</p>
+    <p>This is not done automatically as we need to communicate with players when this happens</p>
+    <div class="grid-cols-4 space-x-4 spacey-4 hidden sm:grid">
+      <div class="flex justify-center"><b>Santa</b></div>
+      <div class="flex justify-center"><b>Giftee</b></div>
+      <div class="flex justify-center"><b>Status</b></div>
+      <div class="flex justify-center"><b>Delete</b></div>
+    </div>
+    <template x-for="match in brokenMatches">
+      <div class="grid sm:grid-cols-4 space-x-4 spacey-4 border-b py-2">
+        <div class="flex justify-center items-center text-lg">
+          <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank">
+            <span x-text="'@' + match.santa_handle"></span>
+            <span x-show="match.santa_deactivated" x-text="match.santa_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
+          </a>
+        </div>
+        <div class="flex justify-center items-center text-lg">
+          <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank">
+            <span x-text="'@' + match.giftee_handle"></span>
+            <span x-show="match.giftee_deactivated" x-text="match.giftee_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
+          </a>
+        </div>
+        <div class="flex justify-center items-center text-lg">
+          <span x-text="match.match_status"></span>
+        </div>
+        <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center">
+          <button x-show="`match-${match.id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.id}`">
+            <div class="flex sm:justify-center items-center ">
+              <div class="i-mdi-trash-can-outline size-10"></div>
+              <div class="sm:hidden"><b>Delete match</b></div>
+            </div>
+          </button>
+          <%- include('../partials/activity-spinner.ejs') %>
+          <input x-show="`match-${match.id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+          <button x-show="`match-${match.id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+            <div class="i-mdi-close size-10 text-gray-400"></div>
+          </button>
+          <input type="hidden" name="match_id" x-bind:value="match.id"/>
+          <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+        </form>
+      </div>
+    </template>
+  </div>
+</div>
