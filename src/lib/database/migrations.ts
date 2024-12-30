@@ -166,6 +166,14 @@ migrations['001'] = {
       end;
     `.execute(db);
 
+    await sql`
+      create trigger player_update_deactivated_changed after update of deactivated on player for each row when new.deactivated <> old.deactivated begin
+        update match
+          set invalid_player = min(1, (select count(*) from player where player.deactivated AND (player.id = match.giftee or player.id = match.santa)))
+          where santa = new.id or giftee = new.id;
+      end;
+    `.execute(db);
+
     await db.schema
       .createTable('match')
       .addColumn('id', 'integer', (col) => col.primaryKey())
