@@ -1,6 +1,6 @@
 <form hx-post="/player/send-nudge" x-data="<%= JSON.stringify({nudge_type: nudgeTypes[0].id, nudgeGreetings, nudgeSignoffs}) %>">
   <div class="space-y-8">
-    <h1 class="text-xl font-semibold">Nudge @<span x-text="modalData.giftee_handle"></span></h1>
+    <h1>Nudge @<span x-text="modalData.giftee_handle"></span></h1>
     <ul class="list-disc">
       <li><b>Hint</b><br/>Asks your Giftee to tweet a hint so you can choose the perfect gift.</li>
       <li><b>Arrival</b><br/>Checks that your Giftee has got their parcel in their hot little hands. Before you use this, please be reasonably sure the parcel should have arrived and check the delivery status.</li>

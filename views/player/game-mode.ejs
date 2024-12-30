@@ -1,9 +1,9 @@
 <form hx-post="/player/update-game-mode">
   <div class="space-y-8">
     <% if (locals.adminMode) { %>
-      <h1 class="text-xl font-semibold" x-text="'Game mode for @' + modalData.handle"></h1>
+      <h1 x-text="'Game mode for @' + modalData.handle"></h1>
     <% } else { %>
-      <h1 class="text-xl font-semibold">How do you want to play?</h1>
+      <h1>How do you want to play?</h1>
     <% } %>
     <%- include('../partials/drop-down.ejs', {id: 'game_mode', xModel: 'modalData.game_mode', label: 'Game mode', options: [
       {id: 'Regular', text: 'Regular'},

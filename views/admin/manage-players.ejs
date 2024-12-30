@@ -4,7 +4,7 @@
     @ss-player-added.window="players.push(event.detail)"
   >
   <fieldset class="flex space-x-8 items-center mb-2">
-    <h1 class="text-xl">Active players</h1>
+    <h1>Active players</h1>
     <div>
       <input type="checkbox" id="show-signup-complete" name="show-signup-complete" x-model="showSignupComplete"/>
       <label for="show-signup-complete">Signup complete</label>
@@ -81,7 +81,7 @@
   </template>
 
   <fieldset class="flex space-x-8 items-center mt-12 mb-2">
-    <h1 class="text-xl">Deactivated players</h1>
+    <h1>Deactivated players</h1>
   </fieldset>
   <div class="w-full mb-2">
     <input type="text" x-model="activePlayersFilter" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>

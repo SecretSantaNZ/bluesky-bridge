@@ -2,7 +2,7 @@
   <input type="hidden" name="requestId" value="<%= requestId %>"/>
   <input type="hidden" name="returnToken" value="<%= returnToken %>"/>
   <div class="space-y-8">
-    <h1 class="text-xl font-semibold">Login or Sign up</h1>
+    <h1>Login or Sign up</h1>
     <%- include('../partials/input-text.ejs', {id: 'handle', label: 'Handle', placeholder: 'secretsantanz.bsky.social'}); %>
     <div class="flex flex-col items-center">
       <%- include('../partials/activity-spinner.ejs') %>
