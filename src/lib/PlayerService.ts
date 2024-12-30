@@ -199,7 +199,10 @@ export class PlayerService {
     return dbPlayer;
   }
 
-  async createPlayer(player_did: string): Promise<Player> {
+  async createPlayer(
+    player_did: string,
+    attributes: Partial<InsertObject<DatabaseSchema, 'player'>> = {}
+  ): Promise<Player> {
     const [{ data: profile }, { relationships }] = await Promise.all([
       unauthenticatedAgent.getProfile({
         actor: player_did,
@@ -222,6 +225,7 @@ export class PlayerService {
       max_giftees: 0,
       opted_out: null,
       booted: null,
+      ...attributes,
     };
 
     const result = await this.db

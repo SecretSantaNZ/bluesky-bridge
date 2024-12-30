@@ -1,0 +1,21 @@
+<form hx-post="/player/new-player" @ss-address-changed="modalData.address = $event.detail.address;">
+  <div class="space-y-8">
+    <h1 class="text-xl font-semibold">Add player</h1>
+    <div>
+      <%- include('../partials/input-text.ejs', {id: 'new_player_handle', name: 'handle', label: 'Handle', placeholder: 'coolplayer.bsky.social', xModel: 'modalData.term', attributes: {
+        list: 'new_player_handles',
+        autocomplete: 'false',
+        '@keypress.debounce': "modalData.actors = JSON.parse(await $fetch('https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=' + modalData.term)).actors",
+      }}); %>
+      <datalist id="new_player_handles"> 
+        <template x-for="item in (modalData.actors || [])">
+          <option x-bind:value="item.handle"></option>
+        </template>
+      </datalist>
+    </div>
+    <%- include('../partials/input-text.ejs', {id: 'new_player_address', name: 'address', label: 'Address', placeholder: '123 Candy Cane Lane, North Pole', xModel: 'modalData.address', input_type: 'address'}); %>
+    <%- include('../partials/input-text.ejs', {id: 'new_player_delivery_instructions', name: 'delivery_instructions', label: 'Delivery instructions', placeholder: 'Leave by back door', xModel: 'modalData.delivery_instructions'}); %>
+    <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: 'false' }); %>
+  </div>
+  <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+</form>

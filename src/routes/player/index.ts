@@ -13,6 +13,7 @@ import { logout } from './logout.js';
 import { refreshFollowing } from './refresh-following.js';
 import { bootPlayer } from './boot-player.js';
 import { restorePlayer } from './restore-player.js';
+import { newPlayer } from './new-player.js';
 
 export const player: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -56,4 +57,5 @@ export const player: FastifyPluginAsync = async (rawApp) => {
   await app.register(tracking);
   await app.register(bootPlayer);
   await app.register(restorePlayer);
+  await app.register(newPlayer);
 };

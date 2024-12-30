@@ -6,6 +6,7 @@
     <link href="/public/style.css" rel="stylesheet">
     <style>[x-cloak] { display: none !important; }</style>
     <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/hankhank10/alpine-fetch@main/alpine-fetch.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   </head>
   <body class="scheme-light dark:scheme-dark bg-slate-300 text-slate-800 dark:bg-slate-800 dark:text-slate-200" hx-disabled-elt
@@ -41,5 +42,25 @@
           <%- body %>
       </div>
     </div>
+    <script>
+      function initAutocompletes() {
+        const addressInputs = document.querySelectorAll('input[type="address"]')
+        for (const input of addressInputs) {
+          input.setAttribute('type', 'text');
+          var addressAutocomplete = new google.maps.places.Autocomplete(input, {
+            componentRestrictions: {
+              country: 'nz'
+            }
+          });
+          addressAutocomplete.addListener("place_changed", () => {
+            const place = addressAutocomplete.getPlace();
+            input.dispatchEvent(new CustomEvent('ss-address-changed', {detail: {address: place.formatted_address}}))
+          });
+        }
+      }
+    </script>
+    <script async
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBN9m5sRKCu9Ra1rjBd2hnKqrGMm5xLjoM&loading=async&libraries=places&callback=initAutocompletes">
+    </script>
   </body>
 </html>
