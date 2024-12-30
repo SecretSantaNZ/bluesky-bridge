@@ -6,6 +6,7 @@ import {
 } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { buildTooManyGifteeMatchesQuery } from '../view/admin/fix-matches.js';
 
 export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -14,6 +15,11 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
     '/update-game-mode',
     {
       schema: {
+        querystring: z
+          .object({
+            returnTooManyMatches: z.coerce.boolean(),
+          })
+          .partial(),
         body: z.object({
           game_mode: z.enum([
             'Regular',
@@ -68,10 +74,20 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
           .selectAll()
           .where('did', '=', playerDid)
           .executeTakeFirst();
+        const tooManyGifteeMatches = request.query.returnTooManyMatches
+          ? await buildTooManyGifteeMatchesQuery(db)
+              .where('santa.did', '=', playerDid)
+              .execute()
+          : undefined;
         reply.header(
           'HX-Trigger',
           JSON.stringify({
             'ss-player-updated': updatedPlayer,
+            ...(tooManyGifteeMatches && {
+              'ss-too-many-giftees-match-updated': {
+                [playerDid]: tooManyGifteeMatches,
+              },
+            }),
             'ss-close-modal': true,
           })
         );

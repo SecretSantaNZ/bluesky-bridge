@@ -80,8 +80,8 @@ export interface Player {
   max_giftees: number;
   giftee_for_count: Generated<number>;
   locked_giftee_for_count: Generated<number>;
-  giftees_count: Generated<number>;
-  giftees_count_status: Generated<'can_have_more' | 'full' | 'too_many'>;
+  giftee_count: Generated<number>;
+  giftee_count_status: Generated<'can_have_more' | 'full' | 'too_many'>;
   opted_out: string | null;
   booted: string | null;
   booted_by?: string | null;

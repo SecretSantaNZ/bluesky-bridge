@@ -1,4 +1,4 @@
-<form hx-post="/player/update-game-mode">
+<form hx-post="/player/update-game-mode<%= locals.returnTooManyMatches ? '?returnTooManyMatches=true' : '' %>">
   <div class="space-y-8">
     <% if (locals.adminMode) { %>
       <h1 x-text="'Game mode for @' + modalData.handle"></h1>
