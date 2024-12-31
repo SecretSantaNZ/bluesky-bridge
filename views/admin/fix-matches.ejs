@@ -1,6 +1,5 @@
 <script>
   function mergeTooManyGifteeMatches(tooManyGifteeMatches, updatedMatches) {
-    console.log({tooManyGifteeMatches, updatedMatches})
     const newMatches = [];
     let currentDid = undefined;
     for (const match of tooManyGifteeMatches) {
@@ -15,7 +14,7 @@
   }
 </script>
 <div class="grid grid-cols-3"
-    x-data="<%= JSON.stringify({playersWhoCanHaveMoreGifees, brokenMatches, tooManyGifteeMatches, showConfirm: ''}) %>"
+    x-data="<%= JSON.stringify({playersWhoCanHaveMoreGifees, brokenMatches, tooManyGifteeMatches, needsSantaAssigned, showConfirm: ''}) %>"
     @ss-match-deactivated.window="brokenMatches = brokenMatches.filter((match) => match.id !== event.detail.id)"
     @ss-too-many-giftees-match-updated.window="tooManyGifteeMatches = mergeTooManyGifteeMatches(tooManyGifteeMatches, event.detail)"
   >
@@ -100,6 +99,25 @@
         </div>
       </template>
     </div>
+
+    <div class="mb-12" x-show="needsSantaAssigned.length > 0">
+      <h1>Players needing a Santa</h1>
+      <p>These players have no Santa assigned to them. By default the search will only find people who have less giftee's than they've signed up to do.</p>
+      <div class="grid-cols-2 space-x-4 spacey-4 hidden sm:grid">
+        <div class="flex justify-center"><b>Player</b></div>
+        <div class="flex justify-center"><b>Action</b></div>
+      </div>
+      <template x-for="player in needsSantaAssigned">
+        <div class="grid sm:grid-cols-2 space-x-4 spacey-4 border-b py-2">
+          <div class="flex justify-center items-center text-lg">
+            <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(player.handle)" target="_blank" x-text="'@' + player.handle"></a>
+          </div>
+          <div class="flex flex-col justify-center items-center">
+            <button @click="$dispatch('ss-open-modal', {modal: 'assign-santa', modalData: player})" class="rounded-sm">Assign santa</button>
+          </div>
+        </div>
+      </template>
+    </div>
   </div>
   <div>
     <h1>Players available to Santa</h1>
@@ -123,6 +141,7 @@
       <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
         <%- include('../layouts/card.ejs', { bodyTemplate: 'player/game-mode.ejs', xShow: "showModal === 'game-mode'", adminMode: true, returnTooManyMatches: true }) %>
         <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/reassign-giftee.ejs', xShow: "showModal === 'reassign-giftee'" }) %>
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/assign-santa.ejs', xShow: "showModal === 'assign-santa'" }) %>
       </div>
     </div>
   </template>

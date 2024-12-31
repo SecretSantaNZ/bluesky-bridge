@@ -14,6 +14,7 @@ import { refreshFollowing } from './refresh-following.js';
 import { bootPlayer } from './boot-player.js';
 import { restorePlayer } from './restore-player.js';
 import { newPlayer } from './new-player.js';
+import { assignSanta } from './assign-santa.js';
 
 export const player: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -56,6 +57,9 @@ export const player: FastifyPluginAsync = async (rawApp) => {
   await app.register(addTracking);
   await app.register(tracking);
   await app.register(bootPlayer);
+
+  // admin only
   await app.register(restorePlayer);
   await app.register(newPlayer);
+  await app.register(assignSanta);
 };

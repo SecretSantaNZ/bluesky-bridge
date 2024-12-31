@@ -1,0 +1,14 @@
+<form hx-post="/player/assign-santa">
+  <div class="space-y-8">
+    <h1>Assign giftee for @<span x-text="modalData.handle"></span></h1>
+    <div>
+      <%- include('../partials/input-text.ejs', {id: 'assign_santa_santa_handle', name: 'santa_handle', label: 'Santa', placeholder: 'coolplayer.bsky.social', xModel: 'modalData.santa_handle', attributes: {
+        list: 'players-available-to-santa',
+        autocomplete: 'false',
+      }}); %>
+    </div>
+    <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: 'false' }); %>
+  </div>
+  <input type="hidden" name="player_did" x-bind:value="modalData.did"/>
+  <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+</form>

@@ -30,48 +30,59 @@ export function buildTooManyGifteeMatchesQuery(db: Database) {
 export const fixMatches: FastifyPluginAsync = async (app) => {
   app.get('/fix-matches', async function (request, reply) {
     const { db } = this.blueskyBridge;
-    const [playersWhoCanHaveMoreGifees, brokenMatches, tooManyGifteeMatches] =
-      await Promise.all([
-        db
-          .selectFrom('player')
-          .select([
-            'handle',
-            'did',
-            'giftee_count',
-            'giftee_for_count',
-            'max_giftees',
-          ])
-          .where('giftee_count_status', '=', 'can_have_more')
-          .where('signup_complete', '=', 1)
-          .orderBy('giftee_count asc')
-          .orderBy(sql`random()`)
-          .execute(),
-        db
-          .selectFrom('match')
-          .innerJoin('player as santa', 'santa.id', 'match.santa')
-          .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
-          .select([
-            'santa.handle as santa_handle',
-            'santa.deactivated as santa_deactivated',
-            'santa.booted as santa_booted',
-            'giftee.handle as giftee_handle',
-            'giftee.deactivated as giftee_deactivated',
-            'giftee.booted as giftee_booted',
-            'match.id as match_id',
-            'match.match_status',
-          ])
-          .where('match.invalid_player', '=', 1)
-          .where('match.deactivated', 'is', null)
-          .orderBy('match.id asc')
-          .execute(),
-        buildTooManyGifteeMatchesQuery(db).execute(),
-      ]);
+    const [
+      playersWhoCanHaveMoreGifees,
+      brokenMatches,
+      tooManyGifteeMatches,
+      needsSantaAssigned,
+    ] = await Promise.all([
+      db
+        .selectFrom('player')
+        .select([
+          'handle',
+          'did',
+          'giftee_count',
+          'giftee_for_count',
+          'max_giftees',
+        ])
+        .where('giftee_count_status', '=', 'can_have_more')
+        .where('signup_complete', '=', 1)
+        .orderBy('giftee_count asc')
+        .orderBy(sql`random()`)
+        .execute(),
+      db
+        .selectFrom('match')
+        .innerJoin('player as santa', 'santa.id', 'match.santa')
+        .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
+        .select([
+          'santa.handle as santa_handle',
+          'santa.deactivated as santa_deactivated',
+          'santa.booted as santa_booted',
+          'giftee.handle as giftee_handle',
+          'giftee.deactivated as giftee_deactivated',
+          'giftee.booted as giftee_booted',
+          'match.id as match_id',
+          'match.match_status',
+        ])
+        .where('match.invalid_player', '=', 1)
+        .where('match.deactivated', 'is', null)
+        .orderBy('match.id asc')
+        .execute(),
+      buildTooManyGifteeMatchesQuery(db).execute(),
+      db
+        .selectFrom('player')
+        .selectAll()
+        .where('signup_complete', '=', 1)
+        .where('giftee_for_count', '=', 0)
+        .execute(),
+    ]);
     return reply.view(
       'admin/fix-matches.ejs',
       {
         playersWhoCanHaveMoreGifees,
         brokenMatches,
         tooManyGifteeMatches,
+        needsSantaAssigned,
         oneColumn: true,
       },
       {
