@@ -22,6 +22,7 @@ export const admin: FastifyPluginAsync = async (app) => {
     }
     reply.locals = {
       ...reply.locals,
+      admin: request.tokenData?.admin,
       csrfToken: request.tokenData?.csrfToken,
       player,
       settings,
