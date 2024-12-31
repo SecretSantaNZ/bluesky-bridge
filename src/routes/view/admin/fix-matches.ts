@@ -35,6 +35,7 @@ export const fixMatches: FastifyPluginAsync = async (app) => {
       brokenMatches,
       tooManyGifteeMatches,
       needsSantaAssigned,
+      tooManySantasMatches,
     ] = await Promise.all([
       db
         .selectFrom('player')
@@ -75,6 +76,29 @@ export const fixMatches: FastifyPluginAsync = async (app) => {
         .where('signup_complete', '=', 1)
         .where('giftee_for_count', '=', 0)
         .execute(),
+      db
+        .selectFrom('match')
+        .innerJoin('player as santa', 'santa.id', 'match.santa')
+        .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
+        .select([
+          'santa.did',
+          'santa.handle',
+          'santa.game_mode',
+          'santa.max_giftees',
+          'santa.handle as santa_handle',
+          'santa.deactivated as santa_deactivated',
+          'santa.booted as santa_booted',
+          'giftee.handle as giftee_handle',
+          'giftee.deactivated as giftee_deactivated',
+          'giftee.booted as giftee_booted',
+          'match.id as match_id',
+          'match.match_status',
+        ])
+        .where('giftee.giftee_for_count', '>', 1)
+        .where('match.deactivated', 'is', null)
+        .orderBy('giftee.id asc')
+        .orderBy('match.id asc')
+        .execute(),
     ]);
     return reply.view(
       'admin/fix-matches.ejs',
@@ -83,6 +107,7 @@ export const fixMatches: FastifyPluginAsync = async (app) => {
         brokenMatches,
         tooManyGifteeMatches,
         needsSantaAssigned,
+        tooManySantasMatches,
         oneColumn: true,
       },
       {

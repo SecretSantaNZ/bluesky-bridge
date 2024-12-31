@@ -14,8 +14,8 @@
   }
 </script>
 <div class="grid grid-cols-3"
-    x-data="<%= JSON.stringify({playersWhoCanHaveMoreGifees, brokenMatches, tooManyGifteeMatches, needsSantaAssigned, showConfirm: ''}) %>"
-    @ss-match-deactivated.window="brokenMatches = brokenMatches.filter((match) => match.id !== event.detail.id)"
+    x-data="<%= JSON.stringify({playersWhoCanHaveMoreGifees, brokenMatches, tooManyGifteeMatches, needsSantaAssigned, tooManySantasMatches, showConfirm: ''}) %>"
+    @ss-match-deactivated.window="brokenMatches = brokenMatches.filter((match) => match.match_id !== event.detail.id)"
     @ss-too-many-giftees-match-updated.window="tooManyGifteeMatches = mergeTooManyGifteeMatches(tooManyGifteeMatches, event.detail)"
   >
   <div class="col-span-2 pr-4">
@@ -48,15 +48,15 @@
             <span x-text="match.match_status"></span>
           </div>
           <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center">
-            <button x-show="`match-${match.id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.id}`">
+            <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">
               <div class="flex sm:justify-center items-center ">
                 <div class="i-mdi-trash-can-outline size-10"></div>
                 <div class="sm:hidden"><b>Delete match</b></div>
               </div>
             </button>
             <%- include('../partials/activity-spinner.ejs') %>
-            <input x-show="`match-${match.id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
-            <button x-show="`match-${match.id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+            <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+            <button x-show="`match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
               <div class="i-mdi-close size-10 text-gray-400"></div>
             </button>
             <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
@@ -115,6 +115,45 @@
           <div class="flex flex-col justify-center items-center">
             <button @click="$dispatch('ss-open-modal', {modal: 'assign-santa', modalData: player})" class="rounded-sm">Assign santa</button>
           </div>
+        </div>
+      </template>
+    </div>
+
+    <div class="mb-12" x-show="tooManySantasMatches.length > 0">
+      <h1>Players with multiple santas</h1>
+      <p>These players have more than one Santa assigne to them. We probably want to clean these up so that there's only one Santa for each player.</p>
+      <div class="grid-cols-4 space-x-4 spacey-4 hidden sm:grid">
+        <div class="flex justify-center"><b>Giftee</b></div>
+        <div class="flex justify-center"><b>Santa</b></div>
+        <div class="flex justify-center"><b>Status</b></div>
+        <div class="flex justify-center"><b>Delete</b></div>
+      </div>
+      <template x-for="match in tooManySantasMatches">
+        <div class="grid sm:grid-cols-4 space-x-4 spacey-4 border-b py-2">
+          <div class="flex justify-center items-center text-lg">
+            <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank" x-text="'@' + match.giftee_handle"></a>
+          </div>
+          <div class="flex justify-center items-center text-lg">
+            <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank" x-text="'@' + match.santa_handle"></a>
+          </div>
+          <div class="flex justify-center items-center text-lg">
+            <span x-text="match.match_status"></span>
+          </div>
+          <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center">
+            <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">
+              <div class="flex sm:justify-center items-center ">
+                <div class="i-mdi-trash-can-outline size-10"></div>
+                <div class="sm:hidden"><b>Delete match</b></div>
+              </div>
+            </button>
+            <%- include('../partials/activity-spinner.ejs') %>
+            <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+            <button x-show="`match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+              <div class="i-mdi-close size-10 text-gray-400"></div>
+            </button>
+            <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+          </form>
         </div>
       </template>
     </div>
