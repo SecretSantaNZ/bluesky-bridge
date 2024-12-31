@@ -1,24 +1,51 @@
 import type { FastifyPluginAsync } from 'fastify';
+import {
+  buildBrokenMatchesQuery,
+  buildTooManyGifteeMatchesQuery,
+  buildTooManySantasMatchesQuery,
+} from './fix-matches.js';
 
 export const adminHome: FastifyPluginAsync = async (app) => {
   app.get('/', async function (request, reply) {
     const { db } = this.blueskyBridge;
-    const [{ signupCompleteCount }, { registeredPlayersCount }] =
-      await Promise.all([
-        db
-          .selectFrom('player')
-          .select(({ fn }) => fn.countAll().as('signupCompleteCount'))
-          .where('signup_complete', '=', 1)
-          .executeTakeFirstOrThrow(),
-        db
-          .selectFrom('player')
-          .select(({ fn }) => fn.countAll().as('registeredPlayersCount'))
-          .where('deactivated', '=', 0)
-          .executeTakeFirstOrThrow(),
-      ]);
+    const [
+      { signupCompleteCount },
+      { registeredPlayersCount },
+      { cnt: brokenMatchCount },
+      { cnt: tooManyGifteesCount },
+      { cnt: tooManySantasCount },
+    ] = await Promise.all([
+      db
+        .selectFrom('player')
+        .select(({ fn }) => fn.countAll().as('signupCompleteCount'))
+        .where('signup_complete', '=', 1)
+        .executeTakeFirstOrThrow(),
+      db
+        .selectFrom('player')
+        .select(({ fn }) => fn.countAll().as('registeredPlayersCount'))
+        .where('deactivated', '=', 0)
+        .executeTakeFirstOrThrow(),
+      buildBrokenMatchesQuery(db)
+        .clearSelect()
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .executeTakeFirstOrThrow(),
+      buildTooManyGifteeMatchesQuery(db)
+        .clearSelect()
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .executeTakeFirstOrThrow(),
+      buildTooManySantasMatchesQuery(db)
+        .clearSelect()
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .executeTakeFirstOrThrow(),
+    ]);
     return reply.view(
       'admin/home.ejs',
-      { signupCompleteCount, registeredPlayersCount },
+      {
+        signupCompleteCount,
+        registeredPlayersCount,
+        criticalMatchIssues: brokenMatchCount + tooManyGifteesCount,
+        warnMatchIssues: tooManySantasCount,
+      },
       {
         layout: 'layouts/base-layout.ejs',
       }
