@@ -1,0 +1,14 @@
+<form hx-post="/match/reassign-giftee">
+  <div class="space-y-8">
+    <h1>Reassign giftee for @<span x-text="modalData.giftee_handle"></span></h1>
+    <div>
+      <%- include('../partials/input-text.ejs', {id: 'reassign_giftee_santa_handle', name: 'santa_handle', label: 'Santa', placeholder: 'coolplayer.bsky.social', xModel: 'modalData.santa_handle', attributes: {
+        list: 'players-available-to-santa',
+        autocomplete: 'false',
+      }}); %>
+    </div>
+    <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: 'false' }); %>
+  </div>
+  <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+  <input type="hidden" name="match_id" x-bind:value="modalData.match_id"/>
+</form>

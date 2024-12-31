@@ -92,12 +92,12 @@ export interface Match {
   id: GeneratedAlways<number>;
   santa: number;
   giftee: number;
-  deactivated: string;
+  deactivated: Generated<string | null>;
   has_present: number;
   invalid_player: number;
   match_status: 'draft' | 'shared' | 'locked';
-  dm_handle_status: 'queued' | 'sent' | 'error';
-  dm_address_status: 'queued' | 'sent' | 'error';
+  dm_handle_status: Generated<'queued' | 'sent' | 'error'>;
+  dm_address_status: Generated<'queued' | 'sent' | 'error'>;
   nudge_count: number;
   nudge_present_update_count: number;
   tracking_count: number;

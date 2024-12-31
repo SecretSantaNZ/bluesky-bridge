@@ -3,6 +3,7 @@ import { validateAuth } from '../../util/validateAuth.js';
 import { BadRequestError, ForbiddenError } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { deactivateMatch } from './deactivate-match.js';
+import { reassignGiftee } from './reassign-giftee.js';
 
 export const match: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -30,4 +31,5 @@ export const match: FastifyPluginAsync = async (rawApp) => {
   });
 
   await app.register(deactivateMatch);
+  await app.register(reassignGiftee);
 };

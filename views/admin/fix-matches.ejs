@@ -95,6 +95,7 @@
           </div>
           <div class="flex flex-col justify-center items-center">
             <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: match})" class="rounded-sm">Change game mode</button>
+            <button @click="$dispatch('ss-open-modal', {modal: 'reassign-giftee', modalData: match})" class="rounded-sm">Reassign giftee</button>
           </div>
         </div>
       </template>
@@ -107,6 +108,11 @@
         <span x-text="'@' + player.handle"></span> (<span x-text="player.giftee_count"></span>/<span x-text="player.max_giftees"></span>)
       </div>
     </template>
+    <datalist id="players-available-to-santa"> 
+      <template x-for="player in playersWhoCanHaveMoreGifees">
+        <option x-bind:value="player.handle"></option>
+      </template>
+    </datalist>
   </div>
 </div>
 <div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
@@ -116,6 +122,7 @@
       </div>
       <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
         <%- include('../layouts/card.ejs', { bodyTemplate: 'player/game-mode.ejs', xShow: "showModal === 'game-mode'", adminMode: true, returnTooManyMatches: true }) %>
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/reassign-giftee.ejs', xShow: "showModal === 'reassign-giftee'" }) %>
       </div>
     </div>
   </template>
