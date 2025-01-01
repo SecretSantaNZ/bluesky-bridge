@@ -13,39 +13,42 @@
     return newMatches;
   }
 </script>
-<div class="grid grid-cols-3"
+<div class="grid xl:grid-cols-3"
     x-data="<%= JSON.stringify({playersWhoCanHaveMoreGifees, brokenMatches, tooManyGifteeMatches, needsSantaAssigned, tooManySantasMatches, showConfirm: ''}) %>"
     @ss-match-deactivated.window="brokenMatches = brokenMatches.filter((match) => match.match_id !== event.detail.id)"
     @ss-too-many-giftees-match-updated.window="tooManyGifteeMatches = mergeTooManyGifteeMatches(tooManyGifteeMatches, event.detail)"
   >
-  <div class="col-span-2 pr-4">
+  <div class="xl:col-span-2 pr-4">
     <div class="mb-12" x-show="brokenMatches.length > 0">
       <h1>Broken matches</h1>
       <p>These matches have been broken by a player deactivating, either opting out or us booting them out.</p>
       <p>We will need to delete the match and assign new santa / giftee as appropraite.</p>
       <p>This is not done automatically as we need to communicate with players when this happens</p>
-      <div class="grid-cols-4 space-x-4 spacey-4 hidden sm:grid">
+      <div class="grid-cols-4 space-x-4 hidden sm:grid">
         <div class="flex justify-center"><b>Santa</b></div>
         <div class="flex justify-center"><b>Giftee</b></div>
         <div class="flex justify-center"><b>Status</b></div>
         <div class="flex justify-center"><b>Delete</b></div>
       </div>
       <template x-for="match in brokenMatches">
-        <div class="grid sm:grid-cols-4 space-x-4 spacey-4 border-b py-2">
-          <div class="flex justify-center items-center text-lg">
+        <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2">
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Santa:</div>
             <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank">
               <span x-text="'@' + match.santa_handle"></span>
               <span x-show="match.santa_deactivated" x-text="match.santa_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
             </a>
           </div>
-          <div class="flex justify-center items-center text-lg">
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Giftee:</div>
             <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank">
               <span x-text="'@' + match.giftee_handle"></span>
               <span x-show="match.giftee_deactivated" x-text="match.giftee_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
             </a>
           </div>
-          <div class="flex justify-center items-center text-lg">
-            <span x-text="match.match_status"></span>
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Status:</div>
+            <div x-text="match.match_status"></div>
           </div>
           <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center">
             <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">
@@ -69,32 +72,35 @@
     <div class="mb-12" x-show="tooManyGifteeMatches.length > 0">
       <h1>Players with too many Giftees</h1>
       <p>These players have more Giftees assigned than they signed up for. We probably want to assign a different Santa to these Giftees to balance things out.</p>
-      <div class="grid-cols-4 space-x-4 spacey-4 hidden sm:grid">
+      <div class="grid-cols-4 space-x-4 hidden sm:grid">
         <div class="flex justify-center"><b>Santa</b></div>
         <div class="flex justify-center"><b>Giftee</b></div>
         <div class="flex justify-center"><b>Status</b></div>
         <div class="flex justify-center"><b>Action</b></div>
       </div>
       <template x-for="match in tooManyGifteeMatches">
-        <div class="grid sm:grid-cols-4 space-x-4 spacey-4 border-b py-2">
-          <div class="flex justify-center items-center text-lg">
+        <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2">
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Santa:</div>
             <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank">
               <span x-text="'@' + match.santa_handle"></span>
               <span x-show="match.santa_deactivated" x-text="match.santa_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
             </a>
           </div>
-          <div class="flex justify-center items-center text-lg">
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Giftee:</div>
             <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank">
               <span x-text="'@' + match.giftee_handle"></span>
               <span x-show="match.giftee_deactivated" x-text="match.giftee_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
             </a>
           </div>
-          <div class="flex justify-center items-center text-lg">
-            <span x-text="match.match_status"></span>
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Status:</div>
+            <div x-text="match.match_status"></div>
           </div>
-          <div class="flex flex-col justify-center items-center">
-            <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: match})" class="rounded-sm">Change game mode</button>
-            <button @click="$dispatch('ss-open-modal', {modal: 'reassign-giftee', modalData: match})" class="rounded-sm">Reassign giftee</button>
+          <div class="flex flex-col sm:justify-center items-start sm:items-center">
+            <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: match})" class="rounded-sm underline">Change game mode</button>
+            <button @click="$dispatch('ss-open-modal', {modal: 'reassign-giftee', modalData: match})" class="rounded-sm underline">Reassign giftee</button>
           </div>
         </div>
       </template>
@@ -103,17 +109,17 @@
     <div class="mb-12" x-show="needsSantaAssigned.length > 0">
       <h1>Players needing a Santa</h1>
       <p>These players have no Santa assigned to them. By default the search will only find people who have less giftee's than they've signed up to do.</p>
-      <div class="grid-cols-2 space-x-4 spacey-4 hidden sm:grid">
+      <div class="grid-cols-2 space-x-4 hidden sm:grid">
         <div class="flex justify-center"><b>Player</b></div>
         <div class="flex justify-center"><b>Action</b></div>
       </div>
       <template x-for="player in needsSantaAssigned.slice(0, 15)">
-        <div class="grid sm:grid-cols-2 space-x-4 spacey-4 border-b py-2">
+        <div class="grid sm:grid-cols-2 sm:space-x-4 border-b py-2">
           <div class="flex justify-center items-center text-lg">
             <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(player.handle)" target="_blank" x-text="'@' + player.handle"></a>
           </div>
           <div class="flex flex-col justify-center items-center">
-            <button @click="$dispatch('ss-open-modal', {modal: 'assign-santa', modalData: player})" class="rounded-sm">Assign santa</button>
+            <button @click="$dispatch('ss-open-modal', {modal: 'assign-santa', modalData: player})" class="rounded-sm underline">Assign santa</button>
           </div>
         </div>
       </template>
@@ -123,22 +129,25 @@
     <div class="mb-12" x-show="tooManySantasMatches.length > 0">
       <h1>Players with multiple santas</h1>
       <p>These players have more than one Santa assigne to them. We probably want to clean these up so that there's only one Santa for each player.</p>
-      <div class="grid-cols-4 space-x-4 spacey-4 hidden sm:grid">
+      <div class="grid-cols-4 space-x-4 hidden sm:grid">
         <div class="flex justify-center"><b>Giftee</b></div>
         <div class="flex justify-center"><b>Santa</b></div>
         <div class="flex justify-center"><b>Status</b></div>
         <div class="flex justify-center"><b>Delete</b></div>
       </div>
       <template x-for="match in tooManySantasMatches">
-        <div class="grid sm:grid-cols-4 space-x-4 spacey-4 border-b py-2">
-          <div class="flex justify-center items-center text-lg">
+        <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2">
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Giftee:</div>
             <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank" x-text="'@' + match.giftee_handle"></a>
           </div>
-          <div class="flex justify-center items-center text-lg">
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Santa:</div>
             <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank" x-text="'@' + match.santa_handle"></a>
           </div>
-          <div class="flex justify-center items-center text-lg">
-            <span x-text="match.match_status"></span>
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Status:</div>
+            <div x-text="match.match_status"></div>
           </div>
           <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center">
             <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">

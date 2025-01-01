@@ -54,32 +54,35 @@
     @ss-player-updated.window="players = players.map((player) => (player.did === event.detail.did ? event.detail : player))"
     @ss-player-added.window="players.push(event.detail)"
   >
-  <fieldset class="flex space-x-8 items-center mb-2">
-    <h1>Active players</h1>
-    <div>
-      <select x-model="activePlayersPageSelect">
-        <template x-for="{key, display} of activePlayersPages">
-          <option x-bind:value="key" x-text="display"></option>
-        </template>
-      </select>
+  <div class="flex items-center mb-2">
+    <div class="flex space-x-8 items-center flex-col sm:flex-row flex-grow">
+      <h1>Active players</h1>
+      <div>
+        <select x-model="activePlayersPageSelect">
+          <template x-for="{key, display} of activePlayersPages">
+            <option x-bind:value="key" x-text="display"></option>
+          </template>
+        </select>
+      </div>
+      <div>
+        <input type="checkbox" id="show-signup-complete" name="show-signup-complete" x-model="showSignupComplete"/>
+        <label for="show-signup-complete">Signup complete</label>
+      </div>
+      <div>
+        <input type="checkbox" id="show-signup-incomplete" name="show-signup-incomplete" x-model="showSignupIncomplete" />
+        <label for="show-signup-incomplete">Signup incomplete</label>
+      </div>
+      <div class="flex-grow"></div>
     </div>
-    <div>
-      <input type="checkbox" id="show-signup-complete" name="show-signup-complete" x-model="showSignupComplete"/>
-      <label for="show-signup-complete">Signup complete</label>
-    </div>
-    <div>
-      <input type="checkbox" id="show-signup-incomplete" name="show-signup-incomplete" x-model="showSignupIncomplete" />
-      <label for="show-signup-incomplete">Signup incomplete</label>
-    </div>
-    <div class="flex-grow"></div>
+
     <button @click="$dispatch('ss-open-modal', {modal: 'new-player', modalData: {}})">
       <div class="i-mdi-add size-10"></div>
     </button>
-  </fieldset>
+  </div>
   <div class="w-full mb-2">
     <input type="text" x-model="handleFilter" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
   </div>
-  <div class="grid-cols-5 space-x-4 spacey-4 hidden sm:grid">
+  <div class="grid-cols-5 space-x-4 hidden sm:grid">
     <div class="flex justify-center"><b>Player</b></div>
     <div class="flex justify-center"><b>Following santa</b></div>
     <div class="flex justify-center"><b>Has address</b></div>
@@ -87,7 +90,7 @@
     <div class="flex justify-center"><b>Remove player</b></div>
   </div>
   <template x-for="player in activePlayers.slice((activePlayersPage - 1) * 25, activePlayersPage * 25)">
-    <div class="grid sm:grid-cols-5 space-x-4 spacey-4 border-b py-2" x-init="htmx && htmx.process($el)">
+    <div class="grid sm:grid-cols-5 space-x-4 border-b py-2" x-init="htmx && htmx.process($el)">
       <div class="flex justify-center items-center text-lg font-semibold">
         <a x-bind:href="'https://bsky.app/profile/' + encodeURIComponent(player.handle)" x-text="'@' + player.handle" target="_blank"></a>
       </div>
@@ -138,7 +141,7 @@
     </div>
   </template>
 
-  <fieldset class="flex space-x-8 items-center mt-12 mb-2">
+  <div class="flex space-x-8 items-center mt-12 mb-2 flex-col sm:flex-row">
     <h1>Deactivated players</h1>
     <div>
       <select x-model="inactivePlayersPageSelect">
@@ -147,17 +150,17 @@
         </template>
       </select>
     </div>
-  </fieldset>
+  </div>
   <div class="w-full mb-2">
     <input type="text" x-model="handleFilter" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
   </div>
-  <div class="grid-cols-3 space-x-4 spacey-4 hidden sm:grid">
+  <div class="grid-cols-3 space-x-4 hidden sm:grid">
     <div class="flex justify-center"><b>Player</b></div>
     <div class="flex justify-center"><b>Type</b></div>
     <div class="flex justify-center"><b>Reactivate player</b></div>
   </div>
   <template x-for="player in inactivePlayers.slice((inactivePlayersPage - 1) * 25, inactivePlayersPage * 25)">
-    <div class="grid sm:grid-cols-3 space-x-4 spacey-4 border-b py-2" x-init="htmx && htmx.process($el)">
+    <div class="grid sm:grid-cols-3 space-x-4 border-b py-2" x-init="htmx && htmx.process($el)">
       <div class="flex justify-center items-center text-lg font-semibold">
         <a x-bind:href="'https://bsky.app/profile/' + encodeURIComponent(player.handle)" x-text="'@' + player.handle" target="_blank"></a>
       </div>

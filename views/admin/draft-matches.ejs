@@ -30,9 +30,8 @@
     },
   }"
   @ss-match-deactivated.window="draftMatches = draftMatches.filter((match) => match.match_id !== event.detail.id)"
-  @ss-too-many-giftees-match-updated.window="tooManyGifteeMatches = mergeTooManyGifteeMatches(tooManyGifteeMatches, event.detail)"
 >
-  <div class="grid sm:grid-cols-2 space-x-4 spacey-4 mb-8">
+  <div class="grid sm:grid-cols-2 sm:space-x-4 space-y-4 sm:space-y-0 mb-8">
     <button x-show="criticalMatchIssues > 0" @click="window.open('/admin/fix-matches')">
       <div class="text-3xl text-red-600 font-semibold" x-text="criticalMatchIssues"></div>
       <div class="text-sm">Critical match issues</div>
@@ -42,7 +41,7 @@
       <div class="text-sm">Match issues</div>
     </button>
   </div>
-  <div class="grid sm:grid-cols-3 space-x-4 spacey-4 mb-8">
+  <div class="grid sm:grid-cols-3 sm:space-x-4 space-y-4 sm:space-y-0 justify-center mb-8">
     <form x-show="countNeedsSantaAssigned > 0" hx-post="/match/auto-match" class="flex items-center sm:justify-center">
       <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Auto-match <span x-text="countNeedsSantaAssigned"></span> players</button>
       <%- include('../partials/activity-spinner.ejs') %>
@@ -63,7 +62,7 @@
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
     </form>
   </div>
-  <div class="flex space-x-8 items-center mb-2">
+  <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
     <h1>Draft matches</h1>
     <div>
       <select x-model="draftMatchesPageSelect">
@@ -76,20 +75,22 @@
   <div class="w-full mb-2">
     <input type="text" x-model="handleFilter" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
   </div>
-  <div class="grid-cols-3 space-x-4 spacey-4 hidden sm:grid">
+  <div class="grid-cols-3 sm:space-x-4 hidden sm:grid">
     <div class="flex justify-center"><b>Santa</b></div>
     <div class="flex justify-center"><b>Giftee</b></div>
     <div class="flex justify-center"><b>Delete</b></div>
   </div>
   <template x-for="match in selectedMatches.slice(selectedMatchesStart, selectedMatchesEnd)">
-    <div class="grid sm:grid-cols-3 space-x-4 spacey-4 border-b py-2">
-      <div class="flex justify-center items-center text-lg">
+    <div class="grid sm:grid-cols-3 sm:space-x-4 border-b py-2">
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Santa:</div>
         <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank">
           <span x-text="'@' + match.santa_handle"></span>
           <span x-show="match.santa_deactivated" x-text="match.santa_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
         </a>
       </div>
-      <div class="flex justify-center items-center text-lg">
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Giftee:</div>
         <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank">
           <span x-text="'@' + match.giftee_handle"></span>
           <span x-show="match.giftee_deactivated" x-text="match.giftee_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
