@@ -1,9 +1,37 @@
 <div class="w-full px-12"
-    x-data="<%= JSON.stringify({...pageData, showConfirm: '', handleFilter: '', validDraftMatchesCount: 0}) %>"
-    x-effect="validDraftMatchesCount = draftMatches.filter((match) => !match.invalid_player).length;"
-    @ss-match-deactivated.window="draftMatches = draftMatches.filter((match) => match.match_id !== event.detail.id)"
-    @ss-too-many-giftees-match-updated.window="tooManyGifteeMatches = mergeTooManyGifteeMatches(tooManyGifteeMatches, event.detail)"
-  >
+  x-data="{...<%= JSON.stringify({...pageData, showConfirm: '', validDraftMatchesCount: 0}) %>,
+    _handleFilter: '', 
+    draftMatchesPage: 1,
+    get handleFilter() { return this._handleFilter; },
+    set handleFilter(val) { this.draftMatchesPage = 1; this._handleFilter = val; },
+
+    get cleanHandlerFilter () { return this.handleFilter.replace(/@/g, '').toLowerCase(); },
+    get validDraftMatchesCount() {
+      return this.draftMatches.filter((match) => !match.invalid_player).length;
+    },
+
+    get selectedMatches() {
+      return this.draftMatches.filter((match) => !this.cleanHandlerFilter || match.santa_handle.toLowerCase().includes(this.cleanHandlerFilter) || match.giftee_handle.toLowerCase().includes(this.cleanHandlerFilter))
+    },
+    get selectedMatchesStart() { return (this.draftMatchesPage - 1) * 25; },
+    get selectedMatchesEnd() { return Math.min(this.draftMatchesPage * 25, this.selectedMatches.length);},
+    get draftMatchesPageSelect() { return String(this.draftMatchesPage); },
+    set draftMatchesPageSelect(strVal) { this.draftMatchesPage = parseInt(strVal); },
+    get draftMatchesPages() {
+      const count = this.selectedMatches.length;
+      const pages = [];
+      for (let i = 0; i * 25 < count; i++) {
+        pages.push({
+          key: `${i + 1}`,
+          display: `Page ${i + 1}: ${(i * 25) + 1} - ${Math.min((i + 1) * 25, this.selectedMatches.length)}`
+        })
+      }
+      return pages;
+    },
+  }"
+  @ss-match-deactivated.window="draftMatches = draftMatches.filter((match) => match.match_id !== event.detail.id)"
+  @ss-too-many-giftees-match-updated.window="tooManyGifteeMatches = mergeTooManyGifteeMatches(tooManyGifteeMatches, event.detail)"
+>
   <div class="grid sm:grid-cols-2 space-x-4 spacey-4 mb-8">
     <button x-show="criticalMatchIssues > 0" @click="window.open('/admin/fix-matches')">
       <div class="text-3xl text-red-600 font-semibold" x-text="criticalMatchIssues"></div>
@@ -35,7 +63,16 @@
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
     </form>
   </div>
-  <h1>Draft matches</h1>
+  <div class="flex space-x-8 items-center mb-2">
+    <h1>Draft matches</h1>
+    <div>
+      <select x-model="draftMatchesPageSelect">
+        <template x-for="{key, display} of draftMatchesPages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
+  </div>
   <div class="w-full mb-2">
     <input type="text" x-model="handleFilter" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
   </div>
@@ -44,7 +81,7 @@
     <div class="flex justify-center"><b>Giftee</b></div>
     <div class="flex justify-center"><b>Delete</b></div>
   </div>
-  <template x-for="match in draftMatches.filter((match) => !handleFilter.replace(/@/g, '') || match.santa_handle.toLowerCase().includes(handleFilter.replace(/@/g, '').toLowerCase()) || match.giftee_handle.toLowerCase().includes(handleFilter.replace(/@/g, '').toLowerCase()))">
+  <template x-for="match in selectedMatches.slice(selectedMatchesStart, selectedMatchesEnd)">
     <div class="grid sm:grid-cols-3 space-x-4 spacey-4 border-b py-2">
       <div class="flex justify-center items-center text-lg">
         <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank">

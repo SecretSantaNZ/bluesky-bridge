@@ -1,10 +1,68 @@
 <div class="w-full px-12"
-    x-data="<%= JSON.stringify({ players, showConfirm: '', showSignupComplete: true, showSignupIncomplete: true, handleFilter: initialFilter }) %>"
+    x-data="{...<%= JSON.stringify({players, showConfirm: '', _handleFilter: initialFilter}) %>,
+      activePlayersPage: 1,
+      inactivePlayersPage: 1,
+      _showSignupComplete: true,
+      _showSignupIncomplete: true,
+      get showSignupComplete() { return this._showSignupComplete; },
+      set showSignupComplete(val) { this.activePlayersPage = 1; this.inactivePlayersPage = 1; this._showSignupComplete = val; },
+      get showSignupIncomplete() { return this._showSignupIncomplete; },
+      set showSignupIncomplete(val) { this.activePlayersPage = 1; this.inactivePlayersPage = 1; this._showSignupIncomplete = val; },
+      get handleFilter() { return this._handleFilter; },
+      set handleFilter(val) { this.activePlayersPage = 1; this.inactivePlayersPage = 1; this._handleFilter = val; },
+
+      get cleanHandlerFilter () { return this.handleFilter.replace(/@/g, '').toLowerCase(); },
+
+      get activePlayers() {
+        return this.players.filter(player => !player.deactivated && (player.signup_complete ? this.showSignupComplete : this.showSignupIncomplete) && (!this.cleanHandlerFilter || player.handle.toLowerCase().includes(this.cleanHandlerFilter)));
+      },
+      get activePlayersStart() { return (this.activePlayersPage - 1) * 25; },
+      get activePlayersEnd() { return Math.min(this.activePlayersPage * 25, this.activePlayers.length);},
+      get activePlayersPageSelect() { return String(this.activePlayersPage); },
+      set activePlayersPageSelect(strVal) { this.activePlayersPage = parseInt(strVal); },
+      get activePlayersPages() {
+        const count = this.activePlayers.length;
+        const pages = [];
+        for (let i = 0; i * 25 < count; i++) {
+          pages.push({
+            key: `${i + 1}`,
+            display: `Page ${i + 1}: ${(i * 25) + 1} - ${Math.min((i + 1) * 25, this.activePlayers.length)}`
+          })
+        }
+        return pages;
+      },
+
+      get inactivePlayers() {
+        return this.players.filter(player => player.deactivated && (!this.cleanHandlerFilter || player.handle.toLowerCase().includes(this.cleanHandlerFilter)));
+      },
+      get inactivePlayersStart() { return (this.inactivePlayersPage - 1) * 25; },
+      get inactivePlayersEnd() { return Math.min(this.inactivePlayersPage * 25, this.inactivePlayers.length);},
+      get inactivePlayersPageSelect() { return String(this.inactivePlayersPage); },
+      set inactivePlayersPageSelect(strVal) { this.inactivePlayersPage = parseInt(strVal); },
+      get inactivePlayersPages() {
+        const count = this.inactivePlayers.length;
+        const pages = [];
+        for (let i = 0; i * 25 < count; i++) {
+          pages.push({
+            key: `${i + 1}`,
+            display: `Page ${i + 1}: ${(i * 25) + 1} - ${Math.min((i + 1) * 25, this.inactivePlayers.length)}`
+          })
+        }
+        return pages;
+      },
+    }"
     @ss-player-updated.window="players = players.map((player) => (player.did === event.detail.did ? event.detail : player))"
     @ss-player-added.window="players.push(event.detail)"
   >
   <fieldset class="flex space-x-8 items-center mb-2">
     <h1>Active players</h1>
+    <div>
+      <select x-model="activePlayersPageSelect">
+        <template x-for="{key, display} of activePlayersPages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
     <div>
       <input type="checkbox" id="show-signup-complete" name="show-signup-complete" x-model="showSignupComplete"/>
       <label for="show-signup-complete">Signup complete</label>
@@ -28,7 +86,7 @@
     <div class="flex justify-center"><b>Game mode</b></div>
     <div class="flex justify-center"><b>Remove player</b></div>
   </div>
-  <template x-for="player in players.filter(player => !player.deactivated && (player.signup_complete ? showSignupComplete : showSignupIncomplete) && (!handleFilter.replace(/@/g, '') || player.handle.toLowerCase().includes(handleFilter.replace(/@/g, '').toLowerCase())))">
+  <template x-for="player in activePlayers.slice((activePlayersPage - 1) * 25, activePlayersPage * 25)">
     <div class="grid sm:grid-cols-5 space-x-4 spacey-4 border-b py-2" x-init="htmx && htmx.process($el)">
       <div class="flex justify-center items-center text-lg font-semibold">
         <a x-bind:href="'https://bsky.app/profile/' + encodeURIComponent(player.handle)" x-text="'@' + player.handle" target="_blank"></a>
@@ -82,6 +140,13 @@
 
   <fieldset class="flex space-x-8 items-center mt-12 mb-2">
     <h1>Deactivated players</h1>
+    <div>
+      <select x-model="inactivePlayersPageSelect">
+        <template x-for="{key, display} of inactivePlayersPages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
   </fieldset>
   <div class="w-full mb-2">
     <input type="text" x-model="handleFilter" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
@@ -91,7 +156,7 @@
     <div class="flex justify-center"><b>Type</b></div>
     <div class="flex justify-center"><b>Reactivate player</b></div>
   </div>
-  <template x-for="player in players.filter((player) => player.deactivated && (!handleFilter.replace(/@/g, '') || player.handle.toLowerCase().includes(handleFilter.replace(/@/g, '').toLowerCase())))">
+  <template x-for="player in inactivePlayers.slice((inactivePlayersPage - 1) * 25, inactivePlayersPage * 25)">
     <div class="grid sm:grid-cols-3 space-x-4 spacey-4 border-b py-2" x-init="htmx && htmx.process($el)">
       <div class="flex justify-center items-center text-lg font-semibold">
         <a x-bind:href="'https://bsky.app/profile/' + encodeURIComponent(player.handle)" x-text="'@' + player.handle" target="_blank"></a>

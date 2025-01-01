@@ -75,12 +75,12 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
             nodes[targetPreviousIndex]?.santa === nodes[i]?.giftee ||
             nodes[i]?.santa === nodes[targetNextIndex]?.giftee ||
             nodes[previousIndex]?.santa === nodes[swapWith]?.giftee ||
-            nodes[swapWith]?.santa === nodes[nextIndex]?.giftee; //||
-          // ensure neither position creates an imediate X is santa for Y and vica versa
-          // nodes[targetPreviousIndex]?.giftee === nodes[i]?.santa ||
-          // nodes[i]?.giftee === nodes[targetNextIndex]?.santa ||
-          // nodes[previousIndex]?.giftee === nodes[swapWith]?.santa ||
-          // nodes[swapWith]?.giftee === nodes[nextIndex]?.santa;
+            nodes[swapWith]?.santa === nodes[nextIndex]?.giftee ||
+            // ensure neither position creates an imediate X is santa for Y and vica versa
+            nodes[targetPreviousIndex]?.giftee === nodes[i]?.santa ||
+            nodes[i]?.giftee === nodes[targetNextIndex]?.santa ||
+            nodes[previousIndex]?.giftee === nodes[swapWith]?.santa ||
+            nodes[swapWith]?.giftee === nodes[nextIndex]?.santa;
         }
         if (invalid) {
           throw new Error('cannot find valid match after 10 attempts');

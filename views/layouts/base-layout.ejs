@@ -18,7 +18,7 @@
           <% if (locals.admin) { %><div><a href="/admin" class="font-semibold">Elf tools</a></div><% } %>
           <div class="flex-grow"></div>
           <% if (player) { %>
-            <div class="relative">
+            <div class="relative" x-data x-cloak>
               <% if (!player.booted) { %>
                 <button @click.stop.prevent="userMenuOpen = !userMenuOpen" class="rounded-full flex-shrink-0">
                   <%- include('../partials/avatar.ejs', {avatar_url: player.avatar_url}) %>

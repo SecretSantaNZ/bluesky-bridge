@@ -107,7 +107,7 @@
         <div class="flex justify-center"><b>Player</b></div>
         <div class="flex justify-center"><b>Action</b></div>
       </div>
-      <template x-for="player in needsSantaAssigned">
+      <template x-for="player in needsSantaAssigned.slice(0, 15)">
         <div class="grid sm:grid-cols-2 space-x-4 spacey-4 border-b py-2">
           <div class="flex justify-center items-center text-lg">
             <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(player.handle)" target="_blank" x-text="'@' + player.handle"></a>
@@ -117,6 +117,7 @@
           </div>
         </div>
       </template>
+      <div x-show="needsSantaAssigned.length > 15">... and <span x-text="needsSantaAssigned.length - 15"></span> more</div>
     </div>
 
     <div class="mb-12" x-show="tooManySantasMatches.length > 0">
@@ -160,11 +161,12 @@
   </div>
   <div>
     <h1>Players available to Santa</h1>
-    <template x-for="player in playersWhoCanHaveMoreGifees">
+    <template x-for="player in playersWhoCanHaveMoreGifees.slice(0, 15)">
       <div class="mb-2">
         <span x-text="'@' + player.handle"></span> (<span x-text="player.giftee_count"></span>/<span x-text="player.max_giftees"></span>)
       </div>
     </template>
+    <div x-show="playersWhoCanHaveMoreGifees.length > 15">... and <span x-text="playersWhoCanHaveMoreGifees.length - 15"></span> more</div>
     <datalist id="players-available-to-santa"> 
       <template x-for="player in playersWhoCanHaveMoreGifees">
         <option x-bind:value="player.handle"></option>
