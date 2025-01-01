@@ -93,7 +93,9 @@ export const fixMatches: FastifyPluginAsync = async (app) => {
         ])
         .where('giftee_count_status', '=', 'can_have_more')
         .where('signup_complete', '=', 1)
-        .orderBy('giftee_count asc')
+        .orderBy(
+          sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end) asc`
+        )
         .orderBy(sql`random()`)
         .execute(),
       buildBrokenMatchesQuery(db).execute(),
@@ -103,6 +105,7 @@ export const fixMatches: FastifyPluginAsync = async (app) => {
         .selectAll()
         .where('signup_complete', '=', 1)
         .where('giftee_for_count', '=', 0)
+        .where('game_mode', '<>', 'Santa Only')
         .execute(),
       buildTooManySantasMatchesQuery(db).execute(),
     ]);

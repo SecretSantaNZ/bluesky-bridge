@@ -20,6 +20,7 @@ export const draftMatches: FastifyPluginAsync = async (app) => {
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
         .where('signup_complete', '=', 1)
         .where('giftee_for_count', '=', 0)
+        .where('game_mode', '<>', 'Santa Only')
         .executeTakeFirstOrThrow(),
       db
         .selectFrom('match')

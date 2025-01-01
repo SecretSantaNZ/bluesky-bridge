@@ -14,6 +14,8 @@ export const adminHome: FastifyPluginAsync = async (app) => {
       { cnt: brokenMatchCount },
       { cnt: tooManyGifteesCount },
       { cnt: tooManySantasCount },
+      { cnt: playersNeedingMatchesCount },
+      { cnt: unsentMatches },
     ] = await Promise.all([
       db
         .selectFrom('player')
@@ -37,6 +39,19 @@ export const adminHome: FastifyPluginAsync = async (app) => {
         .clearSelect()
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
         .executeTakeFirstOrThrow(),
+      db
+        .selectFrom('player')
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .where('signup_complete', '=', 1)
+        .where('giftee_for_count', '=', 0)
+        .where('game_mode', '<>', 'Santa Only')
+        .executeTakeFirstOrThrow(),
+      db
+        .selectFrom('match')
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .where('match_status', '=', 'draft')
+        .where('deactivated', 'is', null)
+        .executeTakeFirstOrThrow(),
     ]);
     return reply.view(
       'admin/home.ejs',
@@ -45,6 +60,8 @@ export const adminHome: FastifyPluginAsync = async (app) => {
         registeredPlayersCount,
         criticalMatchIssues: brokenMatchCount + tooManyGifteesCount,
         warnMatchIssues: tooManySantasCount,
+        playersNeedingMatchesCount,
+        unsentMatches,
       },
       {
         layout: 'layouts/base-layout.ejs',
