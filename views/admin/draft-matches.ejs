@@ -1,0 +1,85 @@
+<div class="w-full px-12"
+    x-data="<%= JSON.stringify({countNeedsSantaAssigned, draftMatches, showConfirm: '', handleFilter: ''}) %>"
+    @ss-match-deactivated.window="draftMatches = draftMatches.filter((match) => match.match_id !== event.detail.id)"
+    @ss-too-many-giftees-match-updated.window="tooManyGifteeMatches = mergeTooManyGifteeMatches(tooManyGifteeMatches, event.detail)"
+  >
+  <div class="grid sm:grid-cols-2 space-x-4 spacey-4 mb-8">
+    <% if (criticalMatchIssues > 0) { %>
+      <button @click="window.open('/admin/fix-matches')">
+        <div class="text-3xl text-red-600 font-semibold"><%= criticalMatchIssues %></div>
+        <div class="text-sm">Critical match issues</div>
+      </button>
+    <% } %>
+    <% if (warnMatchIssues > 0) { %>
+      <button @click="window.open('/admin/fix-matches')">
+        <div class="text-3xl text-orange-400 font-semibold"><%= warnMatchIssues %></div>
+        <div class="text-sm">Match issues</div>
+      </button>
+    <% } %>
+  </div>
+  <div class="grid sm:grid-cols-3 space-x-4 spacey-4 mb-8">
+    <% if (countNeedsSantaAssigned > 0) { %>
+      <form hx-post="/match/auto-match" class="flex items-center sm:justify-center">
+        <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Auto-match <%= countNeedsSantaAssigned %> players</button>
+        <%- include('../partials/activity-spinner.ejs') %>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+      </form>
+    <% } %>
+    <% if (draftMatches.filter(match => !match.invalid_player).length > 0) { %>
+      <form hx-post="/match/publish" class="flex items-center sm:justify-center">
+        <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Publish <%= draftMatches.filter(match => !match.invalid_player).length %> matches</button>
+        <%- include('../partials/activity-spinner.ejs') %>
+        <input type="hidden" name="current_status" value="draft"/>
+        <input type="hidden" name="target_status" value="shared"/>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+      </form>
+      <form hx-post="/match/publish" class="flex items-center sm:justify-center">
+        <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Publish <%= draftMatches.filter(match => !match.invalid_player).length %> matches<br/>(with address)</button>
+        <%- include('../partials/activity-spinner.ejs') %>
+        <input type="hidden" name="current_status" value="draft"/>
+        <input type="hidden" name="target_status" value="locked"/>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+      </form>
+    <% } %>
+  </div>
+  <h1>Draft matches</h1>
+  <div class="w-full mb-2">
+    <input type="text" x-model="handleFilter" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
+  <div class="grid-cols-3 space-x-4 spacey-4 hidden sm:grid">
+    <div class="flex justify-center"><b>Santa</b></div>
+    <div class="flex justify-center"><b>Giftee</b></div>
+    <div class="flex justify-center"><b>Delete</b></div>
+  </div>
+  <template x-for="match in draftMatches.filter((match) => !handleFilter.replace(/@/g, '') || match.santa_handle.toLowerCase().includes(handleFilter.replace(/@/g, '').toLowerCase()) || match.giftee_handle.toLowerCase().includes(handleFilter.replace(/@/g, '').toLowerCase()))">
+    <div class="grid sm:grid-cols-3 space-x-4 spacey-4 border-b py-2">
+      <div class="flex justify-center items-center text-lg">
+        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank">
+          <span x-text="'@' + match.santa_handle"></span>
+          <span x-show="match.santa_deactivated" x-text="match.santa_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
+        </a>
+      </div>
+      <div class="flex justify-center items-center text-lg">
+        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank">
+          <span x-text="'@' + match.giftee_handle"></span>
+          <span x-show="match.giftee_deactivated" x-text="match.giftee_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
+        </a>
+      </div>
+      <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center">
+        <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">
+          <div class="flex sm:justify-center items-center ">
+            <div class="i-mdi-trash-can-outline size-10"></div>
+            <div class="sm:hidden"><b>Delete match</b></div>
+          </div>
+        </button>
+        <%- include('../partials/activity-spinner.ejs') %>
+        <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+        <button x-show="`match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+          <div class="i-mdi-close size-10 text-gray-400"></div>
+        </button>
+        <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+      </form>
+    </div>
+  </template>
+</div>
