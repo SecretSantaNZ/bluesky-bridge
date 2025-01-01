@@ -4,6 +4,7 @@ import { adminHome } from './home.js';
 import { managePlayers } from './manage-players.js';
 import { fixMatches } from './fix-matches.js';
 import { draftMatches } from './draft-matches.js';
+import { publishedMatches } from './published-matches.js';
 
 export const admin: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async function (request, reply) {
@@ -34,4 +35,5 @@ export const admin: FastifyPluginAsync = async (app) => {
   await app.register(managePlayers);
   await app.register(draftMatches);
   await app.register(fixMatches);
+  await app.register(publishedMatches);
 };

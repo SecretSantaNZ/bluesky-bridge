@@ -16,6 +16,8 @@ export const adminHome: FastifyPluginAsync = async (app) => {
       { cnt: tooManySantasCount },
       { cnt: playersNeedingMatchesCount },
       { cnt: unsentMatches },
+      { cnt: sharedMatches },
+      { cnt: lockedMatches },
     ] = await Promise.all([
       db
         .selectFrom('player')
@@ -52,6 +54,18 @@ export const adminHome: FastifyPluginAsync = async (app) => {
         .where('match_status', '=', 'draft')
         .where('deactivated', 'is', null)
         .executeTakeFirstOrThrow(),
+      db
+        .selectFrom('match')
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .where('match_status', '=', 'shared')
+        .where('deactivated', 'is', null)
+        .executeTakeFirstOrThrow(),
+      db
+        .selectFrom('match')
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .where('match_status', '=', 'locked')
+        .where('deactivated', 'is', null)
+        .executeTakeFirstOrThrow(),
     ]);
     return reply.view(
       'admin/home.ejs',
@@ -62,6 +76,8 @@ export const adminHome: FastifyPluginAsync = async (app) => {
         warnMatchIssues: tooManySantasCount,
         playersNeedingMatchesCount,
         unsentMatches,
+        sharedMatches,
+        lockedMatches,
       },
       {
         layout: 'layouts/base-layout.ejs',
