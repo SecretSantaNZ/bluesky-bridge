@@ -54,13 +54,16 @@ export const draftMatches: FastifyPluginAsync = async (app) => {
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
         .executeTakeFirstOrThrow(),
     ]);
+    const pageData = {
+      countNeedsSantaAssigned,
+      draftMatches,
+      criticalMatchIssues: brokenMatchCount + tooManyGifteesCount,
+      warnMatchIssues: tooManySantasCount,
+    };
     return reply.view(
       'admin/draft-matches.ejs',
       {
-        countNeedsSantaAssigned,
-        draftMatches,
-        criticalMatchIssues: brokenMatchCount + tooManyGifteesCount,
-        warnMatchIssues: tooManySantasCount,
+        pageData,
         oneColumn: true,
       },
       {
