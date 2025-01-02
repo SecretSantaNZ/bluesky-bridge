@@ -48,7 +48,7 @@
         const addressInputs = document.querySelectorAll('input[type="address"]')
         for (const input of addressInputs) {
           input.setAttribute('type', 'text');
-          var addressAutocomplete = new google.maps.places.Autocomplete(input, {
+          const addressAutocomplete = new google.maps.places.Autocomplete(input, {
             componentRestrictions: {
               country: 'nz'
             }
