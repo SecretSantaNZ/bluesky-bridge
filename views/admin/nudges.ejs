@@ -1,0 +1,66 @@
+<div class="w-full px-12"
+  x-data="<%= JSON.stringify({...pageData, showConfirm: ''}) %>"
+  x-init="pager = buildPager({
+    handle: ''
+  }, function(filters) {
+    const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
+    return nudges.filter((nudge) => !cleanHandleFilter || nudge.santa_handle.toLowerCase().includes(cleanHandleFilter) || nudge.giftee_handle.toLowerCase().includes(cleanHandleFilter));
+  })"
+  @ss-nudge-deleted.window="nudges = nudges.filter((nudge) => nudge.nudge_id !== event.detail.id)"
+>
+  <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
+    <h1>Nudges</h1>
+    <div>
+      <select x-model="pager.pageSelect">
+        <template x-for="{key, display} of pager.pages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
+  </div>
+  <div class="w-full mb-2">
+    <input type="text" x-model="pager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
+  <div class="grid-cols-5 lg:space-x-4 hidden lg:grid">
+    <div class="flex justify-center"><b>Santa</b></div>
+    <div class="flex justify-center"><b>Giftee</b></div>
+    <div class="flex justify-center"><b>Type</b></div>
+    <div class="flex justify-center"><b>Status</b></div>
+    <div class="flex justify-center"><b>Delete</b></div>
+  </div>
+  <template x-for="nudge in pager.pageData">
+    <div class="grid sm:grid-cols-3 lg:grid-cols-5 lg:space-x-4 border-b py-2">
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Santa:</div>
+        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(nudge.santa_handle)" target="_blank"x-text="'@' + nudge.santa_handle"></a>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Giftee:</div>
+        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(nudge.giftee_handle)" target="_blank" x-text="'@' + nudge.giftee_handle"></a>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Type:</div>
+        <div x-text="nudge.nudge_type"></div>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Status:</div>
+        <div x-text="nudge.nudge_status"></div>
+      </div>
+      <form x-show="nudge.nudge_status !== 'sent'" hx-post="/nudge/delete-nudge" class="flex items-center sm:justify-center sm:col-span-3 lg:col-span-1">
+        <button x-show="`nudge-${nudge.nudge_id}` !== showConfirm" @click.prevent.stop="showConfirm = `nudge-${nudge.nudge_id}`">
+          <div class="flex lg:justify-center items-center ">
+            <div class="i-mdi-trash-can-outline size-10"></div>
+            <div class="lg:hidden"><b>Delete nudge</b></div>
+          </div>
+        </button>
+        <%- include('../partials/activity-spinner.ejs') %>
+        <input x-show="`nudge-${nudge.nudge_id}` === showConfirm" type="submit" name="save" value="Delete nudge" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+        <button x-show="`nudge-${nudge.nudge_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+          <div class="i-mdi-close size-10 text-gray-400"></div>
+        </button>
+        <input type="hidden" name="nudge_id" x-bind:value="nudge.nudge_id"/>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+      </form>
+    </div>
+  </template>
+</div>
