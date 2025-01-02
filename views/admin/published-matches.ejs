@@ -1,34 +1,15 @@
 <div class="w-full px-12"
   x-data="{...<%= JSON.stringify({...pageData, showConfirm: ''}) %>,
-    _handleFilter: '', 
-    publishedMatchesPage: 1,
-    get handleFilter() { return this._handleFilter; },
-    set handleFilter(val) { this.publishedMatchesPage = 1; this._handleFilter = val; },
-
-    get cleanHandlerFilter () { return this.handleFilter.replace(/@/g, '').toLowerCase(); },
     get sharedMatchesCount() {
       return this.publishedMatches.filter((match) => match.match_status === 'shared').length;
     },
-
-    get selectedMatches() {
-      return this.publishedMatches.filter((match) => !this.cleanHandlerFilter || match.santa_handle.toLowerCase().includes(this.cleanHandlerFilter) || match.giftee_handle.toLowerCase().includes(this.cleanHandlerFilter))
-    },
-    get selectedMatchesStart() { return (this.publishedMatchesPage - 1) * 25; },
-    get selectedMatchesEnd() { return Math.min(this.publishedMatchesPage * 25, this.selectedMatches.length);},
-    get publishedMatchesPageSelect() { return String(this.publishedMatchesPage); },
-    set publishedMatchesPageSelect(strVal) { this.publishedMatchesPage = parseInt(strVal); },
-    get publishedMatchesPages() {
-      const count = this.selectedMatches.length;
-      const pages = [];
-      for (let i = 0; i * 25 < count; i++) {
-        pages.push({
-          key: `${i + 1}`,
-          display: `Page ${i + 1}: ${(i * 25) + 1} - ${Math.min((i + 1) * 25, this.selectedMatches.length)}`
-        })
-      }
-      return pages;
-    },
   }"
+  x-init="pager = buildPager({
+    handle: ''
+  }, function(filters) {
+    const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
+    return publishedMatches.filter((match) => !cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter));
+  })"
   @ss-match-deactivated.window="publishedMatches = publishedMatches.filter((match) => match.match_id !== event.detail.id)"
 >
   <div class="grid sm:grid-cols-2 md:grid-cols-3 sm:space-x-4 space-y-4 sm:space-y-0 justify-center mb-8">
@@ -43,15 +24,15 @@
   <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
     <h1>Published matches</h1>
     <div>
-      <select x-model="publishedMatchesPageSelect">
-        <template x-for="{key, display} of publishedMatchesPages">
+      <select x-model="pager.pageSelect">
+        <template x-for="{key, display} of pager.pages">
           <option x-bind:value="key" x-text="display"></option>
         </template>
       </select>
     </div>
   </div>
   <div class="w-full mb-2">
-    <input type="text" x-model="handleFilter" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+    <input type="text" x-model="pager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
   </div>
   <div class="grid-cols-6 lg:space-x-4 hidden lg:grid">
     <div class="flex justify-center"><b>Santa</b></div>
@@ -61,7 +42,7 @@
     <div class="flex justify-center"><b>Tracking</b></div>
     <div class="flex justify-center"><b>Delete</b></div>
   </div>
-  <template x-for="match in selectedMatches.slice(selectedMatchesStart, selectedMatchesEnd)">
+  <template x-for="match in pager.pageData">
     <div class="grid sm:grid-cols-3 lg:grid-cols-6 lg:space-x-4 border-b py-2">
       <div class="flex lg:justify-center items-center text-lg">
         <div class="italic lg:hidden mr-2">Santa:</div>
