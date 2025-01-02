@@ -3,3 +3,9 @@
 
   reverse_proxy http://localhost:3000
 }
+
+{{ dev_proxy_hostname }} {
+  tls {{ tls_contact_email }}
+
+  reverse_proxy http://localhost:4000
+}

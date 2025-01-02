@@ -304,6 +304,7 @@ migrations['001'] = {
 
     await db.schema
       .createIndex('idx_nudge_type_greeting_greeting')
+      .on('nudge_type_greeting')
       .columns(['greeting', 'nudge_type'])
       .execute();
 
@@ -337,6 +338,7 @@ migrations['001'] = {
 
     await db.schema
       .createIndex('idx_nudge_type_signoff_signoff')
+      .on('nudge_type_signoff')
       .columns(['signoff', 'nudge_type'])
       .execute();
 

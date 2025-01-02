@@ -10,13 +10,10 @@ User={{ service_name }}
 
 Environment=PATH=/usr/bin:/usr/local/bin
 Environment=NODE_ENV=production
-Environment=SQLITE_LOCATION=:memory:
+Environment=SQLITE_LOCATION="/home/{{ service_name }}/data.sqlite"
 Environment=SANTA_BLUESKY_HANDLE={{ santa_bluesky_handle }}
 Environment=ROBOT_BLUESKY_HANDLE={{ robot_bluesky_handle }}
 Environment=ACTION_USERNAME={{ action_username }}
-Environment=SYNC_USERNAME={{ sync_username }}
-Environment=OAUTH_CLIENT_ID={{ oauth_client_id }}
-Environment=OAUTH_REDIRECT_URI={{ oauth_redirect_uri }}
 Environment=TOKEN_ISSUER={{ inventory_hostname }}
 Environment=PUBLIC_BASE_URL=https://{{ inventory_hostname }}
 

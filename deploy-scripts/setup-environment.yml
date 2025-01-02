@@ -1,88 +1,88 @@
 - name: Setup Environment
-  hosts: bluesky-bridge
+  hosts: secretsanta
   tasks:
     - name: Add service user
       ansible.builtin.user:
         name: '{{ service_name }}'
-    # - name: Install node
-    #   ansible.builtin.apt:
-    #     name: nodejs
-    #     state: present
-    # - name: Install npm
-    #   ansible.builtin.apt:
-    #     name: npm
-    #     state: present
-    # - name: Set service credentials facts
-    #   ansible.builtin.set_fact:
-    #     service_credentials: |
-    #       SANTA_BLUESKY_PASSWORD={{ santa_bluesky_password }}
-    #       ROBOT_BLUESKY_PASSWORD={{ robot_bluesky_password }}
-    #       ACTION_PASSWORD_HASH={{ action_password | password_hash('bcrypt') }}
-    #       SYNC_PASSWORD_HASH={{ sync_password | password_hash('bcrypt') }}
-    #       OAUTH_CLIENT_SECRET_HASH={{ oauth_client_secret | password_hash('bcrypt') }}
-
-    #       HANDLE_CHANGED_WEBHOOK={{ handle_changed_webhook }}
-    #       FOLLOWING_CHANGED_WEBHOOK={{ following_changed_webhook }}
-    #     service_credentials_path: /home/{{ service_name }}/{{ service_name }}-creds.cred
-    #   no_log: true
-    # - name: Set service credentials fact hashs
-    #   ansible.builtin.set_fact:
-    #     service_credentials_hash: "{{ service_credentials | hash('sha256') }}"
-    # - name: Encrypt service credentials
-    #   ansible.builtin.shell:
-    #     cmd: |
-    #       systemd-creds encrypt --name={{ service_name }}-creds - {{ service_credentials_path }};
-    #       rm {{ service_credentials_path }}-hash.*;
-    #       touch {{ service_credentials_path }}-hash.{{ service_credentials | hash('sha256') }};
-    #     stdin: "{{ service_credentials }}"
-    #     creates: "{{ service_credentials_path }}-hash.{{ service_credentials | hash('sha256') }}"
-    #   no_log: true
-    # - name: Setup service
-    #   ansible.builtin.template:
-    #     src: ./service.template
-    #     dest: /etc/systemd/system/{{ service_name }}.service
-    #     mode: '0444'
-    # - name: Create Service Directory
-    #   ansible.builtin.file:
-    #     path: /opt/{{ service_name }}
-    #     state: directory
-    #     mode: '0755'
-    # - name: Copy Project
-    #   ansible.posix.synchronize:
-    #     src: ../../{{ item }}
-    #     dest: /opt/{{ service_name }}/{{ item }}
-    #     owner: false
-    #     group: false
-    #     delete: true
-    #   loop:
-    #     - dist/
-    #     - views/
-    # - name: Copy Package
-    #   ansible.builtin.copy:
-    #     src: ../{{ item }}
-    #     dest: /opt/{{ service_name }}/{{ item }}
-    #   loop:
-    #     - package.json
-    #     - package-lock.json
-    # - name: Hash package-lock.json
-    #   ansible.builtin.stat:
-    #     path: /opt/{{ service_name }}/package-lock.json
-    #     checksum_algorithm: sha256
-    #   register: package_lock
-    # - name: npm install
-    #   shell:
-    #     cmd: |
-    #       npm ci;
-    #       rm package-lock.json-installed-*
-    #       touch /opt/{{ service_name }}/package-lock.json-installed-{{ package_lock.stat.checksum }}
-    #     chdir: /opt/{{ service_name }}
-    #     creates: /opt/{{ service_name }}/package-lock.json-installed-{{ package_lock.stat.checksum }}
-    # - name: Restart service
-    #   ansible.builtin.service:
-    #     name: '{{ service_name }}'
-    #     enabled: yes
-    #     daemon_reload: true
-    #     state: restarted
+    - name: Install node
+      ansible.builtin.apt:
+        name: nodejs
+        state: present
+    - name: Install npm
+      ansible.builtin.apt:
+        name: npm
+        state: present
+    - name: Install sqlite3
+      ansible.builtin.apt:
+        name: sqlite3
+        state: present
+    - name: Set service credentials facts
+      ansible.builtin.set_fact:
+        service_credentials: |
+          ACTION_PASSWORD_HASH={{ action_password | password_hash('bcrypt') }}
+          HANDLE_CHANGED_WEBHOOK={{ handle_changed_webhook }}
+          FOLLOWING_CHANGED_WEBHOOK={{ following_changed_webhook }}
+        service_credentials_path: /home/{{ service_name }}/{{ service_name }}-creds.cred
+      no_log: true
+    - name: Set service credentials fact hashs
+      ansible.builtin.set_fact:
+        service_credentials_hash: "{{ service_credentials | hash('sha256') }}"
+    - name: Encrypt service credentials
+      ansible.builtin.shell:
+        cmd: |
+          systemd-creds encrypt --name={{ service_name }}-creds - {{ service_credentials_path }};
+          rm {{ service_credentials_path }}-hash.*;
+          touch {{ service_credentials_path }}-hash.{{ service_credentials | hash('sha256') }};
+        stdin: "{{ service_credentials }}"
+        creates: "{{ service_credentials_path }}-hash.{{ service_credentials | hash('sha256') }}"
+      no_log: true
+    - name: Setup service
+      ansible.builtin.template:
+        src: ./service.template
+        dest: /etc/systemd/system/{{ service_name }}.service
+        mode: '0444'
+    - name: Create Service Directory
+      ansible.builtin.file:
+        path: /opt/{{ service_name }}
+        state: directory
+        mode: '0755'
+    - name: Copy Project
+      ansible.posix.synchronize:
+        src: ../../{{ item }}
+        dest: /opt/{{ service_name }}/{{ item }}
+        owner: false
+        group: false
+        delete: true
+      loop:
+        - dist/
+        - views/
+        - public/
+    - name: Copy Package
+      ansible.builtin.copy:
+        src: ../{{ item }}
+        dest: /opt/{{ service_name }}/{{ item }}
+      loop:
+        - package.json
+        - package-lock.json
+    - name: Hash package-lock.json
+      ansible.builtin.stat:
+        path: /opt/{{ service_name }}/package-lock.json
+        checksum_algorithm: sha256
+      register: package_lock
+    - name: npm install
+      shell:
+        cmd: |
+          npm ci;
+          rm package-lock.json-installed-*
+          touch /opt/{{ service_name }}/package-lock.json-installed-{{ package_lock.stat.checksum }}
+        chdir: /opt/{{ service_name }}
+        creates: /opt/{{ service_name }}/package-lock.json-installed-{{ package_lock.stat.checksum }}
+    - name: Restart service
+      ansible.builtin.service:
+        name: '{{ service_name }}'
+        enabled: yes
+        daemon_reload: true
+        state: restarted
     - name: Install caddy
       ansible.builtin.apt:
         name: caddy
