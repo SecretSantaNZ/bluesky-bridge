@@ -21,7 +21,7 @@
   <div class="w-full mb-2">
     <input type="text" x-model="pager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
   </div>
-  <div class="grid-cols-5 lg:space-x-4 hidden lg:grid">
+  <div class="grid-cols-5 sm:space-x-4 hidden sm:grid">
     <div class="flex justify-center"><b>Santa</b></div>
     <div class="flex justify-center"><b>Giftee</b></div>
     <div class="flex justify-center"><b>Type</b></div>
@@ -29,28 +29,28 @@
     <div class="flex justify-center"><b>Delete</b></div>
   </div>
   <template x-for="nudge in pager.pageData">
-    <div class="grid sm:grid-cols-3 lg:grid-cols-5 lg:space-x-4 border-b py-2">
-      <div class="flex lg:justify-center items-center text-lg">
-        <div class="italic lg:hidden mr-2">Santa:</div>
+    <div class="grid sm:grid-cols-5 sm:space-x-4 border-b py-2">
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Santa:</div>
         <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(nudge.santa_handle)" target="_blank"x-text="'@' + nudge.santa_handle"></a>
       </div>
-      <div class="flex lg:justify-center items-center text-lg">
-        <div class="italic lg:hidden mr-2">Giftee:</div>
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Giftee:</div>
         <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(nudge.giftee_handle)" target="_blank" x-text="'@' + nudge.giftee_handle"></a>
       </div>
-      <div class="flex lg:justify-center items-center text-lg">
-        <div class="italic lg:hidden mr-2">Type:</div>
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Type:</div>
         <div x-text="nudge.nudge_type"></div>
       </div>
-      <div class="flex lg:justify-center items-center text-lg">
-        <div class="italic lg:hidden mr-2">Status:</div>
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Status:</div>
         <div x-text="nudge.nudge_status"></div>
       </div>
-      <form x-show="nudge.nudge_status !== 'sent'" hx-post="/nudge/delete-nudge" class="flex items-center sm:justify-center sm:col-span-3 lg:col-span-1">
+      <form x-show="nudge.nudge_status !== 'sent'" hx-post="/nudge/delete-nudge" class="flex items-center sm:justify-center sm:col-span-3 sm:col-span-1">
         <button x-show="`nudge-${nudge.nudge_id}` !== showConfirm" @click.prevent.stop="showConfirm = `nudge-${nudge.nudge_id}`">
-          <div class="flex lg:justify-center items-center ">
+          <div class="flex sm:justify-center items-center ">
             <div class="i-mdi-trash-can-outline size-10"></div>
-            <div class="lg:hidden"><b>Delete nudge</b></div>
+            <div class="sm:hidden"><b>Delete nudge</b></div>
           </div>
         </button>
         <%- include('../partials/activity-spinner.ejs') %>

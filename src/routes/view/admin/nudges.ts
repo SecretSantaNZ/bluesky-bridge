@@ -17,7 +17,7 @@ export const nudges: FastifyPluginAsync = async (app) => {
           'nudge.id as nudge_id',
           'nudge_status',
         ])
-        .orderBy('nudge.id asc')
+        .orderBy('nudge.id desc')
         .execute(),
     ]);
     const pageData = {
