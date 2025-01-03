@@ -1,7 +1,7 @@
 <div class="w-full px-12"
     x-data="{...<%= JSON.stringify({players, showConfirm: '', initialFilter}) %>,
     }"
-    x-init="activePlayersPager = buildPager({
+    x-init="activePlayersPager = secretsantanz.buildPager({
       handle: initialFilter,
       showSignupComplete: true,
       showSignupIncomplete: true,
@@ -9,7 +9,7 @@
       const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
       return players.filter(player => !player.deactivated && (player.signup_complete ? filters.showSignupComplete : filters.showSignupIncomplete) && (!cleanHandleFilter || player.handle.toLowerCase().includes(cleanHandleFilter)));
     });
-    inactivePlayersPager = buildPager({
+    inactivePlayersPager = secretsantanz.buildPager({
       handle: initialFilter,
     }, function(filters) {
       const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();

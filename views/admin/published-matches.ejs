@@ -4,7 +4,7 @@
       return this.publishedMatches.filter((match) => match.match_status === 'shared').length;
     },
   }"
-  x-init="pager = buildPager({
+  x-init="pager = secretsantanz.buildPager({
     handle: ''
   }, function(filters) {
     const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();

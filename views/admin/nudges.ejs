@@ -1,6 +1,6 @@
 <div class="w-full px-12"
   x-data="<%= JSON.stringify({...pageData, showConfirm: ''}) %>"
-  x-init="pager = buildPager({
+  x-init="pager = secretsantanz.buildPager({
     handle: ''
   }, function(filters) {
     const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();

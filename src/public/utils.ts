@@ -1,9 +1,15 @@
-function buildPager(filtersTemplate, filterFunc) {
+export function buildPager<T extends Record<string, unknown>, D>(
+  filtersTemplate: T,
+  filterFunc: (filters: T) => Array<D>
+) {
+  // @ts-expect-error we need alpine globally so don't want to import here
+  // as that would result in it being bundled
   const internalData = Alpine.reactive({ filters: filtersTemplate, page: 1 });
   const filters = new Proxy(internalData.filters, {
-    set(target, property, value, receiver) {
+    set(target, property, value) {
       internalData.page = 1;
       target[property] = value;
+      return true;
     },
   });
   return {
