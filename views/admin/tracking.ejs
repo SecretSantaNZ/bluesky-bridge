@@ -1,0 +1,65 @@
+<div class="w-full px-12"
+  x-data="<%= JSON.stringify({...pageData, showConfirm: ''}) %>"
+  x-init="pager = secretsantanz.buildPager({
+    handle: ''
+  }, function(filters) {
+    const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
+    return tracking.filter((tracking) => !cleanHandleFilter || tracking.santa_handle.toLowerCase().includes(cleanHandleFilter) || tracking.giftee_handle.toLowerCase().includes(cleanHandleFilter));
+  })"
+>
+  <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
+    <h1>Tracking</h1>
+    <div>
+      <select x-model="pager.pageSelect">
+        <template x-for="{key, display} of pager.pages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
+  </div>
+  <div class="w-full mb-2">
+    <input type="text" x-model="pager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
+  <div class="grid-cols-8 sm:space-x-4 hidden sm:grid">
+    <div class="flex justify-center"><b>Santa</b></div>
+    <div class="flex justify-center"><b>Giftee</b></div>
+    <div class="flex justify-center"><b>Shipped</b></div>
+    <div class="flex justify-center"><b>Carrier</b></div>
+    <div class="flex justify-center"><b>Tracking</b></div>
+    <div class="flex justify-center"><b>Wrapped</b></div>
+    <div class="flex justify-center"><b>Status</b></div>
+    <div class="flex justify-center"><b>Action</b></div>
+  </div>
+  <template x-for="nudge in pager.pageData">
+    <div class="grid sm:grid-cols-8 sm:space-x-4 border-b py-2">
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Santa:</div>
+        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(nudge.santa_handle)" target="_blank"x-text="'@' + nudge.santa_handle"></a>
+      </div>
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Giftee:</div>
+        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(nudge.giftee_handle)" target="_blank" x-text="'@' + nudge.giftee_handle"></a>
+      </div>
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Sent:</div>
+        <div x-text="secretsantanz.formatDate(nudge.shipped_date)"></div>
+      </div>
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Carrier:</div>
+        <div x-text="nudge.carrier"></div>
+      </div>
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Tracking:</div>
+        <div x-text="nudge.tracking_number"></div>
+      </div>
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Wrapped:</div>
+        <div x-text="nudge.giftwrap_status ? 'Y' : 'N'"></div>
+      </div>
+      <div class="flex sm:justify-center items-center text-lg">
+        <div class="italic sm:hidden mr-2">Status:</div>
+        <div x-text="nudge.tracking_status"></div>
+      </div>
+    </div>
+  </template>
+</div>

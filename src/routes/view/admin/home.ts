@@ -20,6 +20,8 @@ export const adminHome: FastifyPluginAsync = async (app) => {
       { cnt: lockedMatches },
       { cnt: sentNudgeCount },
       { cnt: nudgeCount },
+      { cnt: sentTrackingCount },
+      { cnt: trackingCount },
     ] = await Promise.all([
       db
         .selectFrom('player')
@@ -77,6 +79,15 @@ export const adminHome: FastifyPluginAsync = async (app) => {
         .selectFrom('nudge')
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
         .executeTakeFirstOrThrow(),
+      db
+        .selectFrom('tracking')
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .where('tracking_status', '=', 'sent')
+        .executeTakeFirstOrThrow(),
+      db
+        .selectFrom('tracking')
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .executeTakeFirstOrThrow(),
     ]);
     return reply.view(
       'admin/home.ejs',
@@ -91,6 +102,8 @@ export const adminHome: FastifyPluginAsync = async (app) => {
         lockedMatches,
         sentNudgeCount,
         nudgeCount,
+        sentTrackingCount,
+        trackingCount,
       },
       {
         layout: 'layouts/base-layout.ejs',
