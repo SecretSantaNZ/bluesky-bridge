@@ -24,6 +24,12 @@ export const markContacted: FastifyPluginAsync = async (rawApp) => {
         .where('id', '=', request.body.match_id)
         .execute();
 
+      reply.header(
+        'HX-Trigger',
+        JSON.stringify({
+          'ss-reload-data': {},
+        })
+      );
       return reply.code(204).send();
     }
   );

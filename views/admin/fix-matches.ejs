@@ -14,10 +14,11 @@
   }
 </script>
 <div class="grid xl:grid-cols-3"
-    x-data="<%= JSON.stringify({playersWhoCanHaveMoreGifees, brokenMatches, tooManyGifteeMatches, needsSantaAssigned, tooManySantasMatches, showConfirm: ''}) %>"
-    @ss-match-deactivated.window="brokenMatches = brokenMatches.filter((match) => match.match_id !== event.detail.id)"
-    @ss-too-many-giftees-match-updated.window="tooManyGifteeMatches = mergeTooManyGifteeMatches(tooManyGifteeMatches, event.detail)"
-  >
+  x-data="<%= JSON.stringify({...pageData, showConfirm: ''}) %>"
+  @ss-match-deactivated.window="brokenMatches = brokenMatches.filter((match) => match.match_id !== event.detail.id)"
+  @ss-too-many-giftees-match-updated.window="tooManyGifteeMatches = mergeTooManyGifteeMatches(tooManyGifteeMatches, event.detail)"
+  @ss-reload-data.window="Object.assign($data, JSON.parse(await $fetch(window.location.pathname + '?data=true')));"
+>
   <div class="xl:col-span-2 pr-4">
     <div class="mb-12" x-show="brokenMatches.length > 0">
       <h1>Broken matches</h1>

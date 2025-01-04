@@ -1,6 +1,8 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { sql } from 'kysely';
 import type { Database } from '../../../lib/database/index.js';
+import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 
 export function buildTooManyGifteeMatchesQuery(db: Database) {
   return db
@@ -72,56 +74,75 @@ export function buildTooManySantasMatchesQuery(db: Database) {
     .orderBy('match.id asc');
 }
 
-export const fixMatches: FastifyPluginAsync = async (app) => {
-  app.get('/fix-matches', async function (request, reply) {
-    const { db } = this.blueskyBridge;
-    const [
-      playersWhoCanHaveMoreGifees,
-      brokenMatches,
-      tooManyGifteeMatches,
-      needsSantaAssigned,
-      tooManySantasMatches,
-    ] = await Promise.all([
-      db
-        .selectFrom('player')
-        .select([
-          'handle',
-          'did',
-          'giftee_count',
-          'giftee_for_count',
-          'max_giftees',
-        ])
-        .where('giftee_count_status', '=', 'can_have_more')
-        .where('signup_complete', '=', 1)
-        .orderBy(
-          sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end) asc`
-        )
-        .orderBy(sql`random()`)
-        .execute(),
-      buildBrokenMatchesQuery(db).execute(),
-      buildTooManyGifteeMatchesQuery(db).execute(),
-      db
-        .selectFrom('player')
-        .selectAll()
-        .where('signup_complete', '=', 1)
-        .where('giftee_for_count', '=', 0)
-        .where('game_mode', '<>', 'Santa Only')
-        .execute(),
-      buildTooManySantasMatchesQuery(db).execute(),
-    ]);
-    return reply.view(
-      'admin/fix-matches.ejs',
-      {
+export const fixMatches: FastifyPluginAsync = async (rawApp) => {
+  const app = rawApp.withTypeProvider<ZodTypeProvider>();
+  app.get(
+    '/fix-matches',
+    {
+      schema: {
+        querystring: z
+          .object({
+            data: z.enum(['true', 'false']),
+          })
+          .partial(),
+      },
+    },
+    async function (request, reply) {
+      const { db } = this.blueskyBridge;
+      const [
         playersWhoCanHaveMoreGifees,
         brokenMatches,
         tooManyGifteeMatches,
         needsSantaAssigned,
         tooManySantasMatches,
-        oneColumn: true,
-      },
-      {
-        layout: 'layouts/base-layout.ejs',
+      ] = await Promise.all([
+        db
+          .selectFrom('player')
+          .select([
+            'handle',
+            'did',
+            'giftee_count',
+            'giftee_for_count',
+            'max_giftees',
+          ])
+          .where('giftee_count_status', '=', 'can_have_more')
+          .where('signup_complete', '=', 1)
+          .orderBy(
+            sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end) asc`
+          )
+          .orderBy(sql`random()`)
+          .execute(),
+        buildBrokenMatchesQuery(db).execute(),
+        buildTooManyGifteeMatchesQuery(db).execute(),
+        db
+          .selectFrom('player')
+          .selectAll()
+          .where('signup_complete', '=', 1)
+          .where('giftee_for_count', '=', 0)
+          .where('game_mode', '<>', 'Santa Only')
+          .execute(),
+        buildTooManySantasMatchesQuery(db).execute(),
+      ]);
+      const pageData = {
+        playersWhoCanHaveMoreGifees,
+        brokenMatches,
+        tooManyGifteeMatches,
+        needsSantaAssigned,
+        tooManySantasMatches,
+      };
+      if (request.query.data === 'true') {
+        return reply.send(pageData);
       }
-    );
-  });
+      return reply.view(
+        'admin/fix-matches.ejs',
+        {
+          pageData,
+          oneColumn: true,
+        },
+        {
+          layout: 'layouts/base-layout.ejs',
+        }
+      );
+    }
+  );
 };

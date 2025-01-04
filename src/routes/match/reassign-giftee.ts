@@ -58,14 +58,13 @@ export const reassignGiftee: FastifyPluginAsync = async (rawApp) => {
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      // reply.header(
-      //   'HX-Trigger',
-      //   JSON.stringify({
-      //     'ss-match-deactivated': { id: request.body.match_id },
-      //   })
-      // );
-      // FIXME would prefer to update data
-      reply.header('HX-Refresh', 'true');
+      reply.header(
+        'HX-Trigger',
+        JSON.stringify({
+          'ss-reload-data': {},
+          'ss-close-modal': true,
+        })
+      );
       return reply.code(204).send();
     }
   );
