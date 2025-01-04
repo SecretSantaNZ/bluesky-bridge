@@ -11,6 +11,7 @@ export const reassignGiftee: FastifyPluginAsync = async (rawApp) => {
         body: z.object({
           match_id: z.coerce.number(),
           santa_handle: z.string(),
+          super_santa_match: z.enum(['true', 'false']).optional(),
         }),
       },
     },
@@ -26,9 +27,15 @@ export const reassignGiftee: FastifyPluginAsync = async (rawApp) => {
 
       const oldMatch = await db
         .updateTable('match')
-        .set({
-          deactivated: new Date().toISOString(),
-        })
+        .set(
+          request.body.super_santa_match === 'true'
+            ? {
+                followup_action: 'super-assigned',
+              }
+            : {
+                deactivated: new Date().toISOString(),
+              }
+        )
         .where('id', '=', request.body.match_id)
         .returningAll()
         .executeTakeFirstOrThrow();
@@ -40,11 +47,13 @@ export const reassignGiftee: FastifyPluginAsync = async (rawApp) => {
           giftee: oldMatch.giftee,
           has_present: 0,
           invalid_player: 0,
-          match_status: 'draft',
+          match_status:
+            request.body.super_santa_match === 'true' ? 'locked' : 'draft',
           nudge_count: 0,
           nudge_present_update_count: 0,
           tracking_count: 0,
           tracking_missing_count: 0,
+          super_santa_match: request.body.super_santa_match === 'true' ? 1 : 0,
         })
         .returningAll()
         .executeTakeFirstOrThrow();

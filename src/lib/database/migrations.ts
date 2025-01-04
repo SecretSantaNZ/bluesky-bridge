@@ -575,13 +575,25 @@ migrations['002'] = {
         )
       )
       .execute();
+
     await db.schema
       .alterTable('match')
       .addColumn('contacted', 'varchar')
+      .execute();
+
+    await db.schema
+      .alterTable('match')
+      .addColumn('super_santa_match', 'int2', (col) =>
+        col.notNull().defaultTo(0)
+      )
       .execute();
   },
   async down(db: Kysely<unknown>) {
     await db.schema.alterTable('match').dropColumn('followup_action').execute();
     await db.schema.alterTable('match').dropColumn('contacted').execute();
+    await db.schema
+      .alterTable('match')
+      .dropColumn('super_santa_match')
+      .execute();
   },
 };

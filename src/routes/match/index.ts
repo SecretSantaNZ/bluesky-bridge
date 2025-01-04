@@ -7,6 +7,7 @@ import { reassignGiftee } from './reassign-giftee.js';
 import { publish } from './publish.js';
 import { autoMatch } from './autoMatch.js';
 import { markContacted } from './mark-contacted.js';
+import { markSorted } from './mark-sorted.js';
 
 export const match: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -38,4 +39,5 @@ export const match: FastifyPluginAsync = async (rawApp) => {
   await app.register(publish);
   await app.register(autoMatch);
   await app.register(markContacted);
+  await app.register(markSorted);
 };

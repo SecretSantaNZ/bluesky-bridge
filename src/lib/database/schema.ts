@@ -104,6 +104,7 @@ export interface Match {
   tracking_missing_count: number;
   contacted: Generated<null | string>;
   followup_action: Generated<null | 'super-assigned' | 'sorted'>;
+  super_santa_match: Generated<number>;
 }
 
 export interface NudgeType {

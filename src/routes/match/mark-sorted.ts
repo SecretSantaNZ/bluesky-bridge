@@ -2,10 +2,10 @@ import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 
-export const markContacted: FastifyPluginAsync = async (rawApp) => {
+export const markSorted: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
   app.post(
-    '/mark-contacted',
+    '/mark-sorted',
     {
       schema: {
         body: z.object({
@@ -19,7 +19,7 @@ export const markContacted: FastifyPluginAsync = async (rawApp) => {
       await db
         .updateTable('match')
         .set({
-          contacted: new Date().toISOString(),
+          followup_action: 'sorted',
         })
         .where('id', '=', request.body.match_id)
         .execute();

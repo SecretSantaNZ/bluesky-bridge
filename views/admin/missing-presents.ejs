@@ -46,7 +46,7 @@
       </div>
       <div class="flex lg:justify-center items-center text-lg">
         <div class="italic lg:hidden mr-2">Category:</div>
-        <span x-text="match.tracking_count === 0 ? 'No tracking' : 'Present missing'"></span>
+        <div x-text="match.super_santa_match ? 'Super santa' : match.tracking_count === 0 ? 'No tracking' : 'Present missing'"></div>
       </div>
       <div class="flex lg:justify-center items-center text-lg">
         <div class="italic lg:hidden mr-2">Present updates sent:</div>
@@ -62,6 +62,45 @@
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
         </div>
       </form>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Action:</div>
+        <div x-show="match.followup_action" x-text="match.followup_action"></div>
+        <div x-show="!match.followup_action">
+          <button @click="$dispatch('ss-open-modal', {modal: 'reassign-giftee', modalData: {...match}})" class="flex items-center rounded-sm"><div class="i-mdi-rotate-3d-variant mr-1 size-5"></div><div>Assign super santa</div></button>
+          <form hx-post="/match/mark-sorted">
+            <%- include('../partials/activity-spinner.ejs') %>
+            <button type="submit" class="htmx-request:hidden flex items-center rounded-sm"><div class="i-mdi-tick mr-1 size-5"></div><div>Mark sorted</div></button>
+            <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+          </form>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <div class="mt-12">
+    <h1>Players available to Santa</h1>
+    <template x-for="player in playersWhoCanHaveMoreGifees.slice(0, 15)">
+      <div class="mb-2">
+        <span x-text="'@' + player.handle"></span> (<span x-text="player.giftee_count"></span>/<span x-text="player.max_giftees"></span>)
+      </div>
+    </template>
+    <div x-show="playersWhoCanHaveMoreGifees.length > 15">... and <span x-text="playersWhoCanHaveMoreGifees.length - 15"></span> more</div>
+    <datalist id="players-available-to-santa"> 
+      <template x-for="player in playersWhoCanHaveMoreGifees">
+        <option x-bind:value="player.handle"></option>
+      </template>
+    </datalist>
+  </div>
+</div>
+<div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
+  <template x-teleport="body">
+    <div x-show="showModal">
+      <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
+      </div>
+      <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/reassign-giftee.ejs', xShow: "showModal === 'reassign-giftee'", super_santa_match: 'true' }) %>
+      </div>
     </div>
   </template>
 </div>

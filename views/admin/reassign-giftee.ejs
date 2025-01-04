@@ -9,6 +9,9 @@
     </div>
     <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: 'false' }); %>
   </div>
+  <% if (super_santa_match) { %>
+    <input type="hidden" name="super_santa_match" value="<%= super_santa_match %>"/>
+  <% } %>
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
   <input type="hidden" name="match_id" x-bind:value="modalData.match_id"/>
 </form>
