@@ -564,3 +564,24 @@ migrations['001'] = {
     await db.schema.dropTable('jwt_mac_key').execute();
   },
 };
+
+migrations['002'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('match')
+      .addColumn('followup_action', 'varchar', (col) =>
+        col.check(
+          sql`followup_action is null or followup_action in ('super-assigned', 'sorted')`
+        )
+      )
+      .execute();
+    await db.schema
+      .alterTable('match')
+      .addColumn('contacted', 'varchar')
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.alterTable('match').dropColumn('followup_action').execute();
+    await db.schema.alterTable('match').dropColumn('contacted').execute();
+  },
+};

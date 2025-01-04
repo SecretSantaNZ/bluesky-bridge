@@ -102,6 +102,8 @@ export interface Match {
   nudge_present_update_count: number;
   tracking_count: number;
   tracking_missing_count: number;
+  contacted: Generated<null | string>;
+  followup_action: Generated<null | 'super-assigned' | 'sorted'>;
 }
 
 export interface NudgeType {

@@ -1,0 +1,67 @@
+<div class="w-full px-12"
+  x-data="<%= JSON.stringify({...pageData, showConfirm: ''}) %>"
+  x-init="pager = secretsantanz.buildPager({
+    handle: ''
+  }, function(filters) {
+    const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
+    return matches.filter((match) => !cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter));
+  })"
+>
+  <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
+    <h1>Matches without presents</h1>
+    <div>
+      <select x-model="pager.pageSelect">
+        <template x-for="{key, display} of pager.pages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
+  </div>
+  <div class="w-full mb-2">
+    <input type="text" x-model="pager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
+  <div class="grid-cols-6 lg:space-x-4 hidden lg:grid">
+    <div class="flex justify-center"><b>Santa</b></div>
+    <div class="flex justify-center"><b>Giftee</b></div>
+    <div class="flex justify-center"><b>Category</b></div>
+    <div class="flex justify-center"><b>Present updates sent</b></div>
+    <div class="flex justify-center"><b>Contacted</b></div>
+    <div class="flex justify-center"><b>Action</b></div>
+  </div>
+  <template x-for="match in pager.pageData">
+    <div class="grid sm:grid-cols-3 lg:grid-cols-6 lg:space-x-4 border-b py-2">
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Santa:</div>
+        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank">
+          <span x-text="'@' + match.santa_handle"></span>
+          <span x-show="match.santa_deactivated" x-text="match.santa_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
+        </a>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Giftee:</div>
+        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank">
+          <span x-text="'@' + match.giftee_handle"></span>
+          <span x-show="match.giftee_deactivated" x-text="match.giftee_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
+        </a>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Category:</div>
+        <span x-text="match.tracking_count === 0 ? 'No tracking' : 'Present missing'"></span>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Present updates sent:</div>
+        <div x-text="match.nudge_present_update_count"></div>
+      </div>
+      <form hx-post="/match/mark-contacted" class="flex items-center sm:justify-center lg:col-span-1">
+        <div class="italic lg:hidden mr-2">Contacted:</div>
+        <div>
+          <div x-text="match.contacted && secretsantanz.formatDatetime(match.contacted)"></div>
+          <%- include('../partials/activity-spinner.ejs') %>
+          <button type="submit" class="flex items-center rounded-sm"><div class="i-mdi-message-bubble mr-1 size-5"></div><div>Mark contacted</div></button>
+          <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
+          <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+        </div>
+      </form>
+    </div>
+  </template>
+</div>
