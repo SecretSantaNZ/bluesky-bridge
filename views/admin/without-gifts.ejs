@@ -17,7 +17,7 @@
   @ss-reload-data.window="Object.assign($data, JSON.parse(await $fetch(window.location.pathname + '?data=true')));"
 >
   <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
-    <h1>Matches without presents</h1>
+    <h1>People without gifts</h1>
     <div>
       <select x-model="pager.pageSelect">
         <template x-for="{key, display} of pager.pages">

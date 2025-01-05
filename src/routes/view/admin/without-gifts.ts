@@ -3,10 +3,10 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { sql } from 'kysely';
 import { z } from 'zod';
 
-export const missingPresents: FastifyPluginAsync = async (rawApp) => {
+export const withoutGifts: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
   app.get(
-    '/missing-presents',
+    '/without-gifts',
     {
       schema: {
         querystring: z
@@ -74,7 +74,7 @@ export const missingPresents: FastifyPluginAsync = async (rawApp) => {
         return reply.send(pageData);
       }
       return reply.view(
-        'admin/missing-presents.ejs',
+        'admin/without-gifts.ejs',
         {
           pageData,
           oneColumn: true,
