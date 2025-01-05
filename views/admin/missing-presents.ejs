@@ -1,10 +1,18 @@
 <div class="w-full px-12"
   x-data="<%= JSON.stringify({...pageData, showConfirm: ''}) %>"
   x-init="pager = secretsantanz.buildPager({
-    handle: ''
+    handle: '',
+    showWithPresentUpdates: true,
+    showContacted: true,
+    showResolved: false,
   }, function(filters) {
     const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
-    return matches.filter((match) => !cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter));
+    return matches.filter((match) => 
+      (!cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter))
+      && (filters.showWithPresentUpdates || match.nudge_present_update_count === 0)
+      && (filters.showContacted || !match.contacted)
+      && (filters.showResolved || !match.followup_action)
+    );
   })"
   @ss-reload-data.window="Object.assign($data, JSON.parse(await $fetch(window.location.pathname + '?data=true')));"
 >
@@ -16,6 +24,18 @@
           <option x-bind:value="key" x-text="display"></option>
         </template>
       </select>
+    </div>
+    <div>
+      <input type="checkbox" id="show-with-present-updates" name="show-with-present-updates" x-model="pager.filters.showWithPresentUpdates"/>
+      <label for="show-with-present-updates">Has sent update</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-contacted" name="show-contacted" x-model="pager.filters.showContacted" />
+      <label for="show-contacted">Contacted</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-resolved" name="show-resolved" x-model="pager.filters.showResolved" />
+      <label for="show-resolved">Resolved</label>
     </div>
   </div>
   <div class="w-full mb-2">
