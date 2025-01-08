@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { queryTrackingWithGifteeAndSanta } from '../../../lib/database/index.js';
+
 export const tracking: FastifyPluginAsync = async (app) => {
   app.get('/tracking', async function (request, reply) {
     const { db } = this.blueskyBridge;

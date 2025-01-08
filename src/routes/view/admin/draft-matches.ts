@@ -4,6 +4,7 @@ import {
   buildTooManyGifteeMatchesQuery,
   buildTooManySantasMatchesQuery,
 } from './fix-matches.js';
+import { queryFullMatch } from '../../../lib/database/index.js';
 
 export const draftMatches: FastifyPluginAsync = async (app) => {
   app.get('/draft-matches', async function (request, reply) {
@@ -22,23 +23,8 @@ export const draftMatches: FastifyPluginAsync = async (app) => {
         .where('giftee_for_count', '=', 0)
         .where('game_mode', '<>', 'Santa Only')
         .executeTakeFirstOrThrow(),
-      db
-        .selectFrom('match')
-        .innerJoin('player as santa', 'santa.id', 'match.santa')
-        .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
-        .select([
-          'santa.handle as santa_handle',
-          'santa.deactivated as santa_deactivated',
-          'santa.booted as santa_booted',
-          'giftee.handle as giftee_handle',
-          'giftee.deactivated as giftee_deactivated',
-          'giftee.booted as giftee_booted',
-          'match.invalid_player as invalid_player',
-          'match.id as match_id',
-          'match.match_status',
-        ])
+      queryFullMatch(db)
         .where('match.match_status', '=', 'draft')
-        .where('match.deactivated', 'is', null)
         .orderBy('match.id asc')
         .execute(),
       buildBrokenMatchesQuery(db)

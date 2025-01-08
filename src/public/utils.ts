@@ -34,7 +34,7 @@ export function buildPager<T extends Record<string, unknown>, D>(
     },
     get pages() {
       const count = this.filtered.length;
-      const pages = [];
+      const pages: Array<{ key: string; display: string }> = [];
       for (let i = 0; i * 25 < count; i++) {
         pages.push({
           key: `${i + 1}`,
@@ -44,4 +44,30 @@ export function buildPager<T extends Record<string, unknown>, D>(
       return pages;
     },
   };
+}
+
+export function replaceMatch<T extends { match_id: number }>(
+  matches: ReadonlyArray<T>,
+  newMatch: T
+): Array<T> {
+  let present = false;
+  const newMatches = matches.map((match) => {
+    if (match.match_id === newMatch.match_id) {
+      present = true;
+      return newMatch;
+    } else {
+      return match;
+    }
+  });
+  if (!present) {
+    newMatches.push(newMatch);
+  }
+  return newMatches;
+}
+
+export function removeMatch<T extends { match_id: number }>(
+  matches: ReadonlyArray<T>,
+  matchId: number
+): Array<T> {
+  return matches.filter((match) => match.match_id !== matchId);
 }

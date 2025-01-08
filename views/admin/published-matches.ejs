@@ -10,7 +10,8 @@
     const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
     return publishedMatches.filter((match) => !cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter));
   })"
-  @ss-match-deactivated.window="publishedMatches = publishedMatches.filter((match) => match.match_id !== event.detail.id)"
+  @ss-match-deactivated.window="publishedMatches = secretsantanz.removeMatch(publishedMatches, event.detail.id)"
+  @ss-match-updated.window="publishedMatches = secretsantanz.replaceMatch(publishedMatches, event.detail)"
 >
   <div class="grid sm:grid-cols-2 md:grid-cols-3 sm:space-x-4 space-y-4 sm:space-y-0 justify-center mb-8">
     <form x-show="sharedMatchesCount > 0" hx-post="/match/publish" class="flex items-center sm:justify-center">
@@ -68,7 +69,7 @@
       </button>
       <div x-show="match.match_status !== 'locked'" class="col-span-2"></div>
       <div class="hidden sm:block lg:hidden"></div>
-      <form hx-get="/admin/fragments/match-tracking" hx-target="#match-tracking" class="flex lg:justify-center items-center ">
+      <form hx-get="/admin/fragments/match-tracking" hx-target="#match-tracking" hx-swap="innerHTML" class="flex lg:justify-center items-center ">
         <button x-show="match.match_status === 'locked'" @click="$dispatch('ss-open-modal', {modal: 'match-tracking', modalData: {...match}})" class="text-lg underline">
           <div class="italic lg:hidden mr-2">Tracking:</div>
           <div x-text="match.tracking_count"></div>
