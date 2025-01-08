@@ -1,7 +1,5 @@
 <h1>Presents I've sent</h1>
 <p class="mt-8">Once you've sent a present and entered the tracking number it will show up here</p>
 <% giftsIveSent.forEach(function(tracking) { %>
-  <div class="mt-8">
-    <p>To @<%= tracking.giftee_handle %> on <%= formatDate(tracking.shipped_date) %> with <%= tracking.carrier %> <%= tracking.tracking_number %>. <%= tracking.giftwrap_status ? 'Gifts are wrapped.' : 'Gifts are naked.' %></p>
-  </div>
+  <%- include('../partials/tracking.ejs', {tracking, show_tracking_giftee: true, show_tracking_actions: false}) %>
 <% }) %>

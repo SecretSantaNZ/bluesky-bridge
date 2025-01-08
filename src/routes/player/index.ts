@@ -23,7 +23,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     validateAuth(({ authTokenManager }) => authTokenManager, 'session')
   );
 
-  app.addHook('preValidation', async function (request) {
+  app.addHook('preValidation', async function (request, reply) {
     if (request.method === 'GET') return;
     if (request.method === 'OPTIONS') return;
     // @ts-expect-error body and query are not typed here
@@ -31,6 +31,11 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     if (csrfToken !== request.tokenData?.csrfToken || !csrfToken) {
       throw new BadRequestError('invalid csrf token');
     }
+
+    reply.locals = {
+      ...reply.locals,
+      csrfToken,
+    };
 
     // @ts-expect-error body is not typed here
     const bodyPlayerDid = request.body?.player_did;

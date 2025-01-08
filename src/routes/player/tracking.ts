@@ -2,6 +2,11 @@ import type { FastifyPluginAsync } from 'fastify';
 import { NotFoundError } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import {
+  queryTracking,
+  queryTrackingWithMatch,
+} from '../../lib/database/index.js';
+import * as dateUtils from '../../lib/dates.js';
 
 export const tracking: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -24,10 +29,7 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
       if (player == null) {
         throw new NotFoundError();
       }
-      await db
-        .selectFrom('tracking')
-        .innerJoin('match', 'match.id', 'tracking.match')
-        .selectAll()
+      await queryTrackingWithMatch(db)
         .where('match.giftee', '=', player.id)
         .where('tracking.id', '=', request.params.tracking_id)
         .executeTakeFirstOrThrow();
@@ -43,7 +45,16 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
         .where('id', '=', request.params.tracking_id)
         .execute();
 
-      return reply.code(204).header('HX-Refresh', 'true').send();
+      const tracking = await queryTracking(db)
+        .where('tracking.id', '=', request.params.tracking_id)
+        .executeTakeFirstOrThrow();
+
+      return reply.view('/partials/tracking.ejs', {
+        ...dateUtils,
+        tracking,
+        show_tracking_giftee: false,
+        show_tracking_actions: true,
+      });
     }
   );
 };

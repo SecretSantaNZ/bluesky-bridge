@@ -21,3 +21,5 @@ export const migrateToLatest = async (db: Database) => {
   const { error } = await migrator.migrateToLatest();
   if (error) throw error;
 };
+
+export * from './tracking.js';

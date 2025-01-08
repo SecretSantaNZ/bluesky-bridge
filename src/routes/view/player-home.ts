@@ -2,6 +2,10 @@ import type { FastifyPluginAsync } from 'fastify';
 import { UnauthorizedError } from 'http-errors-enhanced';
 import type { Player } from '../../lib/PlayerService.js';
 import * as dateUtils from '../../lib/dates.js';
+import {
+  queryTrackingWithGiftee,
+  queryTrackingWithMatch,
+} from '../../lib/database/index.js';
 
 export const playerHome: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async function (request, reply) {
@@ -121,35 +125,11 @@ export const playerHome: FastifyPluginAsync = async (app) => {
         .selectAll()
         .orderBy('nudge_signoff.id asc')
         .execute(),
-      this.blueskyBridge.db
-        .selectFrom('tracking')
-        .innerJoin('match', 'match.id', 'tracking.match')
-        .innerJoin('carrier', 'carrier.id', 'tracking.carrier')
-        .select([
-          'tracking.id',
-          'tracking.shipped_date',
-          'tracking.tracking_number',
-          'carrier.text as carrier',
-          'tracking.giftwrap_status',
-          'tracking.missing',
-        ])
+      queryTrackingWithMatch(this.blueskyBridge.db)
         .where('match.giftee', '=', player.id)
         .orderBy('shipped_date asc')
         .execute(),
-      this.blueskyBridge.db
-        .selectFrom('tracking')
-        .innerJoin('match', 'match.id', 'tracking.match')
-        .innerJoin('player', 'player.id', 'match.giftee')
-        .innerJoin('carrier', 'carrier.id', 'tracking.carrier')
-        .select([
-          'tracking.id',
-          'player.handle as giftee_handle',
-          'tracking.shipped_date',
-          'tracking.tracking_number',
-          'carrier.text as carrier',
-          'tracking.giftwrap_status',
-          'tracking.missing',
-        ])
+      queryTrackingWithGiftee(this.blueskyBridge.db)
         .where('match.santa', '=', player.id)
         .orderBy('shipped_date asc')
         .execute(),
