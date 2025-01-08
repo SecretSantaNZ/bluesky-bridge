@@ -8,6 +8,7 @@ import { publishedMatches } from './published-matches.js';
 import { nudges } from './nudges.js';
 import { tracking } from './tracking.js';
 import { withoutGifts } from './without-gifts.js';
+import { fragments } from './fragments/index.js';
 
 export const admin: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async function (request, reply) {
@@ -42,4 +43,5 @@ export const admin: FastifyPluginAsync = async (app) => {
   await app.register(nudges);
   await app.register(tracking);
   await app.register(withoutGifts);
+  await app.register(fragments, { prefix: '/fragments' });
 };

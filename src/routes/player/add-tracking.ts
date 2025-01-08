@@ -33,21 +33,26 @@ export const addTracking: FastifyPluginAsync = async (rawApp) => {
       if (player == null) {
         throw new InternalServerError(`Player not found ${did}`);
       }
+      const admin = request.tokenData?.admin;
       const [match] = await Promise.all([
-        await db
-          .selectFrom('match')
-          .selectAll()
-          .where('santa', '=', player.id)
-          .where('id', '=', match_id)
-          .executeTakeFirstOrThrow(),
+        admin
+          ? undefined
+          : db
+              .selectFrom('match')
+              .selectAll()
+              .where('santa', '=', player.id)
+              .where('id', '=', match_id)
+              .executeTakeFirstOrThrow(),
         db
           .selectFrom('carrier')
           .selectAll()
           .where('id', '=', carrier)
           .executeTakeFirstOrThrow(),
       ]);
-      if (match.tracking_count >= 5) {
-        throw new BadRequestError(`Already 5 tracking for ${match_id}`);
+      if (!admin) {
+        if (match == null || match.tracking_count >= 5) {
+          throw new BadRequestError(`Already 5 tracking for ${match_id}`);
+        }
       }
       await db
         .insertInto('tracking')
@@ -64,6 +69,8 @@ export const addTracking: FastifyPluginAsync = async (rawApp) => {
         })
         .execute();
 
+      // FIXME for admin screens need to update appropriate data.
+      // for user home should ideall add to presents I've sent
       return reply.code(204).header('HX-Refresh', 'true').send();
     }
   );

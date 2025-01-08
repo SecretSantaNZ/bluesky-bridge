@@ -1,9 +1,10 @@
 import type { FastifyPluginAsync } from 'fastify';
+import * as dateUtils from '../../../lib/dates.js';
 
 export const publishedMatches: FastifyPluginAsync = async (app) => {
   app.get('/published-matches', async function (request, reply) {
     const { db } = this.blueskyBridge;
-    const [publishedMatches] = await Promise.all([
+    const [publishedMatches, carriers] = await Promise.all([
       db
         .selectFrom('match')
         .innerJoin('player as santa', 'santa.id', 'match.santa')
@@ -25,6 +26,8 @@ export const publishedMatches: FastifyPluginAsync = async (app) => {
         .where('match.deactivated', 'is', null)
         .orderBy('match.id asc')
         .execute(),
+
+      db.selectFrom('carrier').selectAll().orderBy('id asc').execute(),
     ]);
     const pageData = {
       publishedMatches,
@@ -32,6 +35,8 @@ export const publishedMatches: FastifyPluginAsync = async (app) => {
     return reply.view(
       'admin/published-matches.ejs',
       {
+        ...dateUtils,
+        carriers,
         pageData,
         oneColumn: true,
       },

@@ -29,10 +29,13 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
       if (player == null) {
         throw new NotFoundError();
       }
-      await queryTrackingWithMatch(db)
-        .where('match.giftee', '=', player.id)
-        .where('tracking.id', '=', request.params.tracking_id)
-        .executeTakeFirstOrThrow();
+      if (!request.tokenData?.admin) {
+        // Only allow non elves to update tracking for their own gifts
+        await queryTrackingWithMatch(db)
+          .where('match.giftee', '=', player.id)
+          .where('tracking.id', '=', request.params.tracking_id)
+          .executeTakeFirstOrThrow();
+      }
 
       await db
         .updateTable('tracking')

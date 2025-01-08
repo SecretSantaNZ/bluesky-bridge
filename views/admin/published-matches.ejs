@@ -68,10 +68,13 @@
       </button>
       <div x-show="match.match_status !== 'locked'" class="col-span-2"></div>
       <div class="hidden sm:block lg:hidden"></div>
-      <button x-show="match.match_status === 'locked'" class="flex lg:justify-center items-center text-lg underline">
-        <div class="italic lg:hidden mr-2">Tracking:</div>
-        <div x-text="match.tracking_count"></div>
-      </button>
+      <form hx-get="/admin/fragments/match-tracking" hx-target="#match-tracking" class="flex lg:justify-center items-center ">
+        <button x-show="match.match_status === 'locked'" @click="$dispatch('ss-open-modal', {modal: 'match-tracking', modalData: {...match}})" class="text-lg underline">
+          <div class="italic lg:hidden mr-2">Tracking:</div>
+          <div x-text="match.tracking_count"></div>
+        </button>
+        <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
+      </form>
       <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center sm:col-span-3 lg:col-span-1">
         <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">
           <div class="flex lg:justify-center items-center ">
@@ -87,6 +90,17 @@
         <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
         <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
       </form>
+    </div>
+  </template>
+</div>
+<div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
+  <template x-teleport="body">
+    <div x-show="showModal">
+      <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
+      </div>
+      <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/match-tracking.ejs', xShow: "showModal === 'match-tracking'" }) %>
+      </div>
     </div>
   </template>
 </div>
