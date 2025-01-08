@@ -69,8 +69,8 @@
       </button>
       <div x-show="match.match_status !== 'locked'" class="col-span-2"></div>
       <div class="hidden sm:block lg:hidden"></div>
-      <form hx-get="/admin/fragments/match-tracking" hx-target="#match-tracking" hx-swap="innerHTML" class="flex lg:justify-center items-center ">
-        <button x-show="match.match_status === 'locked'" @click="$dispatch('ss-open-modal', {modal: 'match-tracking', modalData: {...match}})" class="text-lg underline">
+      <form x-show="match.match_status === 'locked'" hx-get="/admin/fragments/match-tracking" hx-target="#match-tracking" hx-swap="innerHTML" class="flex lg:justify-center items-center ">
+        <button @click="$dispatch('ss-open-modal', {modal: 'match-tracking', modalData: {...match}})" class="text-lg underline">
           <div class="italic lg:hidden mr-2">Tracking:</div>
           <div x-text="match.tracking_count"></div>
         </button>

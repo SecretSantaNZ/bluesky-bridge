@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { BadRequestError, InternalServerError } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { queryFullMatch } from '../../lib/database/match.js';
 
 export const addTracking: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -67,11 +68,29 @@ export const addTracking: FastifyPluginAsync = async (rawApp) => {
           created_at: new Date().toISOString(),
           created_by: did,
         })
-        .execute();
+        .executeTakeFirstOrThrow();
 
-      // FIXME for admin screens need to update appropriate data.
-      // for user home should ideall add to presents I've sent
-      return reply.code(204).header('HX-Refresh', 'true').send();
+      const currentUrl = request.headers['hx-current-url'];
+      switch (currentUrl && new URL(currentUrl).pathname) {
+        case '/admin/published-matches': {
+          const match = await queryFullMatch(db)
+            .where('match.id', '=', match_id)
+            .executeTakeFirstOrThrow();
+          reply.header(
+            'HX-Trigger',
+            JSON.stringify({
+              'ss-match-updated': match,
+              'ss-close-modal': true,
+            })
+          );
+          break;
+        }
+        default:
+          reply.header('HX-Refresh', 'true');
+          break;
+      }
+
+      return reply.code(204).send();
     }
   );
 };
