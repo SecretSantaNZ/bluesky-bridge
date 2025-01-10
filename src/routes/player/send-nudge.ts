@@ -27,13 +27,16 @@ export const sendNudge: FastifyPluginAsync = async (rawApp) => {
       if (player == null) {
         throw new InternalServerError(`Player not found ${did}`);
       }
+      const admin = request.tokenData?.admin;
       const [match] = await Promise.all([
-        await db
-          .selectFrom('match')
-          .selectAll()
-          .where('santa', '=', player.id)
-          .where('id', '=', match_id)
-          .executeTakeFirstOrThrow(),
+        admin
+          ? undefined
+          : db
+              .selectFrom('match')
+              .selectAll()
+              .where('santa', '=', player.id)
+              .where('id', '=', match_id)
+              .executeTakeFirstOrThrow(),
         db
           .selectFrom('nudge_type')
           .selectAll()
@@ -63,8 +66,10 @@ export const sendNudge: FastifyPluginAsync = async (rawApp) => {
           .where('nudge_type_signoff.nudge_type', '=', nudge_type)
           .executeTakeFirstOrThrow(),
       ]);
-      if (match.nudge_count >= 5) {
-        throw new BadRequestError(`Already 5 nudges for ${match_id}`);
+      if (!admin) {
+        if (match == null || match.nudge_count >= 5) {
+          throw new BadRequestError(`Already 5 nudges for ${match_id}`);
+        }
       }
       await db
         .insertInto('nudge')
