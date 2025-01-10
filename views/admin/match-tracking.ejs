@@ -1,6 +1,6 @@
-<div class="space-y-8">
-  <h1>Tracking for @<span x-text="modalData.santa_handle"></span> to @<span x-text="modalData.giftee_handle"></span></h1>
+<div class="space-y-8" id="match-tracking-container">
+  <h1>Tracking from @<span x-text="modalData.santa_handle"></span> to @<span x-text="modalData.giftee_handle"></span></h1>
   <%- include('../partials/activity-spinner.ejs') %>
-  <div id="match-tracking"></div>
+  <div id="match-tracking" class="htmx-request:hidden"></div>
   <%- include('../player/add-tracking.ejs', {}) %>
 </div>

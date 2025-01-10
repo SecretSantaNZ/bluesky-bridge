@@ -1,0 +1,5 @@
+<% nudges.forEach(function(nudge) { %>
+  <div class="mt-8">
+    <b><%= nudge.nudge_type %></b> <%= formatDatetime(nudge.created_at) %>
+  </div>
+<% }) %>

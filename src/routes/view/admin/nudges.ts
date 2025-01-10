@@ -15,6 +15,7 @@ export const nudges: FastifyPluginAsync = async (app) => {
           'giftee.handle as giftee_handle',
           'nudge_type.name as nudge_type',
           'nudge.id as nudge_id',
+          'nudge.created_at',
           'nudge_status',
         ])
         .orderBy('nudge.id desc')
