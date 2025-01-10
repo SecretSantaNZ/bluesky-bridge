@@ -48,6 +48,7 @@
     "@atproto/oauth-client-node": "^0.2.3",
     "@atproto/repo": "^0.4.0",
     "@atproto/xrpc-server": "^0.5.1",
+    "@date-fns/tz": "^1.2.0",
     "@fastify/auth": "^4.6.1",
     "@fastify/basic-auth": "^5.1.1",
     "@fastify/cookie": "^9.4.0",

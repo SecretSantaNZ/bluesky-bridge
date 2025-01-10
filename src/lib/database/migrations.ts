@@ -597,3 +597,15 @@ migrations['002'] = {
       .execute();
   },
 };
+
+migrations['003'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('nudge')
+      .addColumn('post_url', 'varchar')
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.alterTable('match').dropColumn('post_url').execute();
+  },
+};

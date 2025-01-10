@@ -1,0 +1,99 @@
+import ms from 'ms';
+import { RichText, type Agent } from '@atproto/api';
+import type { Database } from './database/index.js';
+import { loadSettings } from './settings.js';
+import { getRandomMessage } from '../util/getRandomMessage.js';
+import { TZDate } from '@date-fns/tz';
+import { set, isAfter, isBefore } from 'date-fns';
+
+export class NudgeSender {
+  private readonly intervalId: ReturnType<typeof setInterval>;
+  constructor(
+    private readonly db: Database,
+    private readonly robotAgent: () => Promise<Agent>
+  ) {
+    this.intervalId = setInterval(this.sendANudge.bind(this), ms('10m'));
+  }
+
+  async sendANudge() {
+    const now = new TZDate(new Date(), 'Pacific/Auckland');
+    const earliest = set(now, {
+      hours: 7,
+      minutes: 0,
+      seconds: 0,
+      milliseconds: 0,
+    });
+    const latest = set(earliest, {
+      hours: 22,
+    });
+    if (!(isAfter(now, earliest) && isBefore(now, latest))) {
+      console.log('skipping nudges, outside of time');
+      return;
+    }
+    try {
+      console.log('checking for nudges to send');
+      const [nudge, settings] = await Promise.all([
+        this.db
+          .selectFrom('nudge')
+          .innerJoin('match', 'match.id', 'nudge.match')
+          .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
+          .innerJoin('nudge_type', 'nudge_type.id', 'nudge.nudge_type')
+          .innerJoin(
+            'nudge_greeting',
+            'nudge_greeting.id',
+            'nudge.nudge_greeting'
+          )
+          .innerJoin('nudge_signoff', 'nudge_signoff.id', 'nudge.nudge_signoff')
+          .select([
+            'nudge.id as nudge_id',
+            'giftee.handle as giftee_handle',
+            'nudge_type.name as nudge_type',
+            'nudge_greeting.text as greeting',
+            'nudge_signoff.text as signoff',
+          ])
+          .where('nudge.nudge_status', '=', 'queued')
+          .orderBy('nudge.id asc')
+          .limit(1)
+          .executeTakeFirst(),
+        loadSettings(this.db),
+      ]);
+
+      if (nudge == null) return;
+
+      const messageBody = await getRandomMessage(
+        this.db,
+        'nudge-' + nudge.nudge_type.toLowerCase(),
+        {
+          ...settings,
+        }
+      );
+
+      const rawMessage = `${nudge.greeting} @${nudge.giftee_handle}. ${messageBody} ${nudge.signoff} [Sent by 🤖]`;
+
+      const message = new RichText({
+        text: rawMessage,
+      });
+
+      const client = await this.robotAgent();
+      await message.detectFacets(client);
+
+      const result = await client.post({
+        text: message.text,
+        facets: message.facets,
+      });
+
+      const uriParts = result.uri.split('/');
+      const repository = uriParts[2];
+      const rkey = uriParts[4];
+      const post_url = `https://bsky.app/profile/${repository}/post/${rkey}`;
+
+      await this.db
+        .updateTable('nudge')
+        .set({ nudge_status: 'sent', post_url })
+        .where('id', '=', nudge.nudge_id)
+        .executeTakeFirstOrThrow();
+    } catch (e) {
+      console.error('Unable to send nudge', e);
+    }
+  }
+}

@@ -140,6 +140,7 @@ export interface Nudge {
   nudge_signoff: number;
   match: number;
   nudge_status: 'queued' | 'sent' | 'error';
+  post_url: Generated<null | string>;
   created_at: string;
   created_by: string;
 }

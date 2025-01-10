@@ -9,6 +9,7 @@ import { TokenManager } from './lib/TokenManager.js';
 import { createDb, migrateToLatest } from './lib/database/index.js';
 import { buildAtpClient } from './bluesky.js';
 import { PlayerService } from './lib/PlayerService.js';
+import { NudgeSender } from './lib/NudgeSender.js';
 import { initAtLoginClient } from './lib/initAtLoginClient.js';
 
 dotenv.config({
@@ -61,6 +62,8 @@ const main = async () => {
     plcUrl: 'https://plc.directory',
     timeout: 3000,
   });
+
+  new NudgeSender(db, robotAgent);
 
   const playerService = new PlayerService(db, santaAgent, santaAccountDid);
   // const subscription = new Subscription(playerService);
