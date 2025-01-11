@@ -1,5 +1,9 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { UnauthorizedError } from 'http-errors-enhanced';
+import {
+  BadRequestError,
+  ForbiddenError,
+  UnauthorizedError,
+} from 'http-errors-enhanced';
 import { adminHome } from './home.js';
 import { managePlayers } from './manage-players.js';
 import { fixMatches } from './fix-matches.js';
@@ -8,12 +12,16 @@ import { publishedMatches } from './published-matches.js';
 import { nudges } from './nudges.js';
 import { tracking } from './tracking.js';
 import { withoutGifts } from './without-gifts.js';
+import { settings } from './settings.js';
 import { fragments } from './fragments/index.js';
 
 export const admin: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async function (request, reply) {
     if (!request.tokenData?.admin) {
-      return reply.redirect(303, '/');
+      if (request.method === 'GET') {
+        return reply.redirect(303, '/');
+      }
+      throw new ForbiddenError();
     }
     const playerDid = request.tokenSubject as string;
     const [player, settings] = await Promise.all([
@@ -35,6 +43,16 @@ export const admin: FastifyPluginAsync = async (app) => {
     };
   });
 
+  app.addHook('preValidation', async function (request) {
+    if (request.method === 'GET') return;
+    if (request.method === 'OPTIONS') return;
+    // @ts-expect-error body and query are not typed here
+    const csrfToken = request.query?.csrfToken || request.body?.csrfToken;
+    if (csrfToken !== request.tokenData?.csrfToken || !csrfToken) {
+      throw new BadRequestError('invalid csrf token');
+    }
+  });
+
   await app.register(adminHome);
   await app.register(managePlayers);
   await app.register(draftMatches);
@@ -43,5 +61,6 @@ export const admin: FastifyPluginAsync = async (app) => {
   await app.register(nudges);
   await app.register(tracking);
   await app.register(withoutGifts);
+  await app.register(settings);
   await app.register(fragments, { prefix: '/fragments' });
 };

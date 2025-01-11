@@ -22,7 +22,10 @@
       <div class="sticky top-0 bg-bsky text-white drop-shadow-lg mb-8 z-50">
         <div class="flex items-center p-4 gap-4">
           <h1><a href="/" class="font-semibold">Secret Santa NZ</a></h1>
-          <% if (locals.admin) { %><div><a href="/admin" class="font-semibold">Elf tools</a></div><% } %>
+          <% if (locals.admin) { %>
+            <div><a href="/admin" class="font-semibold">Elf tools</a></div>
+            <div><a href="/admin/settings" class="font-semibold">Game setup</a></div>
+          <% } %>
           <div class="flex-grow"></div>
           <% if (player) { %>
             <div class="relative" x-data x-cloak>

@@ -1,0 +1,15 @@
+<form hx-boost="true" method="post" x-data="<%= JSON.stringify(settings) %>" class="space-y-8 w-full max-w-lg">
+  <%- include('../partials/input-checkbox.ejs', {id: 'signups_open', label: 'Signups open', xModel: 'signups_open'}); %>
+  <%- include('../partials/input-text.ejs', {id: 'matches_sent_date', label: 'Matches sent date', placeholder: '', xModel: 'matches_sent_date', input_type: 'date'}); %>
+  <%- include('../partials/input-text.ejs', {id: 'send_by_date', label: 'Send by date', placeholder: '', xModel: 'send_by_date', input_type: 'date'}); %>
+  <%- include('../partials/input-text.ejs', {id: 'opening_date', label: 'Opening date', placeholder: '', xModel: 'opening_date', input_type: 'date'}); %>
+  <%- include('../partials/input-text.ejs', {id: 'hashtag', label: 'Hashtag', placeholder: '', xModel: 'hashtag' }); %>
+  <%- include('../partials/input-text.ejs', {id: 'elf_list', label: 'Elf list', placeholder: '', xModel: 'elf_list' }); %>
+  <%- include('../partials/input-checkbox.ejs', {id: 'auto_follow', label: 'Auto-follow players', xModel: 'auto_follow'}); %>
+  <%- include('../partials/input-checkbox.ejs', {id: 'send_messages', label: 'Send nudges & DMs', xModel: 'send_messages'}); %>
+  <%- include('../partials/input-text.ejs', {id: 'nudge_rate', label: 'Nudge rate', placeholder: '', xModel: 'nudge_rate'}); %>
+  <%- include('../partials/input-text.ejs', {id: 'dm_rate', label: 'DM rate', placeholder: '', xModel: 'dm_rate'}); %>
+  <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+  <%- include('../partials/activity-spinner.ejs') %>
+  <input type="submit" name="save" value="Save" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+</form>

@@ -63,8 +63,7 @@ const main = async () => {
     timeout: 3000,
   });
 
-  new NudgeSender(db, robotAgent);
-
+  const nudgeSender = new NudgeSender(db, robotAgent);
   const playerService = new PlayerService(db, santaAgent, santaAccountDid);
   // const subscription = new Subscription(playerService);
   // subscription.onPostMatching(
@@ -88,6 +87,11 @@ const main = async () => {
       ),
       santaAgent,
       robotAgent,
+      settingsChanged: async (settings) =>
+        Promise.all([
+          playerService.settingsChanged(settings),
+          nudgeSender.settingsChanged(settings),
+        ]),
       didResolver,
     }
   );

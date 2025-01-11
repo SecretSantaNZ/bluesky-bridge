@@ -28,6 +28,7 @@ import type { DidResolver } from '@atproto/identity';
 import type { Agent } from '@atproto/api';
 import { match } from './routes/match/index.js';
 import { nudge } from './routes/nudge/index.js';
+import type { Settings } from './lib/database/schema.js';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -45,6 +46,7 @@ declare module 'fastify' {
       fullScopeHandles: ReadonlySet<string>;
       santaAgent: () => Promise<Agent>;
       robotAgent: () => Promise<Agent>;
+      settingsChanged: (settings: Omit<Settings, 'id'>) => Promise<unknown>;
       didResolver: DidResolver;
     };
   }
