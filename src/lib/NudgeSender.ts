@@ -5,14 +5,46 @@ import { loadSettings } from './settings.js';
 import { getRandomMessage } from '../util/getRandomMessage.js';
 import { TZDate } from '@date-fns/tz';
 import { set, isAfter, isBefore } from 'date-fns';
+import type { Settings } from './database/schema.js';
 
 export class NudgeSender {
-  private readonly intervalId: ReturnType<typeof setInterval>;
+  private intervalId?: ReturnType<typeof setInterval>;
+  private lastSettings?: Pick<Settings, 'nudge_rate' | 'send_messages'>;
   constructor(
     private readonly db: Database,
     private readonly robotAgent: () => Promise<Agent>
   ) {
-    this.intervalId = setInterval(this.sendANudge.bind(this), ms('10m'));
+    this.init();
+  }
+
+  private async init() {
+    const settings = await this.db
+      .selectFrom('settings')
+      .select(['nudge_rate', 'send_messages'])
+      .executeTakeFirstOrThrow();
+    await this.settingsChanged(settings);
+  }
+
+  async settingsChanged(
+    settings: Pick<Settings, 'nudge_rate' | 'send_messages'>
+  ) {
+    const nudgeRateChanged =
+      this.lastSettings?.nudge_rate !== settings.nudge_rate;
+    const shouldClear =
+      this.intervalId != null && (!settings.send_messages || nudgeRateChanged);
+    const shouldStart =
+      settings.send_messages && (this.intervalId == null || nudgeRateChanged);
+
+    if (shouldClear) {
+      clearInterval(this.intervalId);
+      this.intervalId = undefined;
+    }
+    if (shouldStart) {
+      this.intervalId = setInterval(
+        this.sendANudge.bind(this),
+        ms(settings.nudge_rate)
+      );
+    }
   }
 
   async sendANudge() {

@@ -171,4 +171,8 @@ export interface Settings {
   opening_date: string;
   hashtag: string;
   elf_list: string;
+  nudge_rate: string;
+  dm_rate: string;
+  auto_follow: number;
+  send_messages: number;
 }

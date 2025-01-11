@@ -9,7 +9,11 @@ import type { Database } from './database/index.js';
 import fetch from 'node-fetch';
 import { InternalServerError } from 'http-errors-enhanced';
 
-import type { DatabaseSchema, Player as DbPlayer } from './database/schema.js';
+import type {
+  DatabaseSchema,
+  Player as DbPlayer,
+  Settings,
+} from './database/schema.js';
 import ms from 'ms';
 import type { InsertObject, SelectType } from 'kysely';
 
@@ -116,6 +120,7 @@ export class PlayerService {
     old_handle: string;
     new_handle: string;
   }>;
+  private autoFollowIntervalHandle?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly db: Database,
@@ -131,7 +136,27 @@ export class PlayerService {
       'handle changed'
     );
 
-    setInterval(this.followPlayers.bind(this), ms('1 hour'));
+    this.init();
+  }
+
+  private async init() {
+    const settings = await this.db
+      .selectFrom('settings')
+      .select('auto_follow')
+      .executeTakeFirstOrThrow();
+    await this.settingsChanged(settings);
+  }
+
+  async settingsChanged(settings: Pick<Settings, 'auto_follow'>) {
+    if (settings.auto_follow && this.autoFollowIntervalHandle == null) {
+      this.autoFollowIntervalHandle = setInterval(
+        this.followPlayers.bind(this),
+        ms('1 hour')
+      );
+    } else if (!settings.auto_follow && this.autoFollowIntervalHandle != null) {
+      clearInterval(this.autoFollowIntervalHandle);
+      this.autoFollowIntervalHandle = undefined;
+    }
   }
 
   private async followPlayers() {

@@ -543,6 +543,7 @@ migrations['001'] = {
 
     await (db as Database)
       .insertInto('settings')
+      // @ts-expect-error the other columns do not get added until later
       .values({
         id: 0,
         signups_open: 1,
@@ -604,8 +605,35 @@ migrations['003'] = {
       .alterTable('nudge')
       .addColumn('post_url', 'varchar')
       .execute();
+
+    await db.schema
+      .alterTable('settings')
+      .addColumn('nudge_rate', 'varchar', (col) =>
+        col.notNull().defaultTo('10m')
+      )
+      .execute();
+    await db.schema
+      .alterTable('settings')
+      .addColumn('dm_rate', 'varchar', (col) => col.notNull().defaultTo('1m'))
+      .execute();
+    await db.schema
+      .alterTable('settings')
+      .addColumn('auto_follow', 'int2', (col) => col.notNull().defaultTo(0))
+      .execute();
+    await db.schema
+      .alterTable('settings')
+      .addColumn('send_messages', 'int2', (col) => col.notNull().defaultTo(0))
+      .execute();
   },
   async down(db: Kysely<unknown>) {
-    await db.schema.alterTable('match').dropColumn('post_url').execute();
+    await db.schema.alterTable('nudge').dropColumn('post_url').execute();
+
+    await db.schema.alterTable('settings').dropColumn('nudge_rate').execute();
+    await db.schema.alterTable('settings').dropColumn('dm_rate').execute();
+    await db.schema.alterTable('settings').dropColumn('auto_follow').execute();
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('send_messages')
+      .execute();
   },
 };
