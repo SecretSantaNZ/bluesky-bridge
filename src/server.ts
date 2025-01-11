@@ -10,6 +10,7 @@ import { createDb, migrateToLatest } from './lib/database/index.js';
 import { buildAtpClient } from './bluesky.js';
 import { PlayerService } from './lib/PlayerService.js';
 import { NudgeSender } from './lib/NudgeSender.js';
+import { DmSender } from './lib/DmSender.js';
 import { initAtLoginClient } from './lib/initAtLoginClient.js';
 
 dotenv.config({
@@ -64,6 +65,7 @@ const main = async () => {
   });
 
   const nudgeSender = new NudgeSender(db, robotAgent);
+  const dmSender = new DmSender(db, santaAgent);
   const playerService = new PlayerService(db, santaAgent, santaAccountDid);
   // const subscription = new Subscription(playerService);
   // subscription.onPostMatching(
@@ -91,6 +93,7 @@ const main = async () => {
         Promise.all([
           playerService.settingsChanged(settings),
           nudgeSender.settingsChanged(settings),
+          dmSender.settingsChanged(settings),
         ]),
       didResolver,
     }
