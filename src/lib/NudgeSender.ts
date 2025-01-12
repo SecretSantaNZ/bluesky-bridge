@@ -1,3 +1,4 @@
+import newrelic from 'newrelic';
 import ms from 'ms';
 import { RichText, type Agent } from '@atproto/api';
 import type { Database } from './database/index.js';
@@ -79,6 +80,7 @@ export class NudgeSender {
           .select([
             'nudge.id as nudge_id',
             'giftee.handle as giftee_handle',
+            'giftee.did as giftee_did',
             'nudge_type.name as nudge_type',
             'nudge_greeting.text as greeting',
             'nudge_signoff.text as signoff',
@@ -125,6 +127,12 @@ export class NudgeSender {
           .set({ nudge_status: 'sent', post_url })
           .where('id', '=', nudge.nudge_id)
           .executeTakeFirstOrThrow();
+        newrelic.recordCustomEvent('SecretSantaNudgeSent', {
+          recipientDid: nudge.giftee_did,
+          recipientHandle: nudge.giftee_handle,
+          nudgeType: nudge.nudge_type,
+          recordId: nudge.nudge_id,
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         const errorText = String('message' in e ? e.message : e);
@@ -134,6 +142,12 @@ export class NudgeSender {
           .where('id', '=', nudge.nudge_id)
           .executeTakeFirstOrThrow();
         console.error('Unable to send nudge', e);
+        newrelic.noticeError(e, {
+          recipientDid: nudge.giftee_did,
+          recipientHandle: nudge.giftee_handle,
+          nudgeType: nudge.nudge_type,
+          recordId: nudge.nudge_id,
+        });
       }
     } catch (e) {
       console.error('Unable to prepare nudge', e);

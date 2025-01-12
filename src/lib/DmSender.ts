@@ -1,3 +1,4 @@
+import newrelic from 'newrelic';
 import ms from 'ms';
 import { RichText, type Agent } from '@atproto/api';
 import type { Database } from './database/index.js';
@@ -9,7 +10,10 @@ import type { Settings } from './database/schema.js';
 import { formatDate } from '../lib/dates.js';
 
 export interface DM {
+  dmType: string;
   recipientDid: string;
+  recipientHandle: string;
+  recordId: number;
   rawMessage: string;
   markSent: () => Promise<unknown>;
   markError: (errorText: string) => Promise<unknown>;
@@ -28,6 +32,7 @@ const matchHandleDMQueue: DMQueue = async (db, settings) => {
     .select([
       'giftee.handle as giftee_handle',
       'santa.did as santa_did',
+      'santa.handle as santa_handle',
       'match.id as match_id',
     ])
     .where('match.deactivated', 'is', null)
@@ -60,7 +65,10 @@ const matchHandleDMQueue: DMQueue = async (db, settings) => {
       .execute();
 
   return {
+    dmType: 'match-handle',
     recipientDid: match.santa_did,
+    recipientHandle: match.santa_handle,
+    recordId: match.match_id,
     rawMessage,
     markSent,
     markError,
@@ -77,6 +85,7 @@ const matchAddressDMQueue: DMQueue = async (db, settings) => {
       'giftee.delivery_instructions as giftee_instructions',
       'giftee.address as giftee_address',
       'santa.did as santa_did',
+      'santa.handle as santa_handle',
       'match.id as match_id',
     ])
     .where('match.deactivated', 'is', null)
@@ -112,7 +121,10 @@ const matchAddressDMQueue: DMQueue = async (db, settings) => {
       .execute();
 
   return {
+    dmType: 'match-address',
     recipientDid: match.santa_did,
+    recipientHandle: match.santa_handle,
+    recordId: match.match_id,
     rawMessage,
     markSent,
     markError,
@@ -131,6 +143,7 @@ const trackingDMQueue: DMQueue = async (db, settings) => {
       'tracking.tracking_number as tracking_number',
       'tracking.giftwrap_status as giftwrap_status',
       'giftee.did as giftee_did',
+      'giftee.handle as giftee_handle',
       'tracking.id as tracking_id',
     ])
     .where('tracking.tracking_status', '=', 'queued')
@@ -168,7 +181,10 @@ const trackingDMQueue: DMQueue = async (db, settings) => {
       .execute();
 
   return {
+    dmType: 'tracking',
     recipientDid: tracking.giftee_did,
+    recipientHandle: tracking.giftee_handle,
+    recordId: tracking.tracking_id,
     rawMessage,
     markSent,
     markError,
@@ -246,6 +262,7 @@ export class DmSender {
       const client = await this.santaAgent();
       const sendFromDid = client.sessionManager.did as string;
       if (sendFromDid === dm.recipientDid) {
+        await dm.markError('cant sent dms to self');
         return;
       }
 
@@ -283,11 +300,23 @@ export class DmSender {
           }
         );
         await dm.markSent();
+        newrelic.recordCustomEvent('SecretSantaDMSent', {
+          recipientDid: dm.recipientDid,
+          recipientHandle: dm.recipientHandle,
+          dmType: dm.dmType,
+          recordId: dm.recordId,
+        });
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         const errorText = String('message' in e ? e.message : e);
         await dm.markError(errorText);
         console.error('Unable to send dm', e);
+        newrelic.noticeError(e, {
+          recipientDid: dm.recipientDid,
+          recipientHandle: dm.recipientHandle,
+          dmType: dm.dmType,
+          recordId: dm.recordId,
+        });
       }
     } catch (e) {
       console.error('Unable to prepare dm', e);
