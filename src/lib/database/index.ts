@@ -9,6 +9,9 @@ export const createDb = (): Database => {
   const location = process.env.SQLITE_LOCATION ?? ':memory:';
   const database = new SqliteDb(location);
   database.pragma('journal_mode = WAL');
+  database.pragma('busy_timeout = 5000');
+  database.pragma('synchronous = NORMAL');
+  database.pragma('foreign_keys = true');
   return new Kysely<DatabaseSchema>({
     dialect: new SqliteDialect({
       database,
