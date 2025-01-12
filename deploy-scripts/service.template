@@ -3,7 +3,7 @@ Description={{ service_name }}
 After=network.target
 
 [Service]
-ExecStart=node dist/server.js
+ExecStart=node -r newrelic dist/server.js
 WorkingDirectory=/opt/{{ service_name }}
 Restart=always
 User={{ service_name }}
@@ -16,6 +16,8 @@ Environment=ROBOT_BLUESKY_HANDLE={{ robot_bluesky_handle }}
 Environment=ACTION_USERNAME={{ action_username }}
 Environment=TOKEN_ISSUER={{ inventory_hostname }}
 Environment=PUBLIC_BASE_URL=https://{{ inventory_hostname }}
+Environment=NEW_RELIC_APP_NAME={{ service_name }}
+Environment=NEW_RELIC_LICENSE_KEY={{ new_relic_license_key }}
 
 LoadCredentialEncrypted={{ service_name }}-creds:/home/{{ service_name }}/{{ service_name }}-creds.cred
 
