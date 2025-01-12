@@ -52,10 +52,10 @@ const matchHandleDMQueue: DMQueue = async (db, settings) => {
       .where('id', '=', match.match_id)
       .execute();
 
-  const markError = async () =>
+  const markError = async (errorText: string) =>
     db
       .updateTable('match')
-      .set({ dm_handle_status: 'error' })
+      .set({ dm_handle_status: `error: ${errorText}` })
       .where('id', '=', match.match_id)
       .execute();
 
@@ -104,10 +104,10 @@ const matchAddressDMQueue: DMQueue = async (db, settings) => {
       .where('id', '=', match.match_id)
       .execute();
 
-  const markError = async () =>
+  const markError = async (errorText: string) =>
     db
       .updateTable('match')
-      .set({ dm_address_status: 'error' })
+      .set({ dm_address_status: `error: ${errorText}` })
       .where('id', '=', match.match_id)
       .execute();
 
@@ -160,10 +160,10 @@ const trackingDMQueue: DMQueue = async (db, settings) => {
       .where('id', '=', tracking.tracking_id)
       .execute();
 
-  const markError = async () =>
+  const markError = async (errorText: string) =>
     db
       .updateTable('tracking')
-      .set({ tracking_status: 'error' })
+      .set({ tracking_status: `error: ${errorText}` })
       .where('id', '=', tracking.tracking_id)
       .execute();
 
@@ -266,25 +266,31 @@ export class DmSender {
           },
         }
       );
-      await client.api.chat.bsky.convo.sendMessage(
-        {
-          convoId: convo.id,
-          message: {
-            text: message.text,
-            facets: message.facets,
+      try {
+        await client.api.chat.bsky.convo.sendMessage(
+          {
+            convoId: convo.id,
+            message: {
+              text: message.text,
+              facets: message.facets,
+            },
           },
-        },
-        {
-          encoding: 'application/json',
-          headers: {
-            'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
-          },
-        }
-      );
-
-      await dm.markSent();
+          {
+            encoding: 'application/json',
+            headers: {
+              'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
+            },
+          }
+        );
+        await dm.markSent();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (e: any) {
+        const errorText = String('message' in e ? e.message : e);
+        await dm.markError(errorText);
+        console.error('Unable to send dm', e);
+      }
     } catch (e) {
-      console.error('Unable to send dm', e);
+      console.error('Unable to prepare dm', e);
     }
   }
 }

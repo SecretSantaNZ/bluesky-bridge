@@ -109,23 +109,34 @@ export class NudgeSender {
       const client = await this.robotAgent();
       await message.detectFacets(client);
 
-      const result = await client.post({
-        text: message.text,
-        facets: message.facets,
-      });
+      try {
+        const result = await client.post({
+          text: message.text,
+          facets: message.facets,
+        });
 
-      const uriParts = result.uri.split('/');
-      const repository = uriParts[2];
-      const rkey = uriParts[4];
-      const post_url = `https://bsky.app/profile/${repository}/post/${rkey}`;
+        const uriParts = result.uri.split('/');
+        const repository = uriParts[2];
+        const rkey = uriParts[4];
+        const post_url = `https://bsky.app/profile/${repository}/post/${rkey}`;
 
-      await this.db
-        .updateTable('nudge')
-        .set({ nudge_status: 'sent', post_url })
-        .where('id', '=', nudge.nudge_id)
-        .executeTakeFirstOrThrow();
+        await this.db
+          .updateTable('nudge')
+          .set({ nudge_status: 'sent', post_url })
+          .where('id', '=', nudge.nudge_id)
+          .executeTakeFirstOrThrow();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (e: any) {
+        const errorText = String('message' in e ? e.message : e);
+        await this.db
+          .updateTable('nudge')
+          .set({ nudge_status: `error: ${errorText}` })
+          .where('id', '=', nudge.nudge_id)
+          .executeTakeFirstOrThrow();
+        console.error('Unable to send nudge', e);
+      }
     } catch (e) {
-      console.error('Unable to send nudge', e);
+      console.error('Unable to prepare nudge', e);
     }
   }
 }

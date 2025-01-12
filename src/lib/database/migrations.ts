@@ -637,3 +637,162 @@ migrations['003'] = {
       .execute();
   },
 };
+
+migrations['004'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('match')
+      .renameColumn('dm_handle_status', 'dm_handle_status_old')
+      .execute();
+    await db.schema
+      .alterTable('match')
+      .renameColumn('dm_address_status', 'dm_address_status_old')
+      .execute();
+    await db.schema
+      .alterTable('nudge')
+      .renameColumn('nudge_status', 'nudge_status_old')
+      .execute();
+    await db.schema
+      .alterTable('tracking')
+      .renameColumn('tracking_status', 'tracking_status_old')
+      .execute();
+
+    await db.schema
+      .alterTable('match')
+      .addColumn('dm_handle_status', 'varchar', (col) =>
+        col
+          .check(
+            sql`dm_handle_status in ('queued','sent') or dm_handle_status LIKE 'error: %'`
+          )
+          .defaultTo('queued')
+      )
+      .execute();
+    await db.schema
+      .alterTable('match')
+      .addColumn('dm_address_status', 'varchar', (col) =>
+        col
+          .check(
+            sql`dm_address_status in ('queued','sent') or dm_address_status LIKE 'error: %'`
+          )
+          .defaultTo('queued')
+      )
+      .execute();
+    await db.schema
+      .alterTable('nudge')
+      .addColumn('nudge_status', 'varchar', (col) =>
+        col
+          .check(
+            sql`nudge_status in ('queued','sent') or nudge_status LIKE 'error: %'`
+          )
+          .defaultTo('queued')
+      )
+      .execute();
+    await db.schema
+      .alterTable('tracking')
+      .addColumn('tracking_status', 'varchar', (col) =>
+        col
+          .check(
+            sql`tracking_status in ('queued','sent') or tracking_status LIKE 'error: %'`
+          )
+          .defaultTo('queued')
+      )
+      .execute();
+
+    sql`update match set dm_handle_status = dm_handle_status_old, dm_address_status = dm_address_status_old`.execute(
+      db
+    );
+    sql`update nudge set nudge_status = nudge_status_old`.execute(db);
+    sql`update tracking set tracking_status = tracking_status_old`.execute(db);
+
+    await db.schema
+      .alterTable('match')
+      .dropColumn('dm_handle_status_old')
+      .execute();
+    await db.schema
+      .alterTable('match')
+      .dropColumn('dm_address_status_old')
+      .execute();
+    await db.schema
+      .alterTable('nudge')
+      .dropColumn('nudge_status_old')
+      .execute();
+    await db.schema
+      .alterTable('tracking')
+      .dropColumn('tracking_status_old')
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('match')
+      .renameColumn('dm_handle_status', 'dm_handle_status_old')
+      .execute();
+    await db.schema
+      .alterTable('match')
+      .renameColumn('dm_address_status', 'dm_address_status_old')
+      .execute();
+    await db.schema
+      .alterTable('nudge')
+      .renameColumn('nudge_status', 'nudge_status_old')
+      .execute();
+    await db.schema
+      .alterTable('tracking')
+      .renameColumn('tracking_status', 'tracking_status_old')
+      .execute();
+
+    await db.schema
+      .alterTable('match')
+      .addColumn('dm_handle_status', 'varchar', (col) =>
+        col
+          .check(sql`dm_handle_status in ('queued','sent', 'error')`)
+          .defaultTo('queued')
+      )
+      .execute();
+    await db.schema
+      .alterTable('match')
+      .addColumn('dm_address_status', 'varchar', (col) =>
+        col
+          .check(sql`dm_address_status in ('queued','sent', 'error')`)
+          .defaultTo('queued')
+      )
+      .execute();
+    await db.schema
+      .alterTable('nudge')
+      .addColumn('nudge_status', 'varchar', (col) =>
+        col
+          .check(sql`nudge_status in ('queued','sent', 'error')`)
+          .defaultTo('queued')
+      )
+      .execute();
+    await db.schema
+      .alterTable('tracking')
+      .addColumn('tracking_status', 'varchar', (col) =>
+        col
+          .check(sql`tracking_status in ('queued','sent', 'error')`)
+          .defaultTo('queued')
+      )
+      .execute();
+
+    sql`update match set dm_handle_status = dm_handle_status_old, dm_address_status = dm_address_status_old`.execute(
+      db
+    );
+    sql`update nudge set nudge_status = nudge_status_old`.execute(db);
+    sql`update tracking set tracking_status = tracking_status_old`.execute(db);
+
+    await db.schema
+      .alterTable('match')
+      .dropColumn('dm_handle_status_old')
+      .execute();
+    await db.schema
+      .alterTable('match')
+      .dropColumn('dm_address_status_old')
+      .execute();
+    await db.schema
+      .alterTable('nudge')
+      .dropColumn('nudge_status_old')
+      .execute();
+    await db.schema
+      .alterTable('tracking')
+      .dropColumn('tracking_status_old')
+      .execute();
+  },
+};

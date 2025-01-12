@@ -96,8 +96,8 @@ export interface Match {
   has_present: number;
   invalid_player: number;
   match_status: 'draft' | 'shared' | 'locked';
-  dm_handle_status: Generated<'queued' | 'sent' | 'error'>;
-  dm_address_status: Generated<'queued' | 'sent' | 'error'>;
+  dm_handle_status: Generated<'queued' | 'sent' | `error: ${string}`>;
+  dm_address_status: Generated<'queued' | 'sent' | `error: ${string}`>;
   nudge_count: number;
   nudge_present_update_count: number;
   tracking_count: number;
@@ -139,7 +139,7 @@ export interface Nudge {
   nudge_greeting: number;
   nudge_signoff: number;
   match: number;
-  nudge_status: 'queued' | 'sent' | 'error';
+  nudge_status: 'queued' | 'sent' | `error: ${string}`;
   post_url: Generated<null | string>;
   created_at: string;
   created_by: string;
@@ -158,7 +158,7 @@ export interface Tracking {
   giftwrap_status: number;
   missing: string | null;
   match: number;
-  tracking_status: 'queued' | 'sent' | 'error';
+  tracking_status: 'queued' | 'sent' | `error: ${string}`;
   created_at: string;
   created_by: string;
 }
