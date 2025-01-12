@@ -12,6 +12,7 @@ import { PlayerService } from './lib/PlayerService.js';
 import { NudgeSender } from './lib/NudgeSender.js';
 import { DmSender } from './lib/DmSender.js';
 import { initAtLoginClient } from './lib/initAtLoginClient.js';
+import { FirehoseSubscription } from './subscription.js';
 
 dotenv.config({
   path: [
@@ -67,13 +68,12 @@ const main = async () => {
   const nudgeSender = new NudgeSender(db, robotAgent);
   const dmSender = new DmSender(db, santaAgent);
   const playerService = new PlayerService(db, santaAgent, santaAccountDid);
-  // const subscription = new Subscription(playerService);
-  // subscription.onPostMatching(
-  //   /!SecretSantaNZ let me in\s*([^\s]+)/i,
-  //   (post, matches) => {
-  //     oauthSessionStore.keyPostSeen(matches[1] as string, post.author);
-  //   }
-  // );
+  const subscription = new FirehoseSubscription(
+    db,
+    playerService,
+    santaAccountDid
+  );
+  playerService.addListener(subscription.playersChanged.bind(subscription));
 
   const app = await build(
     { logger: true },
@@ -99,14 +99,14 @@ const main = async () => {
     }
   );
 
-  // subscription.run(3000);
-
   app.listen({ port: 3000 }, (err) => {
     if (err) {
       app.log.error(err);
       process.exit(1);
     }
   });
+
+  subscription.start();
 };
 
 main().catch((e) => {

@@ -21,6 +21,8 @@ type SelectedPlayer = {
   [K in keyof DbPlayer]: SelectType<DbPlayer[K]>;
 };
 
+export type PlayersChangedListener = () => unknown;
+
 export type Player = Omit<
   SelectedPlayer,
   | 'following_santa_uri'
@@ -111,6 +113,7 @@ const getAuthorFromUri = (postUri: string | undefined) => {
 };
 
 export class PlayerService {
+  private listeners: Array<PlayersChangedListener> = [];
   private readonly followingChangedWebhook: WebhookNotifier<{
     player_did: string;
     following_santa: boolean;
@@ -266,6 +269,8 @@ export class PlayerService {
       .returningAll()
       .execute();
 
+    this.listeners.forEach((listener) => listener());
+
     const savedPlayer = result[0];
     if (savedPlayer == null) {
       throw new Error('No player returned from save');
@@ -310,6 +315,7 @@ export class PlayerService {
 
   async deletePlayer(player_did: string): Promise<void> {
     await this.db.deleteFrom('player').where('did', '=', player_did).execute();
+    this.listeners.forEach((listener) => listener());
   }
 
   async recordFollow(
@@ -391,5 +397,9 @@ export class PlayerService {
         .where('did', '=', playerDid)
         .execute();
     }
+  }
+
+  addListener(listener: PlayersChangedListener) {
+    this.listeners.push(listener);
   }
 }
