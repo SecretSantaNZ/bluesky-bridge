@@ -67,7 +67,12 @@ const main = async () => {
 
   const nudgeSender = new NudgeSender(db, robotAgent);
   const dmSender = new DmSender(db, santaAgent);
-  const playerService = new PlayerService(db, santaAgent, santaAccountDid);
+  const playerService = new PlayerService(
+    db,
+    santaAgent,
+    santaAccountDid,
+    dmSender
+  );
   const subscription = new FirehoseSubscription(
     db,
     playerService,

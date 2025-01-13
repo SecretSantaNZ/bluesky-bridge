@@ -232,6 +232,68 @@ export class DmSender {
     }
   }
 
+  async sendDm(dm: DM) {
+    const client = await this.santaAgent();
+    const sendFromDid = client.sessionManager.did as string;
+    if (sendFromDid === dm.recipientDid) {
+      await dm.markError('cant sent dms to self');
+      return;
+    }
+
+    const message = new RichText({
+      text: dm.rawMessage,
+    });
+    await message.detectFacets(client);
+
+    const {
+      data: { convo },
+    } = await client.api.chat.bsky.convo.getConvoForMembers(
+      {
+        members: [sendFromDid, dm.recipientDid],
+      },
+      {
+        headers: {
+          'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
+        },
+      }
+    );
+    try {
+      await client.api.chat.bsky.convo.sendMessage(
+        {
+          convoId: convo.id,
+          message: {
+            text: message.text,
+            facets: message.facets,
+          },
+        },
+        {
+          encoding: 'application/json',
+          headers: {
+            'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
+          },
+        }
+      );
+      await dm.markSent();
+      newrelic.recordCustomEvent('SecretSantaDMSent', {
+        recipientDid: dm.recipientDid,
+        recipientHandle: dm.recipientHandle,
+        dmType: dm.dmType,
+        recordId: dm.recordId,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      const errorText = String('message' in e ? e.message : e);
+      await dm.markError(errorText);
+      console.error('Unable to send dm', e);
+      newrelic.noticeError(e, {
+        recipientDid: dm.recipientDid,
+        recipientHandle: dm.recipientHandle,
+        dmType: dm.dmType,
+        recordId: dm.recordId,
+      });
+    }
+  }
+
   async sendADm() {
     const now = new TZDate(new Date(), 'Pacific/Auckland');
     const earliest = set(now, {
@@ -247,77 +309,19 @@ export class DmSender {
       console.log('skipping dm, outside of time');
       return;
     }
+    console.log('checking for dm to send');
+    const settings = await loadSettings(this.db);
+    const startDmQueue = this.nextDmQueue;
+    let dm: DM | undefined = undefined;
+    do {
+      dm = await dmQueues[this.nextDmQueue]?.(this.db, settings);
+      this.nextDmQueue = (this.nextDmQueue + 1) % dmQueues.length;
+    } while (dm == null && this.nextDmQueue !== startDmQueue);
+
+    if (dm == null) return;
+
     try {
-      console.log('checking for dm to send');
-      const settings = await loadSettings(this.db);
-      const startDmQueue = this.nextDmQueue;
-      let dm: DM | undefined = undefined;
-      do {
-        dm = await dmQueues[this.nextDmQueue]?.(this.db, settings);
-        this.nextDmQueue = (this.nextDmQueue + 1) % dmQueues.length;
-      } while (dm == null && this.nextDmQueue !== startDmQueue);
-
-      if (dm == null) return;
-
-      const client = await this.santaAgent();
-      const sendFromDid = client.sessionManager.did as string;
-      if (sendFromDid === dm.recipientDid) {
-        await dm.markError('cant sent dms to self');
-        return;
-      }
-
-      const message = new RichText({
-        text: dm.rawMessage,
-      });
-      await message.detectFacets(client);
-
-      const {
-        data: { convo },
-      } = await client.api.chat.bsky.convo.getConvoForMembers(
-        {
-          members: [sendFromDid, dm.recipientDid],
-        },
-        {
-          headers: {
-            'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
-          },
-        }
-      );
-      try {
-        await client.api.chat.bsky.convo.sendMessage(
-          {
-            convoId: convo.id,
-            message: {
-              text: message.text,
-              facets: message.facets,
-            },
-          },
-          {
-            encoding: 'application/json',
-            headers: {
-              'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
-            },
-          }
-        );
-        await dm.markSent();
-        newrelic.recordCustomEvent('SecretSantaDMSent', {
-          recipientDid: dm.recipientDid,
-          recipientHandle: dm.recipientHandle,
-          dmType: dm.dmType,
-          recordId: dm.recordId,
-        });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (e: any) {
-        const errorText = String('message' in e ? e.message : e);
-        await dm.markError(errorText);
-        console.error('Unable to send dm', e);
-        newrelic.noticeError(e, {
-          recipientDid: dm.recipientDid,
-          recipientHandle: dm.recipientHandle,
-          dmType: dm.dmType,
-          recordId: dm.recordId,
-        });
-      }
+      await this.sendDm(dm);
     } catch (e) {
       console.error('Unable to prepare dm', e);
     }

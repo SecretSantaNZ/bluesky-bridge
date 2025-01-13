@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
+import newrelic from 'newrelic';
 import {
   Agent,
   AppBskyGraphDefs,
   type AppBskyGraphGetRelationships,
 } from '@atproto/api';
 import { unauthenticatedAgent } from '../bluesky.js';
-import type { Database } from './database/index.js';
+import { queryFullMatch, type Database } from './database/index.js';
 import fetch from 'node-fetch';
 import { InternalServerError } from 'http-errors-enhanced';
 
@@ -16,6 +17,7 @@ import type {
 } from './database/schema.js';
 import ms from 'ms';
 import type { InsertObject, SelectType } from 'kysely';
+import type { DmSender } from './DmSender.js';
 
 type SelectedPlayer = {
   [K in keyof DbPlayer]: SelectType<DbPlayer[K]>;
@@ -128,7 +130,8 @@ export class PlayerService {
   constructor(
     private readonly db: Database,
     private readonly santaAgent: () => Promise<Agent>,
-    private readonly santaAccountDid: string
+    private readonly santaAccountDid: string,
+    private readonly dmSender: DmSender
   ) {
     this.followingChangedWebhook = buildWebhookNotifier(
       process.env.FOLLOWING_CHANGED_WEBHOOK,
@@ -384,12 +387,39 @@ export class PlayerService {
       .where('did', '=', playerDid)
       .executeTakeFirst();
     if (record != null && newHandle !== record.handle) {
-      if (record.signup_complete) {
-        await this.handleChangedWebhook({
-          player_did: playerDid,
-          old_handle: record.handle,
-          new_handle: newHandle,
-        });
+      newrelic.recordCustomEvent('SecretSantaHandleChange', {
+        playerDid,
+        oldHandle: record.handle,
+        newHandle,
+      });
+      await this.handleChangedWebhook({
+        player_did: playerDid,
+        old_handle: record.handle,
+        new_handle: newHandle,
+      });
+      const matches = await queryFullMatch(this.db)
+        .where('match.match_status', '<>', 'draft')
+        .select('santa.did as santa_did')
+        .execute();
+      for (const match of matches) {
+        const deets = {
+          dmType: 'change-handle',
+          recipientDid: match.santa_did,
+          recordId: match.match_id,
+          recipientHandle: match.santa_handle,
+        };
+        try {
+          await this.dmSender.sendDm({
+            ...deets,
+            rawMessage: `👋 Santa here,\n\nJust a quick note to let you know your Giftee has changed their Twitter handle from @${record.handle} to @${newHandle}. Still the same person though.\n\nGood thing I checked that list twice! [Sent by 🤖]`,
+            markSent: () => Promise.resolve(undefined),
+            markError: (errorText) => Promise.reject(new Error(errorText)),
+          });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+          console.error('Unable to send handle change dm', e);
+          newrelic.noticeError(e, deets);
+        }
       }
       await this.db
         .updateTable('player')
