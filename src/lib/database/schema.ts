@@ -86,6 +86,15 @@ export interface Player {
   booted: string | null;
   booted_by?: string | null;
   deactivated: GeneratedAlways<number>;
+  next_player_dm: Generated<
+    | null
+    | 'signup-complete-1'
+    | 'signup-complete-2'
+    | 'signup-complete-3'
+    | 'poke-inactive'
+  >;
+  next_player_dm_after: Generated<string | null>;
+  player_dm_status: Generated<'queued' | 'sent' | `error: ${string}`>;
 }
 
 export interface Match {

@@ -796,3 +796,46 @@ migrations['004'] = {
       .execute();
   },
 };
+
+migrations['005'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('player')
+      .addColumn('next_player_dm', 'varchar', (col) =>
+        col.defaultTo('signup-complete-1')
+      )
+      .execute();
+    await db.schema
+      .alterTable('player')
+      .addColumn('next_player_dm_after', 'varchar')
+      .execute();
+    await db.schema
+      .alterTable('player')
+      .addColumn('player_dm_status', 'varchar', (col) =>
+        col
+          .check(
+            sql`player_dm_status in ('queued','sent') or player_dm_status LIKE 'error: %'`
+          )
+          .defaultTo('queued')
+      )
+      .execute();
+    await (db as Database)
+      .updateTable('player')
+      .set({
+        player_dm_status: 'sent',
+        next_player_dm_after: new Date().toISOString(),
+      })
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.alterTable('player').dropColumn('next_player_dm').execute();
+    await db.schema
+      .alterTable('player')
+      .dropColumn('next_player_dm_after')
+      .execute();
+    await db.schema
+      .alterTable('player')
+      .dropColumn('player_dm_status')
+      .execute();
+  },
+};

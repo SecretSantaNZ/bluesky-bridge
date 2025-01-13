@@ -5,7 +5,7 @@ import type { Database } from './database/index.js';
 import { loadSettings, type Settings as TidySettings } from './settings.js';
 import { getRandomMessage } from '../util/getRandomMessage.js';
 import { TZDate } from '@date-fns/tz';
-import { set, isAfter, isBefore } from 'date-fns';
+import { set, isAfter, isBefore, addHours } from 'date-fns';
 import type { Settings } from './database/schema.js';
 import { formatDate } from '../lib/dates.js';
 
@@ -23,6 +23,150 @@ export type DMQueue = (
   db: Database,
   settings: TidySettings
 ) => Promise<DM | undefined>;
+
+const signupComplete1DMQueue: DMQueue = async (db, settings) => {
+  const player = await db
+    .selectFrom('player')
+    .select(['id', 'handle', 'did'])
+    .where('player.signup_complete', '=', 1)
+    .where('player.next_player_dm', '=', 'signup-complete-1')
+    .where('player.player_dm_status', '=', 'queued')
+    .orderBy('player.id asc')
+    .executeTakeFirst();
+
+  if (player == null) return undefined;
+
+  const rawMessage = await getRandomMessage(db, 'dm-signup-complete-1', {
+    hashtag: settings.hashtag,
+    matches_sent_date: formatDate(settings.matches_sent_date),
+    send_by_date: formatDate(settings.send_by_date),
+    opening_date: formatDate(settings.opening_date),
+    elf_list: settings.elf_list,
+  });
+
+  const markSent = async () =>
+    db
+      .updateTable('player')
+      .set({
+        next_player_dm: 'signup-complete-2',
+        next_player_dm_after: addHours(new Date(), 2).toISOString(),
+      })
+      .where('id', '=', player.id)
+      .execute();
+
+  const markError = async (errorText: string) =>
+    db
+      .updateTable('player')
+      .set({ player_dm_status: `error: ${errorText}` })
+      .where('id', '=', player.id)
+      .execute();
+
+  return {
+    dmType: 'signup-complete-1',
+    recipientDid: player.did,
+    recipientHandle: player.handle,
+    recordId: player.id,
+    rawMessage,
+    markSent,
+    markError,
+  };
+};
+
+const signupComplete2DMQueue: DMQueue = async (db, settings) => {
+  const player = await db
+    .selectFrom('player')
+    .select(['id', 'handle', 'did'])
+    .where('player.signup_complete', '=', 1)
+    .where('player.next_player_dm', '=', 'signup-complete-2')
+    .where('player.next_player_dm_after', '<=', new Date().toISOString())
+    .where('player.player_dm_status', '=', 'queued')
+    .orderBy('player.id asc')
+    .executeTakeFirst();
+
+  if (player == null) return undefined;
+
+  const rawMessage = await getRandomMessage(db, 'dm-signup-complete-2', {
+    hashtag: settings.hashtag,
+    elf_list: settings.elf_list,
+  });
+
+  const markSent = async () =>
+    db
+      .updateTable('player')
+      .set({
+        next_player_dm: 'signup-complete-3',
+        next_player_dm_after: addHours(new Date(), 2).toISOString(),
+      })
+      .where('id', '=', player.id)
+      .execute();
+
+  const markError = async (errorText: string) =>
+    db
+      .updateTable('player')
+      .set({ player_dm_status: `error: ${errorText}` })
+      .where('id', '=', player.id)
+      .execute();
+
+  return {
+    dmType: 'signup-complete-2',
+    recipientDid: player.did,
+    recipientHandle: player.handle,
+    recordId: player.id,
+    rawMessage,
+    markSent,
+    markError,
+  };
+};
+
+const signupComplete3DMQueue: DMQueue = async (db, settings) => {
+  const player = await db
+    .selectFrom('player')
+    .select(['id', 'handle', 'did', 'delivery_instructions', 'address'])
+    .where('player.signup_complete', '=', 1)
+    .where('player.next_player_dm', '=', 'signup-complete-3')
+    .where('player.next_player_dm_after', '<=', new Date().toISOString())
+    .where('player.player_dm_status', '=', 'queued')
+    .orderBy('player.id asc')
+    .executeTakeFirst();
+
+  if (player == null) return undefined;
+
+  const rawMessage = await getRandomMessage(db, 'dm-signup-complete-3', {
+    giftee_instructions: player.delivery_instructions
+      ? player.delivery_instructions + '\n\n'
+      : '',
+    giftee_address: player.address,
+    elf_list: settings.elf_list,
+  });
+
+  const markSent = async () =>
+    db
+      .updateTable('player')
+      .set({
+        next_player_dm: null,
+        next_player_dm_after: addHours(new Date(), 2).toISOString(),
+        player_dm_status: 'sent',
+      })
+      .where('id', '=', player.id)
+      .execute();
+
+  const markError = async (errorText: string) =>
+    db
+      .updateTable('player')
+      .set({ player_dm_status: `error: ${errorText}` })
+      .where('id', '=', player.id)
+      .execute();
+
+  return {
+    dmType: 'signup-complete-3',
+    recipientDid: player.did,
+    recipientHandle: player.handle,
+    recordId: player.id,
+    rawMessage,
+    markSent,
+    markError,
+  };
+};
 
 const matchHandleDMQueue: DMQueue = async (db, settings) => {
   const match = await db
@@ -191,7 +335,59 @@ const trackingDMQueue: DMQueue = async (db, settings) => {
   };
 };
 
-const dmQueues = [matchHandleDMQueue, matchAddressDMQueue, trackingDMQueue];
+const pokeInactiveDMQueue: DMQueue = async (db, settings) => {
+  const player = await db
+    .selectFrom('player')
+    .select(['id', 'handle', 'did'])
+    .where('player.following_santa_uri', 'is not', null)
+    .where('player.next_player_dm', '=', 'poke-inactive')
+    .where('player.next_player_dm_after', '<=', new Date().toISOString())
+    .where('player.player_dm_status', '=', 'queued')
+    .orderBy('player.id asc')
+    .executeTakeFirst();
+
+  if (player == null) return undefined;
+
+  const rawMessage = `Opening day is fast approaching, it looks like you haven't quite sent your ${settings.hashtag} present.\n\nIt would really help me out if you either:\n\n1. Enter the details in the app (https://secretsanta.nz) if you've already sent/delivered it, even if you don't have a tracking number.\n2. Send your giftee a Present Update nudge if you're running a bit late, so they know not to worry.\n3. Get in touch with me or one of the Elves if you need a hand or life has, as it does, got in the way.\n\nRemember, ${settings.elf_list} and me (@secretsanta.nz) are here to help make this a magical Hogswatch for everyone!`;
+
+  const markSent = async () =>
+    db
+      .updateTable('player')
+      .set({
+        next_player_dm: null,
+        next_player_dm_after: addHours(new Date(), 2).toISOString(),
+        player_dm_status: 'sent',
+      })
+      .where('id', '=', player.id)
+      .execute();
+
+  const markError = async (errorText: string) =>
+    db
+      .updateTable('player')
+      .set({ player_dm_status: `error: ${errorText}` })
+      .where('id', '=', player.id)
+      .execute();
+
+  return {
+    dmType: 'poke-inactive',
+    recipientDid: player.did,
+    recipientHandle: player.handle,
+    recordId: player.id,
+    rawMessage,
+    markSent,
+    markError,
+  };
+};
+
+const dmQueues = [
+  signupComplete1DMQueue,
+  signupComplete2DMQueue,
+  signupComplete3DMQueue,
+  matchHandleDMQueue,
+  matchAddressDMQueue,
+  trackingDMQueue,
+  pokeInactiveDMQueue,
+];
 
 export class DmSender {
   private intervalId?: ReturnType<typeof setInterval>;
@@ -241,7 +437,7 @@ export class DmSender {
     }
 
     const message = new RichText({
-      text: dm.rawMessage,
+      text: dm.rawMessage + '\n\n[Sent by 🤖]',
     });
     await message.detectFacets(client);
 

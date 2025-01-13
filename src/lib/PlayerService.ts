@@ -418,7 +418,7 @@ export class PlayerService {
         try {
           await this.dmSender.sendDm({
             ...deets,
-            rawMessage: `👋 Santa here,\n\nJust a quick note to let you know your Giftee has changed their Twitter handle from @${record.handle} to @${newHandle}. Still the same person though.\n\nGood thing I checked that list twice! [Sent by 🤖]`,
+            rawMessage: `👋 Santa here,\n\nJust a quick note to let you know your Giftee has changed their Twitter handle from @${record.handle} to @${newHandle}. Still the same person though.\n\nGood thing I checked that list twice!`,
             markSent: () => Promise.resolve(undefined),
             markError: (errorText) => Promise.reject(new Error(errorText)),
           });
