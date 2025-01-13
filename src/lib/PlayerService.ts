@@ -180,6 +180,13 @@ export class PlayerService {
         console.log(`Following ${handle} (${did})`);
         const agent = await this.santaAgent();
         const { uri } = await agent.follow(did);
+
+        newrelic.recordCustomEvent('SecretSantaSantaAutoFollow', {
+          playerDid: did,
+          playerHandle: handle,
+          followUri: uri,
+          santaDid: this.santaAccountDid,
+        });
         await this.recordFollow(this.santaAccountDid, did, uri);
       } catch (error) {
         // @ts-expect-error
