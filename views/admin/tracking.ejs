@@ -1,10 +1,18 @@
 <div class="w-full px-12"
   x-data="<%= JSON.stringify({...pageData, showConfirm: ''}) %>"
   x-init="pager = secretsantanz.buildPager({
-    handle: ''
+    handle: '',
+    showQueued: true,
+    showSent: true,
+    showError: true,
   }, function(filters) {
     const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
-    return tracking.filter((tracking) => !cleanHandleFilter || tracking.santa_handle.toLowerCase().includes(cleanHandleFilter) || tracking.giftee_handle.toLowerCase().includes(cleanHandleFilter));
+    return tracking.filter((tracking) => 
+      (!cleanHandleFilter || tracking.santa_handle.toLowerCase().includes(cleanHandleFilter) || tracking.giftee_handle.toLowerCase().includes(cleanHandleFilter))
+      && (filters.showQueued || tracking.tracking_status !== 'queued')
+      && (filters.showSent || tracking.tracking_status !== 'sent')
+      && (filters.showError || !tracking.tracking_status.startsWith('error'))
+    );
   })"
 >
   <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
@@ -15,6 +23,18 @@
           <option x-bind:value="key" x-text="display"></option>
         </template>
       </select>
+    </div>
+    <div>
+      <input type="checkbox" id="show-queued" name="show-queued" x-model="pager.filters.showQueued"/>
+      <label for="show-queued">Queued</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-sent" name="show-sent" x-model="pager.filters.showSent"/>
+      <label for="show-sent">Sent</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-error" name="show-error" x-model="pager.filters.showError"/>
+      <label for="show-error">Error</label>
     </div>
   </div>
   <div class="w-full mb-2">
