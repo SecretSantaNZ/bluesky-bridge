@@ -14,6 +14,7 @@ import { tracking } from './tracking.js';
 import { withoutGifts } from './without-gifts.js';
 import { settings } from './settings.js';
 import { fragments } from './fragments/index.js';
+import { retryDm } from './retry-dm.js';
 
 export const admin: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async function (request, reply) {
@@ -62,5 +63,6 @@ export const admin: FastifyPluginAsync = async (app) => {
   await app.register(tracking);
   await app.register(withoutGifts);
   await app.register(settings);
+  await app.register(retryDm);
   await app.register(fragments, { prefix: '/fragments' });
 };

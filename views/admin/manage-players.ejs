@@ -46,15 +46,16 @@
   <div class="w-full mb-2">
     <input type="text" x-model="activePlayersPager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
   </div>
-  <div class="grid-cols-5 space-x-4 hidden sm:grid">
+  <div class="grid-cols-6 space-x-4 hidden sm:grid">
     <div class="flex justify-center"><b>Player</b></div>
     <div class="flex justify-center"><b>Following santa</b></div>
     <div class="flex justify-center"><b>Has address</b></div>
     <div class="flex justify-center"><b>Game mode</b></div>
+    <div class="flex justify-center"><b>DMs sent</b></div>
     <div class="flex justify-center"><b>Remove player</b></div>
   </div>
   <template x-for="player in activePlayersPager.pageData">
-    <div class="grid sm:grid-cols-5 space-x-4 border-b py-2" x-init="htmx && htmx.process($el)">
+    <div class="grid sm:grid-cols-6 space-x-4 border-b py-2" x-init="htmx && htmx.process($el)">
       <div class="flex justify-center items-center text-lg font-semibold">
         <a x-bind:href="'https://bsky.app/profile/' + encodeURIComponent(player.handle)" x-text="'@' + player.handle" target="_blank"></a>
       </div>
@@ -87,6 +88,27 @@
         </div>
         <div class="italic hidden sm:block">Click to edit</div>
       </button>
+      <div class="text-center" x-show="!player.player_dm_status.startsWith('error:')">
+        <div class="flex sm:justify-center items-center">
+          <div class="i-mdi-queue-first-in-last-out size-12" x-show="player.player_dm_status !== 'sent'"></div>
+          <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.player_dm_status === 'sent'"></div>
+          <div class="sm:hidden"><b>DMs sent</b></div>
+        </div>
+        <div class="italic hidden sm:block" x-text="player.player_dm_status"></div>
+      </div>
+      <form hx-post="/admin/retry-dm" class="flex items-center sm:justify-center" x-show="player.player_dm_status.startsWith('error:')">
+        <%- include('../partials/activity-spinner.ejs') %>
+        <button class="htmx-request:hidden" x-bind:title="player.player_dm_status">
+          <div class="flex sm:justify-center items-center">
+            <div class="i-mdi-cross-circle-outline text-red-600 size-12"></div>
+            <div class="sm:hidden"><b>DMs sent</b> <span class="italic">(Click to retry)</span></div>
+          </div>
+        <div class="italic hidden sm:block" x-text="player.player_dm_status"></div>
+        <div class="italic hidden sm:block">Click to retry</div>
+        </button>
+        <input type="hidden" name="player_did" x-bind:value="player.did"/>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+      </form>
       <form hx-post="/player/boot-player" class="flex items-center sm:justify-center">
         <button x-show="`remove-${player.did}` !== showConfirm" @click.prevent.stop="showConfirm = `remove-${player.did}`">
           <div class="flex sm:justify-center items-center ">

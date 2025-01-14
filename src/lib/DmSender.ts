@@ -441,19 +441,19 @@ export class DmSender {
     });
     await message.detectFacets(client);
 
-    const {
-      data: { convo },
-    } = await client.api.chat.bsky.convo.getConvoForMembers(
-      {
-        members: [sendFromDid, dm.recipientDid],
-      },
-      {
-        headers: {
-          'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
-        },
-      }
-    );
     try {
+      const {
+        data: { convo },
+      } = await client.api.chat.bsky.convo.getConvoForMembers(
+        {
+          members: [sendFromDid, dm.recipientDid],
+        },
+        {
+          headers: {
+            'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
+          },
+        }
+      );
       await client.api.chat.bsky.convo.sendMessage(
         {
           convoId: convo.id,
