@@ -118,12 +118,19 @@ export class PlayerService {
   private listeners: Array<PlayersChangedListener> = [];
   private readonly followingChangedWebhook: WebhookNotifier<{
     player_did: string;
+    player_handle: string;
     following_santa: boolean;
   }>;
   private readonly handleChangedWebhook: WebhookNotifier<{
     player_did: string;
     old_handle: string;
     new_handle: string;
+  }>;
+  private readonly optedOutWebhook: WebhookNotifier<{
+    player_did: string;
+    player_handle: string;
+    giftee_count: number;
+    giftee_for_count: number;
   }>;
   private autoFollowIntervalHandle?: ReturnType<typeof setInterval>;
 
@@ -140,6 +147,10 @@ export class PlayerService {
     this.handleChangedWebhook = buildWebhookNotifier(
       process.env.HANDLE_CHANGED_WEBHOOK,
       'handle changed'
+    );
+    this.optedOutWebhook = buildWebhookNotifier(
+      process.env.OPTED_OUT_WEBHOOK,
+      'opted out'
     );
 
     this.init();
@@ -342,20 +353,13 @@ export class PlayerService {
         .where('did', '=', followedDid)
         .executeTakeFirst();
     } else if (followedDid === this.santaAccountDid) {
-      const updatedPlayer = await this.db
+      await this.db
         .updateTable('player')
         .set({
           following_santa_uri: followUri,
         })
         .where('did', '=', authorDid)
-        .returningAll()
         .executeTakeFirst();
-      if (updatedPlayer != null) {
-        await this.followingChangedWebhook({
-          player_did: updatedPlayer.did,
-          following_santa: true,
-        });
-      }
     }
   }
 
@@ -378,19 +382,52 @@ export class PlayerService {
         .where('following_santa_uri', '=', followUri)
         .returningAll()
         .executeTakeFirst();
-      if (deleteFollowResult != null) {
+      if (
+        deleteFollowResult != null &&
+        (deleteFollowResult.giftee_count > 0 ||
+          deleteFollowResult.giftee_for_count > 0)
+      ) {
         await this.followingChangedWebhook({
           player_did: deleteFollowResult.did,
+          player_handle: deleteFollowResult.handle,
           following_santa: false,
         });
       }
     }
   }
 
+  async optOut(playerDid: string) {
+    const record = await this.db
+      .updateTable('player')
+      .set({ opted_out: new Date().toISOString() })
+      .where('did', '=', playerDid)
+      .returningAll()
+      .executeTakeFirst();
+
+    if (record == null) return undefined;
+
+    newrelic.recordCustomEvent('SecretSantaOptedOut', {
+      playerDid,
+      playerHandle: record.handle,
+      gifteeCount: record.giftee_count,
+      gifteeForCount: record.giftee_for_count,
+    });
+    if (record.giftee_count > 0 || record.giftee_for_count > 0) {
+      await this.optedOutWebhook({
+        player_did: record.did,
+        player_handle: record.handle,
+        giftee_count: record.giftee_count,
+        giftee_for_count: record.giftee_for_count,
+      });
+    }
+
+    return dbPlayerToPlayer(record);
+  }
+
   async updateHandle(playerDid: string, newHandle: string) {
     const record = await this.db
       .selectFrom('player')
-      .select(['handle', 'signup_complete'])
+      .select(['handle', 'signup_complete', 'giftee_count', 'giftee_for_count'])
       .where('did', '=', playerDid)
       .executeTakeFirst();
     if (record != null && newHandle !== record.handle) {
@@ -398,12 +435,16 @@ export class PlayerService {
         playerDid,
         oldHandle: record.handle,
         newHandle,
+        gifteeCount: record.giftee_count,
+        gifteeForCount: record.giftee_for_count,
       });
-      await this.handleChangedWebhook({
-        player_did: playerDid,
-        old_handle: record.handle,
-        new_handle: newHandle,
-      });
+      if (record.giftee_count > 0 && record.giftee_for_count > 0) {
+        await this.handleChangedWebhook({
+          player_did: playerDid,
+          old_handle: record.handle,
+          new_handle: newHandle,
+        });
+      }
       const matches = await queryFullMatch(this.db)
         .where('match.match_status', '<>', 'draft')
         .select('santa.did as santa_did')

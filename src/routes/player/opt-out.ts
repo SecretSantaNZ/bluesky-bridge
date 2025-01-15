@@ -16,9 +16,7 @@ export const optOut: FastifyPluginAsync = async (rawApp) => {
     async function handler(request, reply) {
       const did = request.tokenSubject as string;
       const { playerService } = app.blueskyBridge;
-      const player = await playerService.patchPlayer(did, {
-        opted_out: true,
-      });
+      const player = await playerService.optOut(did);
       if (player == null) {
         throw new NotFoundError();
       }
