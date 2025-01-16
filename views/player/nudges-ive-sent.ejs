@@ -1,0 +1,5 @@
+<h1>Nudges I've sent</h1>
+<p class="mt-8">These are the nudges you've sent to your giftees:</p>
+<% sentNudges.forEach(function(nudge) { %>
+  <p class="mt-8">@<%= nudge.giftee_handle %> nudged with <%= nudge.nudge_type %> on <%= formatDatetime(nudge.created_at) %></p>
+<% }) %>

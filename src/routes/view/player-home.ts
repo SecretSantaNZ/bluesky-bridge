@@ -70,7 +70,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
 
   app.get('/', async function (request, reply) {
     const player = reply.locals?.player as Player;
-    const [giftees, carriers, myGifts, giftsIveSent, nudgeOptions] =
+    const [giftees, carriers, myGifts, giftsIveSent, sentNudges, nudgeOptions] =
       await Promise.all([
         this.blueskyBridge.db
           .selectFrom('match')
@@ -102,6 +102,20 @@ export const playerHome: FastifyPluginAsync = async (app) => {
           .where('match.santa', '=', player.id)
           .orderBy('shipped_date asc')
           .execute(),
+        this.blueskyBridge.db
+          .selectFrom('nudge')
+          .innerJoin('match', 'match.id', 'nudge.match')
+          .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
+          .innerJoin('nudge_type', 'nudge_type.id', 'nudge.nudge_type')
+          .select([
+            'nudge_type.name as nudge_type',
+            'nudge.created_at',
+            'giftee.handle as giftee_handle',
+            'nudge.post_url',
+          ])
+          .where('match.santa', '=', player.id)
+          .orderBy('nudge.created_at asc')
+          .execute(),
         loadNudgeOptions(this.blueskyBridge.db),
       ]);
     return reply.view(
@@ -113,6 +127,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
         carriers,
         myGifts,
         giftsIveSent,
+        sentNudges,
       },
       {
         layout: 'layouts/base-layout.ejs',
