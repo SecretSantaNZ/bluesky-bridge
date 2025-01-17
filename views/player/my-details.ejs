@@ -1,6 +1,6 @@
 <div
   @click="isMobileWidth && (cardExpanded = !cardExpanded)"
-  class="flex -ml-4 lg:ml-0 items-center"
+  class="flex -ml-4 lg:ml-0 items-start"
 >
   <div x-show="isMobileWidth" x-bind:class="'size-10 flex-shrink-0 flex-grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
   <div class="flex-grow flex-shrink">
@@ -9,7 +9,7 @@
   </div>
   <%- include('../partials/avatar.ejs', {avatar_url: player.avatar_url}) %>
 </div>
-<div x-show="!isMobileWidth || cardExpanded" class="flex flex-col">
+<div x-show="!isMobileWidth || cardExpanded" class="flex flex-col flex-grow">
   <div class="font-semibold mt-8 text-xl"><a href="https://bsky.app/profile/<%= encodeURIComponent(player.handle) %>" target="_blank">@<%= player.handle %></a></div>
   <div class="mt-4 flex items-start">
     <div class="flex-grow flex-shrink">
