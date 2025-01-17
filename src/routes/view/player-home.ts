@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { UnauthorizedError } from 'http-errors-enhanced';
+import plur from 'plur';
 import type { Player } from '../../lib/PlayerService.js';
 import * as dateUtils from '../../lib/dates.js';
 import {
@@ -123,6 +124,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
       {
         ...dateUtils,
         ...nudgeOptions,
+        plur,
         giftees,
         carriers,
         myGifts,

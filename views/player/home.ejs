@@ -1,5 +1,5 @@
 <% if (!player.following_santa) { %>
-  <div class="lg:col-span-2 xl:col-span-3 2xl:col-span-4 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+  <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
     <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
     <div class="flex-shrink flex-grow">
       <h1>You must follow @secretsanta.nz</h1>
@@ -8,7 +8,7 @@
   </div>
 <% } %>
 <% if (player.player_dm_status.startsWith('error:')) { %>
-  <div class="lg:col-span-2 xl:col-span-3 2xl:col-span-4 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+  <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
     <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
     <div class="flex-shrink flex-grow">
       <h1>@secretsanta.nz could not DM you</h1>
@@ -16,10 +16,10 @@
     </div>
   </div>
 <% } %>
+<%- include('../layouts/card.ejs', { bodyTemplate: 'player/key-information.ejs' }) %>
+<%- include('../layouts/card.ejs', { bodyTemplate: 'player/my-details.ejs' }) %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/my-giftee.ejs' }) %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/presents-for-me.ejs' }) %>
-<%- include('../layouts/card.ejs', { bodyTemplate: 'player/my-details.ejs' }) %>
-<%- include('../layouts/card.ejs', { bodyTemplate: 'player/key-dates.ejs' }) %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/presents-ive-sent.ejs' }) %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/nudges-ive-sent.ejs' }) %>
 <div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">

@@ -1,5 +1,19 @@
-<h1>Presents I've sent</h1>
-<p class="mt-8">Once you've sent a present and entered the tracking number it will show up here</p>
-<% giftsIveSent.forEach(function(tracking) { %>
-  <%- include('../partials/tracking.ejs', {tracking, show_tracking_giftee: true, show_tracking_actions: false}) %>
-<% }) %>
+<div
+  @click="isMobileWidth && (cardExpanded = !cardExpanded)"
+  class="flex -ml-4 lg:ml-0 items-center"
+>
+  <div x-show="isMobileWidth" x-bind:class="'size-12 flex-shrink-0 flex-grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
+  <div class="flex-grow flex-shrink">
+    <h1>Presents I've sent</h1>
+    <% if (giftsIveSent.length === 0) { %>
+      <p>Once you've sent a present and entered the tracking number it will show up here.</p>
+    <% } else { %>
+      <p>You've sent <%= giftsIveSent.length %> <%= plur('gift', giftsIveSent.length) %>, great work!</p>
+    <% } %>
+  </div>
+</div>
+<div x-show="!isMobileWidth || cardExpanded">
+  <% giftsIveSent.forEach(function(tracking) { %>
+    <%- include('../partials/tracking.ejs', {tracking, show_tracking_giftee: true, show_tracking_actions: false}) %>
+  <% }) %>
+</div>

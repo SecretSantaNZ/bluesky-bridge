@@ -15,7 +15,9 @@
     hx-swap="outerHTML"
     hx-disabled-elt=".htmx-request input, .htmx-request select, .htmx-request form"
     @keyup.escape="$dispatch('ss-close-modal')"
-    x-data="{userMenuOpen: false}" @click="userMenuOpen = false"
+    x-data="{userMenuOpen: false, isMobileWidth: window.ssIsMobileWidth}"
+    @click="userMenuOpen = false"
+    @ss-is-mobile-width-changed.window="isMobileWidth = event.detail"
     <% if (locals.replaceUrl) { %> x-init="window.history.replaceState(null, '', <%= JSON.stringify(replaceUrl) %>)"<% } %>
   >
     <div class="flex flex-col">
@@ -49,7 +51,7 @@
           <% } %>
         </div>
       </div>
-      <div class="flex-grow grid gap-8 p-4 justify-items-center<% if (!locals.oneColumn) { %> lg:grid-cols-2 xl:grid-cols-3 2xl:grid-4<% } %>" x-data x-cloak>
+      <div class="flex-grow grid gap-8 p-4 justify-items-center<% if (!locals.oneColumn) { %> lg:grid-cols-2 xl:grid-cols-3<% } %>" x-data x-cloak>
           <%- body %>
       </div>
     </div>

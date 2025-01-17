@@ -1,30 +1,41 @@
-<div class="flex items-center">
-  <%- include('../partials/avatar.ejs', {avatar_url: player.avatar_url}) %>
-  <div class="font-semibold ml-4 text-xl"><a href="https://bsky.app/profile/<%= encodeURIComponent(player.handle) %>" target="_blank">@<%= player.handle %></a></div>
-</div>
-<p>Check and update your details to make sure Santa can find you</p>
-<div class="mt-4 flex items-start">
+<div
+  @click="isMobileWidth && (cardExpanded = !cardExpanded)"
+  class="flex -ml-4 lg:ml-0 items-center"
+>
+  <div x-show="isMobileWidth" x-bind:class="'size-12 flex-shrink-0 flex-grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
   <div class="flex-grow flex-shrink">
-    <h2 class="text-md font-semibold">My address</h2>
-    <p><%= player.address %></p>
-    <p><%= player.delivery_instructions %></p>
+    <h1>About me</h1>
+    <p>Check and update your details to make sure Santa can find you</p>
   </div>
-  <% if (!player.locked_giftee_for_count) { %>
-    <button @click="$dispatch('ss-open-modal', {modal: 'address', modalData: <%= JSON.stringify({address: player.address, delivery_instructions: player.delivery_instructions }) %>})" class="size-10 p-2 rounded-full flex-shrink-0">
-      <span class="i-mdi-pencil size-full"><span class="sr-only">Edit addreess</span></span>
-    </button>
-  <% } %>
 </div>
-<div class="mt-4 flex items-start">
-  <div class="flex-grow flex-shrink">
-    <h2 class="text-md font-semibold">My game</h2>
-    <p>Playing as a <b><%= player.game_mode %></b><%= player.game_mode === 'Regular' || player.game_mode === 'Giftee Only' ? '' : ' for up to ' + player.max_giftees + ' giftees' %></p>
+<div x-show="!isMobileWidth || cardExpanded" class="flex flex-col">
+  <div class="flex items-center mt-8">
+    <%- include('../partials/avatar.ejs', {avatar_url: player.avatar_url}) %>
+    <div class="font-semibold ml-4 text-xl"><a href="https://bsky.app/profile/<%= encodeURIComponent(player.handle) %>" target="_blank">@<%= player.handle %></a></div>
   </div>
-  <% if (settings.signups_open) { %>
-    <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: <%= JSON.stringify({game_mode: player.game_mode || 'Regular', max_giftees: player.max_giftees }) %>})" class="size-10 p-2 rounded-full flex-shrink-0">
-      <span class="i-mdi-pencil size-full"><span class="sr-only">Edit game mood</span></span>
-    </button>
-  <% } %>
+  <div class="mt-4 flex items-start">
+    <div class="flex-grow flex-shrink">
+      <h2 class="text-md font-semibold">My address</h2>
+      <p><%= player.address %></p>
+      <p><%= player.delivery_instructions %></p>
+    </div>
+    <% if (!player.locked_giftee_for_count) { %>
+      <button @click="$dispatch('ss-open-modal', {modal: 'address', modalData: <%= JSON.stringify({address: player.address, delivery_instructions: player.delivery_instructions }) %>})" class="size-10 p-2 rounded-full flex-shrink-0">
+        <span class="i-mdi-pencil size-full"><span class="sr-only">Edit addreess</span></span>
+      </button>
+    <% } %>
+  </div>
+  <div class="mt-4 flex items-start">
+    <div class="flex-grow flex-shrink">
+      <h2 class="text-md font-semibold">My game</h2>
+      <p>Playing as a <b><%= player.game_mode %></b><%= player.game_mode === 'Regular' || player.game_mode === 'Giftee Only' ? '' : ' for up to ' + player.max_giftees + ' giftees' %></p>
+    </div>
+    <% if (settings.signups_open) { %>
+      <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: <%= JSON.stringify({game_mode: player.game_mode || 'Regular', max_giftees: player.max_giftees }) %>})" class="size-10 p-2 rounded-full flex-shrink-0">
+        <span class="i-mdi-pencil size-full"><span class="sr-only">Edit game mood</span></span>
+      </button>
+    <% } %>
+  </div>
+  <div class="flex-grow flex-shrink"></div>
+  <button @click="$dispatch('ss-open-modal', {modal: 'opt-out', modalData: {}})" id="opt-out-button" class="w-lg px-8 py-2 mt-12 border-4 border-red-600 hover:bg-red-300 text-red-600">Opt out</button>
 </div>
-<div class="flex-grow flex-shrink"></div>
-<button @click="$dispatch('ss-open-modal', {modal: 'opt-out', modalData: {}})" id="opt-out-button" class="w-lg px-8 py-2 mt-12 border-4 border-red-600 hover:bg-red-300 text-red-600">Opt out</button>
