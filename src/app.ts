@@ -18,6 +18,7 @@ import type { TokenManager } from './lib/TokenManager.js';
 import { action } from './routes/action/index.js';
 import { sync } from './routes/sync/index.js';
 import { view } from './routes/view/index.js';
+import { publicContent } from './routes/public/index.js';
 import { bsky } from './routes/bsky/index.js';
 import { player } from './routes/player/index.js';
 import type { Database } from './lib/database/index.js';
@@ -97,6 +98,7 @@ export const build = async (
   await app.register(nudge, { prefix: '/nudge' });
   await app.register(at_oauth);
   await app.register(view);
+  await app.register(publicContent);
 
   return app;
 };
