@@ -2,7 +2,7 @@
   @click="isMobileWidth && (cardExpanded = !cardExpanded)"
   class="flex -ml-4 lg:ml-0 items-center"
 >
-  <div x-show="isMobileWidth" x-bind:class="'size-12 flex-shrink-0 flex-grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
+  <div x-show="isMobileWidth" x-bind:class="'size-10 flex-shrink-0 flex-grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
   <div class="flex-grow flex-shrink">
     <h1>Presents I've sent</h1>
     <% if (giftsIveSent.length === 0) { %>
@@ -10,7 +10,9 @@
     <% } else { %>
       <p>You've sent <%= giftsIveSent.length %> <%= plur('gift', giftsIveSent.length) %>, great work!</p>
     <% } %>
+    <p class="text-sm">(Record your tracking under &quot;My giftee&quot;)</p>
   </div>
+  <div class="size-10 flex-shrink-0 flex-grow-0 i-mdi-email-sent"></div>
 </div>
 <div x-show="!isMobileWidth || cardExpanded">
   <% giftsIveSent.forEach(function(tracking) { %>

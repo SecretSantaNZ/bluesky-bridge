@@ -2,11 +2,12 @@
   @click="isMobileWidth && (cardExpanded = !cardExpanded)"
   class="flex -ml-4 lg:ml-0 items-center"
 >
-  <div x-show="isMobileWidth" x-bind:class="'size-12 flex-shrink-0 flex-grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
+  <div x-show="isMobileWidth" x-bind:class="'size-10 flex-shrink-0 flex-grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
   <div class="flex-grow flex-shrink">
     <h1>Key information</h1>
     <p>Don't forget these important rules and dates!</p>
   </div>
+  <div class="size-10 flex-shrink-0 flex-grow-0 i-mdi-information"></div>
 </div>
 <div x-show="!isMobileWidth || cardExpanded">
   <ul class="list-disc mt-8 space-y-4">
