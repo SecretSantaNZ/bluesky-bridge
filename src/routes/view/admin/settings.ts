@@ -6,6 +6,8 @@ import type { Settings } from '../../../lib/database/schema.js';
 const dataSchema = z.object({
   signups_open: z.coerce.boolean().optional(),
   matches_sent_date: z.string(),
+  signups_open_date: z.string(),
+  signups_close_date: z.string(),
   send_by_date: z.string(),
   opening_date: z.string(),
   hashtag: z.string(),

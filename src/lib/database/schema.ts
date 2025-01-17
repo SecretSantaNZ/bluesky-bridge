@@ -175,6 +175,8 @@ export interface Tracking {
 export interface Settings {
   id: number;
   signups_open: number;
+  signups_open_date: string;
+  signups_close_date: string;
   matches_sent_date: string;
   send_by_date: string;
   opening_date: string;

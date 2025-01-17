@@ -862,3 +862,30 @@ migrations['005'] = {
       .execute();
   },
 };
+
+migrations['006'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('settings')
+      .addColumn('signups_open_date', 'varchar', (col) =>
+        col.notNull().defaultTo('2025-04-01')
+      )
+      .execute();
+    await db.schema
+      .alterTable('settings')
+      .addColumn('signups_close_date', 'varchar', (col) =>
+        col.notNull().defaultTo('2025-04-15')
+      )
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('signups_open_date')
+      .execute();
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('signups_close_date')
+      .execute();
+  },
+};
