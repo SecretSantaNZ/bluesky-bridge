@@ -1,4 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
+import * as dateUtils from '../../lib/dates.js';
 
 export const publicContent: FastifyPluginAsync = async (app) => {
   app.addHook('preValidation', async function (request, reply) {
@@ -9,6 +10,7 @@ export const publicContent: FastifyPluginAsync = async (app) => {
 
     reply.locals = {
       ...reply.locals,
+      ...dateUtils,
       player: undefined,
       settings,
     };
