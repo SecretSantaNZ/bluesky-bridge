@@ -13,14 +13,19 @@ export const view: FastifyPluginAsync = async (app) => {
 
   app.setErrorHandler(async function (error, request, reply) {
     if (error instanceof UnauthorizedError) {
-      const { returnTokenManager } = this.blueskyBridge;
+      const { returnTokenManager, db } = this.blueskyBridge;
       const requestId = randomUUID();
 
       const returnToken = await returnTokenManager.generateToken(requestId, {
         returnUrl: request.url,
       });
+      const settings = await db
+        .selectFrom('settings')
+        .selectAll()
+        .executeTakeFirstOrThrow();
       reply.locals = {
         player: null,
+        settings,
         ...reply.locals,
       };
       return reply.view(
