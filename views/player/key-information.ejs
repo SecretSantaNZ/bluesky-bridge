@@ -17,15 +17,18 @@
   <div><a href="/faq">Frequently asked questions</a></div>
   <div>
     <p>Important dates:</p>
-    <ul class="list-disc space-y-4 ml-6">
-      <li>
-        <b><%= formatDate(settings.matches_sent_date) %></b> - Matches announced
-      </li>
-      <li>
-        <b><%= formatDate(settings.send_by_date) %></b> - Last day for posting
-        your presents
-      </li>
-      <li><b><%= formatDate(settings.opening_date) %></b> - Opening day</li>
-    </ul>
+    <div class="pl-6">
+      <ul class="list-disc space-y-4">
+        <li>
+          <b><%= formatDate(settings.matches_sent_date) %></b> - Matches
+          announced
+        </li>
+        <li>
+          <b><%= formatDate(settings.send_by_date) %></b> - Last day for posting
+          your presents
+        </li>
+        <li><b><%= formatDate(settings.opening_date) %></b> - Opening day</li>
+      </ul>
+    </div>
   </div>
 </div>

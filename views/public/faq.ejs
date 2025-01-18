@@ -2,51 +2,39 @@
   class="max-w-3xl w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex flex-col space-y-16"
 >
   <h1>Frequently asked questions</h1>
-  <div class="space-y-2">
-    <h2>What is Secret Santa NZ?</h2>
-    <p>Secret Santa NZ is the Bluesky version of the game, continuing in the tradition
-      of NZ Twitter Secret Santa. At Christmas and Mid-Winter, Kikorangi/Bluesky Aotearoa,
-      play a giant game of Secret Santa.</p>
-    <p>Just like Secret Santa in your office or book club, you anonymously buy a present for
-      someone and in turn you receive a present from your own anonymous Secret Santa.
-      The joy of Secret Santa is in sleuthing your Giftee, finding the perfect gift, and then
-      watching with child-like glee and a full heart as they receive, then open their present
-      and the post the experience on the <a
-      href="https://bsky.app/hashtag/<%= settings.hashtag.substring(1) %>"
-      target="_blank"
-      ><%= settings.hashtag %></a
-    > hashtag.</p>
-    <p>Whether you play or watch from the sidelines, Secret Santa NZ brings a true joy that
-      we need in this world.</p>
-  </div>
+  <%- include('../partials/what-is-secret-santa.ejs', {}) %>
   <div class="space-y-2">
     <h2>Who is running Secret Santa NZ?</h2>
     <p>Secret Santa NZ is run by <a href="https://bsky.app/profile/foxylustygrover.bsky.social" target="_blank">@foxylustygrover.bsky.social</a> and her crack team of elves and a yule fairy:</p>
-    <ul class="list-disc space-y-2 ml-6">
-      <% settings.elf_list.split(/,|and/).forEach(elfRaw => {
-        const elf = elfRaw.trim().substring(1);
-      %>
-        <li><a href="https://bsky.app/profile/<%= elf %>" target="_blank">@<%= elf %></a></li>
-      <% }) %>
-    </ul>
+    <div class="pl-6">
+      <ul class="list-disc space-y-2">
+        <% settings.elf_list.split(/,|and/).forEach(elfRaw => {
+          const elf = elfRaw.trim().substring(1);
+        %>
+          <li><a href="https://bsky.app/profile/<%= elf %>" target="_blank">@<%= elf %></a></li>
+        <% }) %>
+      </ul>
+    </div>
     <p>The secretsanta.nz app is created and maintained by <a href="https://bsky.app/profile/orthanc.nz" target="_blank">@orthanc.nz</a> with support from <a href="https://mastodon.philtanner.com/@Phil_Tanner" target="_blank">@Phil_Tanner@mastodon.philtanner.com</a>. With a lot of inspiration from the Twitter Secret Santa app created by <a href="https://twitter.com/inabeek" target="_blank">@inabeek</a></a></p>
   </div>
   <div class="space-y-2">
     <h2>What do I need to play?</h2>
-    <ul class="list-disc space-y-2 ml-6">
-      <li>An active Bluesky account.</li>
-      <li>To be based in Aotearoa and have a postal address.</li>
-      <li>
-        Follow <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> so
-        they can find you, match you, and send you messages
-      </li>
-      <li>
-        Make sure your DMs are set to allow messages from "Users I follow" or "Everyone". We will need to DM you your matches and other information.
-      </li>
-      <li>
-        Sign up for the game at <a href="https://secretsanta.nz">https://secretsanta.nz</a>.
-      </li>
-    </ul>
+    <div class="pl-6">
+      <ul class="list-disc space-y-2">
+        <li>An active Bluesky account.</li>
+        <li>To be based in Aotearoa and have a postal address.</li>
+        <li>
+          Follow <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> so
+          they can find you, match you, and send you messages
+        </li>
+        <li>
+          Make sure your DMs are set to allow messages from "Users I follow" or "Everyone". We will need to DM you your matches and other information.
+        </li>
+        <li>
+          Sign up for the game at <a href="https://secretsanta.nz">https://secretsanta.nz</a>.
+        </li>
+      </ul>
+    </div>
   </div>
   <div class="space-y-2">
     <h2>Who else is playing?</h2>
@@ -58,32 +46,34 @@
   </div>
   <div class="space-y-2">
     <h2>What are the important dates?</h2>
-    <ul class="list-disc space-y-2 ml-6">
-      <li><b><%= formatDate(settings.signups_open_date) %></b>: sign ups start!</li>
-      <li><b><%= formatDate(settings.signups_close_date) %></b>: Last day for signing up.</li>
-      <li><b><%= formatDate(settings.signups_close_date) %></b>: Also the last day to opt-out
-        without causing the Elves overtime! We get that life throws forks sometimes. If you can,
-        please let us know if you cannot play any longer.</li>
-      <li>
-        <b><%= formatDate(settings.matches_sent_date) %></b>: All matches will be announced. You'll get a DM
-        when you're matched, or login to the App to find your Giftee's details!
-      </li>
-      <li>
-        <b><%= formatDate(settings.matches_sent_date) %></b> to <b><%= formatDate(settings.send_by_date) %></b>:
-        Sleuthing and shopping time! Post hints for your Secret Santa and find out about your Giftee's
-        favourite things. Send your gift!
-      </li>
-      <li><b><%= formatDate(settings.send_by_date) %></b>: Last day for posting your presents.</li>
-      <li>
-        <b><%= formatDate(settings.opening_date) %></b>: Opening Day! Giftees: open your gifts and post photos and
-        videos to tell your Secret Santa how much joy they brought you. Use the
-        hashtag <a
-        href="https://bsky.app/hashtag/<%= settings.hashtag.substring(1) %>"
-        target="_blank"
-        ><%= settings.hashtag %></a
-      >.
-      </li>
+    <div class="pl-6">
+      <ul class="list-disc space-y-2">
+        <li><b><%= formatDate(settings.signups_open_date) %></b>: sign ups start!</li>
+        <li><b><%= formatDate(settings.signups_close_date) %></b>: Last day for signing up.</li>
+        <li><b><%= formatDate(settings.signups_close_date) %></b>: Also the last day to opt-out
+          without causing the Elves overtime! We get that life throws forks sometimes. If you can,
+          please let us know if you cannot play any longer.</li>
+        <li>
+          <b><%= formatDate(settings.matches_sent_date) %></b>: All matches will be announced. You'll get a DM
+          when you're matched, or login to the App to find your Giftee's details!
+        </li>
+        <li>
+          <b><%= formatDate(settings.matches_sent_date) %></b> to <b><%= formatDate(settings.send_by_date) %></b>:
+          Sleuthing and shopping time! Post hints for your Secret Santa and find out about your Giftee's
+          favourite things. Send your gift!
+        </li>
+        <li><b><%= formatDate(settings.send_by_date) %></b>: Last day for posting your presents.</li>
+        <li>
+          <b><%= formatDate(settings.opening_date) %></b>: Opening Day! Giftees: open your gifts and post photos and
+          videos to tell your Secret Santa how much joy they brought you. Use the
+          hashtag <a
+          href="https://bsky.app/hashtag/<%= settings.hashtag.substring(1) %>"
+          target="_blank"
+          ><%= settings.hashtag %></a
+        >.
+        </li>
       </ul>
+    </div>
   </div>
   <div class="space-y-2">
     <h2>What's the hashtag this time around?</h2>
