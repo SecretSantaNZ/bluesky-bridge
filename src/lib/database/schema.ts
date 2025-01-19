@@ -58,7 +58,7 @@ export interface AuthRequest {
 }
 
 export interface Message {
-  id: number;
+  id: Generated<number>;
   message_type: string;
   message: string;
 }

@@ -6,12 +6,12 @@ import {
 } from 'kysely';
 import {
   initialCarriers,
+  initialHintIdeas,
   initialMessages,
   initialNudgeGreetings,
   initialNudgeSignoffs,
 } from './initialMessages.js';
 import type { Database } from './index.js';
-import type { Message } from './schema.js';
 
 const migrations: Record<string, Migration> = {};
 
@@ -477,9 +477,7 @@ migrations['001'] = {
     for (const [message_type, messages] of Object.entries(initialMessages)) {
       await (db as Database)
         .insertInto('message')
-        .values(
-          messages.map((message) => ({ message_type, message }) as Message)
-        )
+        .values(messages.map((message) => ({ message_type, message })))
         .execute();
     }
 
@@ -886,6 +884,23 @@ migrations['006'] = {
     await db.schema
       .alterTable('settings')
       .dropColumn('signups_close_date')
+      .execute();
+  },
+};
+
+migrations['007'] = {
+  async up(db: Kysely<unknown>) {
+    for (const message of initialHintIdeas) {
+      await (db as Database)
+        .insertInto('message')
+        .values({ message_type: 'hint-idea', message })
+        .execute();
+    }
+  },
+  async down(db: Kysely<unknown>) {
+    await (db as Database)
+      .deleteFrom('message')
+      .where('message_type', '=', 'hint-idea')
       .execute();
   },
 };

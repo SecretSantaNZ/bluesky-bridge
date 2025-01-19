@@ -94,15 +94,15 @@ export class NudgeSender {
 
       if (nudge == null) return;
 
-      const messageBody = await getRandomMessage(
-        this.db,
-        'nudge-' + nudge.nudge_type.toLowerCase(),
-        {
+      const nudgeType = nudge.nudge_type.toLowerCase();
+      const [messageBody, hintIdea] = await Promise.all([
+        getRandomMessage(this.db, 'nudge-' + nudgeType, {
           ...settings,
-        }
-      );
+        }),
+        getRandomMessage(this.db, 'hint-idea', {}),
+      ]);
 
-      const rawMessage = `${nudge.greeting} @${nudge.giftee_handle}. ${messageBody} ${nudge.signoff} [Sent by 🤖]`;
+      const rawMessage = `${nudge.greeting} @${nudge.giftee_handle}. ${messageBody} ${nudge.signoff}${nudgeType === 'hint' ? `\n\nNot sure what to say? How about:\n${hintIdea}?\n\n` : ''} [Sent by 🤖]`;
 
       const message = new RichText({
         text: rawMessage,
