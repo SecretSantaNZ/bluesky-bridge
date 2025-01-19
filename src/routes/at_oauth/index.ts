@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { validateAuth } from '../../util/validateAuth.js';
 import { addHours, addSeconds, isBefore } from 'date-fns';
 import type { Player } from '../../lib/PlayerService.js';
+import { returnLoginView } from '../view/index.js';
 
 export const at_oauth: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -15,80 +16,100 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
     reply.send(app.blueskyBridge.atOauthClient.jwks)
   );
 
-  app.get('/atproto-oauth-callback', async (request, reply) => {
-    const {
-      atOauthClient: client,
-      playerService,
-      db,
-      didResolver,
-      fullScopeHandles,
-    } = app.blueskyBridge;
+  app.get('/atproto-oauth-callback', async function (request, reply) {
     const params = new URLSearchParams(request.query as Record<string, string>);
-    const { session, state } = await client.callback(params);
+    const retrievedState = await this.blueskyBridge.db
+      .selectFrom('at_oauth_state')
+      .select('data')
+      .where('key', '=', params.get('state'))
+      .executeTakeFirst();
+    try {
+      const {
+        atOauthClient: client,
+        playerService,
+        db,
+        didResolver,
+        fullScopeHandles,
+      } = app.blueskyBridge;
+      const { session, state } = await client.callback(params);
 
-    const settings = await db
-      .selectFrom('settings')
-      .selectAll()
-      .executeTakeFirstOrThrow();
+      const settings = await db
+        .selectFrom('settings')
+        .selectAll()
+        .executeTakeFirstOrThrow();
 
-    let player: Player | undefined;
-    if (settings.signups_open) {
-      player = await playerService.createPlayer(session.did);
-    } else {
-      player = await playerService.getPlayer(session.did);
-    }
-    if (player == null) {
-      const didDoc = await didResolver.resolve(session.did);
-      const player_handle = (didDoc?.alsoKnownAs?.[0] ?? '').replace(
-        'at://',
-        ''
-      );
-      return reply.view(
-        'player/signups-closed-card.ejs',
-        {
-          replaceUrl: '/',
-          player: undefined,
-          player_handle,
-        },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
-    } else if (player.booted) {
-      return reply.view(
-        'player/booted-out-card.ejs',
-        { hideClose: true, replaceUrl: '/', player },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
-    }
-
-    const { returnUrl } = JSON.parse(state as string);
-    const csrfToken = randomUUID();
-    const sessionToken = await app.blueskyBridge.authTokenManager.generateToken(
-      session.did,
-      {
-        csrfToken,
-        startedAt: new Date().toISOString(),
-        admin:
-          player.admin || fullScopeHandles.has(player.handle.toLowerCase())
-            ? true
-            : undefined,
+      let player: Player | undefined;
+      if (settings.signups_open) {
+        player = await playerService.createPlayer(session.did);
+      } else {
+        player = await playerService.getPlayer(session.did);
       }
-    );
-    reply.setCookie('session', sessionToken, {
-      path: '/',
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: true,
-      expires: addSeconds(
-        new Date(),
-        app.blueskyBridge.authTokenManager.expiresInSeconds
-      ),
-    });
+      if (player == null) {
+        const didDoc = await didResolver.resolve(session.did);
+        const player_handle = (didDoc?.alsoKnownAs?.[0] ?? '').replace(
+          'at://',
+          ''
+        );
+        return reply.view(
+          'player/signups-closed-card.ejs',
+          {
+            replaceUrl: '/',
+            player: undefined,
+            player_handle,
+          },
+          {
+            layout: 'layouts/base-layout.ejs',
+          }
+        );
+      } else if (player.booted) {
+        return reply.view(
+          'player/booted-out-card.ejs',
+          { hideClose: true, replaceUrl: '/', player },
+          {
+            layout: 'layouts/base-layout.ejs',
+          }
+        );
+      }
 
-    reply.redirect(303, returnUrl);
+      const { returnUrl } = JSON.parse(state as string);
+      const csrfToken = randomUUID();
+      const sessionToken =
+        await app.blueskyBridge.authTokenManager.generateToken(session.did, {
+          csrfToken,
+          startedAt: new Date().toISOString(),
+          admin:
+            player.admin || fullScopeHandles.has(player.handle.toLowerCase())
+              ? true
+              : undefined,
+        });
+      reply.setCookie('session', sessionToken, {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: true,
+        expires: addSeconds(
+          new Date(),
+          app.blueskyBridge.authTokenManager.expiresInSeconds
+        ),
+      });
+
+      reply.redirect(303, returnUrl);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      request.log.error(e);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const state: any =
+        retrievedState == null ? {} : JSON.parse(retrievedState.data);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const appState: any =
+        state.appState == null ? {} : JSON.parse(state.appState);
+      return returnLoginView(
+        this.blueskyBridge,
+        reply,
+        appState.returnUrl ?? '/',
+        { errorMessage: 'message' in e ? e.message : 'Unknown error' }
+      );
+    }
   });
 
   app.post(
@@ -102,31 +123,40 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async (request, reply) => {
-      const client = app.blueskyBridge.atOauthClient;
-      const handle = request.body.handle;
-      const fullPerms = app.blueskyBridge.fullScopeHandles.has(
-        handle.toLowerCase()
-      );
+      try {
+        const client = app.blueskyBridge.atOauthClient;
+        const handle = request.body.handle;
+        const fullPerms = app.blueskyBridge.fullScopeHandles.has(
+          handle.toLowerCase()
+        );
 
-      const {
-        subject: requestId,
-        data: { returnUrl },
-      } = await app.blueskyBridge.returnTokenManager.validateToken(
-        request.body.returnToken
-      );
-      const state = JSON.stringify({
-        requestId,
-        returnUrl,
-      });
+        const {
+          subject: requestId,
+          data: { returnUrl },
+        } = await app.blueskyBridge.returnTokenManager.validateToken(
+          request.body.returnToken
+        );
+        const state = JSON.stringify({
+          requestId,
+          returnUrl,
+        });
 
-      const url = await client.authorize(handle, {
-        state,
-        scope: fullPerms
-          ? 'atproto transition:generic transition:chat.bsky'
-          : 'atproto',
-      });
+        const url = await client.authorize(handle, {
+          state,
+          scope: fullPerms
+            ? 'atproto transition:generic transition:chat.bsky'
+            : 'atproto',
+        });
 
-      return reply.code(204).header('HX-Redirect', url.href).send();
+        return reply.code(204).header('HX-Redirect', url.href).send();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (e: any) {
+        request.log.error(e);
+        return reply.view('partials/error.ejs', {
+          elementId: 'login-error',
+          errorMessage: 'message' in e ? e.message : 'Unknown error',
+        });
+      }
     }
   );
 

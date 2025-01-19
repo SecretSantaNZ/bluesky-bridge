@@ -1,9 +1,10 @@
-<form hx-post="/atproto-login">
+<form hx-post="/atproto-login" hx-target="#login-error">
   <input type="hidden" name="requestId" value="<%= requestId %>"/>
   <input type="hidden" name="returnToken" value="<%= returnToken %>"/>
   <div class="space-y-8">
     <h1>Login<%= settings.signups_open ? ' or Sign up' : '' %></h1>
     <%- include('../partials/input-text.ejs', {id: 'handle', label: 'Handle', placeholder: 'secretsantanz.bsky.social'}); %>
+    <%- include('../partials/error.ejs', { elementId: 'login-error' }) %>
     <div class="flex flex-col items-center">
       <%- include('../partials/activity-spinner.ejs') %>
       <input type="submit" name="login" value="Login" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />

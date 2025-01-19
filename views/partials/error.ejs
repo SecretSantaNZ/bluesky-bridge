@@ -1,0 +1,13 @@
+<% if (locals.errorMessage) { %>
+  <div
+    id="<%= elementId %>"
+    class="w-full border-solid border rounded-xl border-red-600 bg-red-100 dark:bg-slate-900 p-4 drop-shadow-lg flex items-center"
+  >
+    <div
+      class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-10 mr-4 text-red-600"
+    ></div>
+    <div class="flex-shrink flex-grow dark:text-red-400"><%= errorMessage %></div>
+  </div>
+<% } else { %>
+  <div id="<%= elementId %>"></div>
+<% } %>
