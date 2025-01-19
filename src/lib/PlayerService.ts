@@ -262,13 +262,15 @@ export class PlayerService {
       ? relationships[0]
       : undefined;
 
+    const handle = profile.handle;
+    const following_santa_uri = relationship?.followedBy ?? null;
     const player: InsertObject<DatabaseSchema, 'player'> = {
       did: player_did,
-      handle: profile.handle,
+      handle,
       avatar_url: profile.avatar,
       profile_complete: 0,
       signup_complete: 0,
-      following_santa_uri: relationship?.followedBy ?? null,
+      following_santa_uri,
       santa_following_uri: relationship?.following ?? null,
       address_review_required: null,
       max_giftees: 0,
@@ -282,8 +284,9 @@ export class PlayerService {
       .values(player)
       .onConflict((oc) =>
         oc.column('did').doUpdateSet((eb) => ({
-          handle: eb.ref('excluded.handle'),
-          following_santa_uri: eb.ref('excluded.following_santa_uri'),
+          // handle: eb.ref('excluded.handle'),
+          avatar_url: eb.ref('excluded.santa_following_uri'),
+          // following_santa_uri: eb.ref('excluded.following_santa_uri'),
           santa_following_uri: eb.ref('excluded.santa_following_uri'),
         }))
       )
@@ -297,7 +300,30 @@ export class PlayerService {
       throw new Error('No player returned from save');
     }
 
-    return dbPlayerToPlayer(savedPlayer);
+    if (savedPlayer.handle !== handle) {
+      await this.updateHandle(player_did, handle);
+    }
+    if (
+      savedPlayer.following_santa_uri != null &&
+      following_santa_uri == null
+    ) {
+      await this.removeFollow(savedPlayer.following_santa_uri);
+    } else if (
+      following_santa_uri != null &&
+      savedPlayer.following_santa_uri !== following_santa_uri
+    ) {
+      await this.recordFollow(
+        player_did,
+        this.santaAccountDid,
+        following_santa_uri
+      );
+    }
+
+    return dbPlayerToPlayer({
+      ...savedPlayer,
+      handle,
+      following_santa_uri,
+    });
   }
 
   async patchPlayer(
@@ -427,7 +453,13 @@ export class PlayerService {
   async updateHandle(playerDid: string, newHandle: string) {
     const record = await this.db
       .selectFrom('player')
-      .select(['handle', 'signup_complete', 'giftee_count', 'giftee_for_count'])
+      .select([
+        'id',
+        'handle',
+        'signup_complete',
+        'giftee_count',
+        'giftee_for_count',
+      ])
       .where('did', '=', playerDid)
       .executeTakeFirst();
     if (record != null && newHandle !== record.handle) {
@@ -448,6 +480,7 @@ export class PlayerService {
       const matches = await queryFullMatch(this.db)
         .where('match.match_status', '<>', 'draft')
         .select('santa.did as santa_did')
+        .where('match.giftee', '=', record.id)
         .execute();
       for (const match of matches) {
         const deets = {
@@ -456,6 +489,10 @@ export class PlayerService {
           recordId: match.match_id,
           recipientHandle: match.santa_handle,
         };
+        if (deets.recipientDid === this.santaAccountDid) {
+          continue;
+        }
+
         try {
           await this.dmSender.sendDm({
             ...deets,

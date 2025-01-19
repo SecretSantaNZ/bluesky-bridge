@@ -11,6 +11,7 @@ import WebSocket from 'ws';
 
 import type { Database } from './lib/database/index.js';
 import type { PlayerService } from './lib/PlayerService.js';
+import { addHours } from 'date-fns';
 
 export class FirehoseSubscription {
   private jetstream: Jetstream | undefined;
@@ -49,6 +50,7 @@ export class FirehoseSubscription {
       ...options,
       ws: WebSocket,
       endpoint: 'wss://jetstream2.us-west.bsky.network/subscribe',
+      cursor: addHours(new Date(), -1).getTime() * 1000,
       // TODO cursor
       // TODO handle error
     });
