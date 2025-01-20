@@ -26,7 +26,11 @@ export const nudge: FastifyPluginAsync = async (rawApp) => {
 
   app.setErrorHandler(async function (error, request, reply) {
     request.log.error(error);
-    return reply.view('error.ejs');
+    const triggerId = request.headers['hx-trigger'];
+    return reply.view('partials/error.ejs', {
+      errorMessage: error.message || 'Unknown Error',
+      elementId: triggerId ? triggerId + '-error' : undefined,
+    });
   });
 
   await app.register(deleteNudge);

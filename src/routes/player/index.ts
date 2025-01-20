@@ -51,7 +51,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     request.log.error(error);
     const triggerId = request.headers['hx-trigger'];
     return reply.view('partials/error.ejs', {
-      errorMessage: error.message,
+      errorMessage: error.message || 'Unknown Error',
       elementId: triggerId ? triggerId + '-error' : undefined,
     });
   });
