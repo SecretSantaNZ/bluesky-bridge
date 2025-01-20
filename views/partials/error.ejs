@@ -1,6 +1,9 @@
 <% if (locals.errorMessage) { %>
   <div
-    id="<%= elementId %>"
+    <% if (locals.elementId) {%>
+      id="<%= elementId %>"
+      hx-swap-oob="outerHTML"
+    <% } %>
     class="w-full border-solid border rounded-xl border-red-600 bg-red-100 dark:bg-slate-900 p-4 drop-shadow-lg flex items-center"
   >
     <div
@@ -9,5 +12,10 @@
     <div class="flex-shrink flex-grow dark:text-red-400"><%= errorMessage %></div>
   </div>
 <% } else { %>
-  <div id="<%= elementId %>"></div>
+  <div
+    <% if (locals.elementId) {%>
+      id="<%= elementId %>"
+      hx-swap-oob="outerHTML"
+    <% } %>
+  ></div>
 <% } %>

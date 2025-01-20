@@ -1,4 +1,4 @@
-<form hx-post="/player/add-tracking" x-data="<%= JSON.stringify({shipped_date: formatDateIso(new Date())}) %>">
+<form hx-post="/player/add-tracking" hx-swap="none" x-data="<%= JSON.stringify({shipped_date: formatDateIso(new Date())}) %>" id="add-tracking">
   <div class="space-y-8">
     <h1>Add tracking for @<span x-text="modalData.giftee_handle"></span></h1>
     <p>Let @<span x-text="modalData.giftee_handle"></span> (and the elves) know that their present is on their way by adding the tracking number here.</p>
@@ -17,6 +17,7 @@
         <label for="giftwrap_status_naked">Gifts are naked</label>
       </div>
     </fieldset>
+    <%- include('../partials/error.ejs', { elementId: 'add-tracking-error' }) %>
     <%- include('../partials/input-submit-with-activity.ejs', {xBindDisabled: '!shipped_date || !modalData.tracking_number', label: 'Save'}); %>
   </div>
   <input type="hidden" name="match_id" x-bind:value="modalData.match_id"/>

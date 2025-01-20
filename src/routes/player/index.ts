@@ -49,7 +49,11 @@ export const player: FastifyPluginAsync = async (rawApp) => {
 
   app.setErrorHandler(async function (error, request, reply) {
     request.log.error(error);
-    return reply.view('error.ejs');
+    const triggerId = request.headers['hx-trigger'];
+    return reply.view('partials/error.ejs', {
+      errorMessage: error.message,
+      elementId: triggerId ? triggerId + '-error' : undefined,
+    });
   });
 
   await app.register(logout);
