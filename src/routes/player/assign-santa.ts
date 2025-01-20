@@ -2,7 +2,6 @@ import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { ForbiddenError } from 'http-errors-enhanced';
 import { z } from 'zod';
-import type { Player } from '../../lib/PlayerService.js';
 
 export const assignSanta: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
