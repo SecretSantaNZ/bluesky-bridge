@@ -5,14 +5,15 @@ export function queryTracking(db: Database) {
     .selectFrom('tracking')
     .innerJoin('carrier', 'carrier.id', 'tracking.carrier')
     .select([
-      'tracking.id',
+      'tracking.id as tracking_id',
       'tracking.shipped_date',
       'tracking.tracking_number',
       'tracking.tracking_status',
       'carrier.text as carrier',
       'tracking.giftwrap_status',
       'tracking.missing',
-    ]);
+    ])
+    .where('tracking.deactivated', 'is', null);
 }
 
 export function queryTrackingWithMatch(db: Database) {

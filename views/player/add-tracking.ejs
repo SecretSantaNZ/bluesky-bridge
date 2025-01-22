@@ -1,8 +1,13 @@
-<form hx-post="/player/add-tracking" hx-swap="none" x-data="<%= JSON.stringify({shipped_date: formatDateIso(new Date())}) %>" id="add-tracking">
+<form hx-post="<%= mode === 'add' ? '/player/add-tracking' : '/admin/tracking/update' %>" hx-swap="none" x-data="<%= JSON.stringify({shipped_date: formatDateIso(new Date())}) %>" id="add-tracking">
   <div class="space-y-8">
-    <h1>Add tracking for @<span x-text="modalData.giftee_handle"></span></h1>
-    <p>Let @<span x-text="modalData.giftee_handle"></span> (and the elves) know that their present is on their way by adding the tracking number here.</p>
-    <p>This will DM @<span x-text="modalData.giftee_handle"></span> the tracking number so they can watch out for your gift.</p>
+    <% if (mode === 'add') { %>
+      <h1>Add tracking for @<span x-text="modalData.giftee_handle"></span></h1>
+      <p>Let @<span x-text="modalData.giftee_handle"></span> (and the elves) know that their present is on their way by adding the tracking number here.</p>
+      <p>This will DM @<span x-text="modalData.giftee_handle"></span> the tracking number so they can watch out for your gift.</p>
+    <% } else if (mode === 'edit') { %>
+      <h1>Edit tracking for @<span x-text="modalData.giftee_handle"></span></h1>
+      <p>Note: this will <b>not</b> send a new DM if the DM has already been sent, but the corrected details will be shown in the app.</p>
+      <% } %>
     <%- include('../partials/input-text.ejs', {id: 'shipped_date', label: 'Date shipped', placeholder: '', xModel: 'shipped_date', input_type: 'date'}); %>
     <%- include('../partials/drop-down.ejs', {id: 'carrier', xModel: 'modalData.carrier', label: 'Carrier', options: carriers}); %>
     <%- include('../partials/input-text.ejs', {id: 'tracking_number', label: 'Tracking number', placeholder: 'AA123456789NZ', xModel: 'modalData.tracking_number'}); %>
@@ -20,6 +25,10 @@
     <%- include('../partials/error.ejs', { elementId: 'add-tracking-error' }) %>
     <%- include('../partials/input-submit-with-activity.ejs', {xBindDisabled: '!shipped_date || !modalData.tracking_number', label: 'Save'}); %>
   </div>
-  <input type="hidden" name="match_id" x-bind:value="modalData.match_id"/>
+  <% if (mode === 'add') { %>
+    <input type="hidden" name="match_id" x-bind:value="modalData.match_id"/>
+  <% } else if (mode === 'edit') { %>
+    <input type="hidden" name="tracking_id" x-bind:value="modalData.tracking_id"/>
+  <% } %>
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
 <form>  

@@ -904,3 +904,27 @@ migrations['007'] = {
       .execute();
   },
 };
+
+migrations['008'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('tracking')
+      .addColumn('deactivated', 'varchar')
+      .execute();
+
+    await sql`
+      create trigger tracking_on_deactivated_change after update of deactivated on tracking for each row begin
+        update match set tracking_count = tracking_count - 1 where id = new.match and new.deactivated is not null and old.deactivated is null;
+        update match set tracking_missing_count = tracking_missing_count - 1 where id = new.match and new.missing is not null and new.deactivated is not null and old.deactivated is null;
+
+        update match set tracking_count = tracking_count + 1 where id = new.match and new.deactivated is null and old.deactivated is not null;
+        update match set tracking_missing_count = tracking_missing_count + 1 where id = new.match and new.missing is not null and new.deactivated is null and old.deactivated is not null;
+      end;
+    `.execute(db);
+  },
+  async down(db: Kysely<unknown>) {
+    await sql`drop trigger tracking_on_deactivated_change`.execute(db);
+
+    await db.schema.alterTable('tracking').dropColumn('deactivated').execute();
+  },
+};

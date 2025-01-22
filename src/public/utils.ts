@@ -71,3 +71,29 @@ export function removeMatch<T extends { match_id: number }>(
 ): Array<T> {
   return matches.filter((match) => match.match_id !== matchId);
 }
+
+export function replaceTracking<T extends { tracking_id: number }>(
+  trackings: ReadonlyArray<T>,
+  newTracking: T
+): Array<T> {
+  let present = false;
+  const newTrackings = trackings.map((tracking) => {
+    if (tracking.tracking_id === newTracking.tracking_id) {
+      present = true;
+      return newTracking;
+    } else {
+      return tracking;
+    }
+  });
+  if (!present) {
+    newTrackings.push(newTracking);
+  }
+  return newTrackings;
+}
+
+export function removeTracking<T extends { tracking_id: number }>(
+  trackings: ReadonlyArray<T>,
+  trackingId: number
+): Array<T> {
+  return trackings.filter((tracking) => tracking.tracking_id !== trackingId);
+}

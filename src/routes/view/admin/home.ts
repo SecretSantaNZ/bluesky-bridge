@@ -83,11 +83,13 @@ export const adminHome: FastifyPluginAsync = async (app) => {
       db
         .selectFrom('tracking')
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .where('deactivated', 'is', null)
         .where('tracking_status', '=', 'sent')
         .executeTakeFirstOrThrow(),
       db
         .selectFrom('tracking')
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .where('deactivated', 'is', null)
         .executeTakeFirstOrThrow(),
       db
         .selectFrom('match')

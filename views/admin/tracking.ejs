@@ -14,8 +14,10 @@
       && (filters.showError || !tracking.tracking_status.startsWith('error'))
     );
   })"
+  @ss-tracking-deactivated.window="tracking = secretsantanz.removeTracking(tracking, event.detail.id)"
+  @ss-tracking-updated.window="tracking = secretsantanz.replaceTracking(tracking, event.detail)"
 >
-  <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
+  <div class="flex space-x-8 items-center mb-2 flex-col lg:flex-row">
     <h1>Tracking</h1>
     <div>
       <select x-model="pager.pageSelect">
@@ -40,7 +42,7 @@
   <div class="w-full mb-2">
     <input type="text" x-model="pager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
   </div>
-  <div class="grid-cols-8 sm:space-x-4 hidden sm:grid">
+  <div class="grid-cols-8 lg:space-x-4 hidden lg:grid">
     <div class="flex justify-center"><b>Santa</b></div>
     <div class="flex justify-center"><b>Giftee</b></div>
     <div class="flex justify-center"><b>Shipped</b></div>
@@ -50,35 +52,69 @@
     <div class="flex justify-center"><b>Status</b></div>
     <div class="flex justify-center"><b>Action</b></div>
   </div>
-  <template x-for="nudge in pager.pageData">
-    <div class="grid sm:grid-cols-8 sm:space-x-4 border-b py-2">
-      <div class="flex sm:justify-center items-center text-lg">
-        <div class="italic sm:hidden mr-2">Santa:</div>
-        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(nudge.santa_handle)" target="_blank"x-text="'@' + nudge.santa_handle"></a>
+  <template x-for="tracking in pager.pageData">
+    <div class="grid lg:grid-cols-8 lg:space-x-4 border-b py-2">
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Santa:</div>
+        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(tracking.santa_handle)" target="_blank"x-text="'@' + tracking.santa_handle"></a>
       </div>
-      <div class="flex sm:justify-center items-center text-lg">
-        <div class="italic sm:hidden mr-2">Giftee:</div>
-        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(nudge.giftee_handle)" target="_blank" x-text="'@' + nudge.giftee_handle"></a>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Giftee:</div>
+        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(tracking.giftee_handle)" target="_blank" x-text="'@' + tracking.giftee_handle"></a>
       </div>
-      <div class="flex sm:justify-center items-center text-lg">
-        <div class="italic sm:hidden mr-2">Sent:</div>
-        <div x-text="secretsantanz.formatDate(nudge.shipped_date)"></div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Sent:</div>
+        <div x-text="secretsantanz.formatDate(tracking.shipped_date)"></div>
       </div>
-      <div class="flex sm:justify-center items-center text-lg">
-        <div class="italic sm:hidden mr-2">Carrier:</div>
-        <div x-text="nudge.carrier"></div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Carrier:</div>
+        <div x-text="tracking.carrier"></div>
       </div>
-      <div class="flex sm:justify-center items-center text-lg">
-        <div class="italic sm:hidden mr-2">Tracking:</div>
-        <div x-text="nudge.tracking_number"></div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Tracking:</div>
+        <div x-text="tracking.tracking_number"></div>
       </div>
-      <div class="flex sm:justify-center items-center text-lg">
-        <div class="italic sm:hidden mr-2">Wrapped:</div>
-        <div x-text="nudge.giftwrap_status ? 'Y' : 'N'"></div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Wrapped:</div>
+        <div x-text="tracking.giftwrap_status ? 'Y' : 'N'"></div>
       </div>
-      <div class="flex sm:justify-center items-center text-lg">
-        <div class="italic sm:hidden mr-2">Status:</div>
-        <div x-text="nudge.tracking_status"></div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Status:</div>
+        <div x-text="tracking.tracking_status"></div>
+      </div>
+      <div class="lg:flex lg:items-center lg:justify-center lg:space-x-4">
+        <button @click="$dispatch('ss-open-modal', {modal: 'edit-tracking', modalData: {...tracking}})" class="flex items-center rounded-sm">
+          <div class="flex lg:justify-center items-center">
+            <div class="i-mdi-pencil size-10"></div>
+            <div class="lg:hidden"><b>Edit tracking</b></div>
+          </div>
+        </button>
+        <form hx-post="/admin/tracking/deactivate">
+          <button x-show="`tracking-${tracking.tracking_id}` !== showConfirm" @click.prevent.stop="showConfirm = `tracking-${tracking.tracking_id}`">
+            <div class="flex lg:justify-center items-center ">
+              <div class="i-mdi-trash-can-outline size-10"></div>
+              <div class="lg:hidden"><b>Delete tracking</b></div>
+            </div>
+          </button>
+          <%- include('../partials/activity-spinner.ejs') %>
+          <input x-show="`tracking-${tracking.tracking_id}` === showConfirm" type="submit" name="save" value="Delete tracking" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+          <button x-show="`tracking-${tracking.tracking_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+            <div class="i-mdi-close size-10 text-gray-400"></div>
+          </button>
+          <input type="hidden" name="tracking_id" x-bind:value="tracking.tracking_id"/>
+          <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+        </form>
+      </div>
+    </div>
+  </template>
+</div>
+<div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
+  <template x-teleport="body">
+    <div x-show="showModal">
+      <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
+      </div>
+      <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/add-tracking.ejs', xShow: "showModal === 'edit-tracking'", mode: 'edit' }) %>
       </div>
     </div>
   </template>

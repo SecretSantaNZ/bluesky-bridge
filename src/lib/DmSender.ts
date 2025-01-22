@@ -290,6 +290,7 @@ const trackingDMQueue: DMQueue = async (db, settings) => {
       'giftee.handle as giftee_handle',
       'tracking.id as tracking_id',
     ])
+    .where('tracking.deactivated', 'is', null)
     .where('tracking.tracking_status', '=', 'queued')
     .where('giftee.following_santa_uri', 'is not', null)
     .orderBy('match.id asc')

@@ -170,6 +170,7 @@ export interface Tracking {
   tracking_status: 'queued' | 'sent' | `error: ${string}`;
   created_at: string;
   created_by: string;
+  deactivated: Generated<string | null>;
 }
 
 export interface Settings {
