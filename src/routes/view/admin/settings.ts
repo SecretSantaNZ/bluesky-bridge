@@ -75,4 +75,20 @@ export const settings: FastifyPluginAsync = async (rawApp) => {
       );
     }
   );
+
+  app.post(
+    '/settings/reset-game',
+    {
+      schema: {
+        body: z.object({}),
+      },
+    },
+    async function (request, reply) {
+      const { playerService } = this.blueskyBridge;
+
+      await playerService.resetEverything();
+
+      return reply.code(204).send();
+    }
+  );
 };
