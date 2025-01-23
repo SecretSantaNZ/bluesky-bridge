@@ -1,0 +1,10 @@
+access-key-id:     {{ litestream_access_key }}
+secret-access-key: {{ litestream_secret_access_key }}
+
+dbs:
+  - path: /home/{{ service_name }}/data.sqlite
+    replicas:
+      - url: s3://{{ litestream_bucket }}/{{ inventory_hostname }}/data.sqlite
+        sync-interval: 1m
+        snapshot-interval: 4h
+        retention: 168h # 7 days
