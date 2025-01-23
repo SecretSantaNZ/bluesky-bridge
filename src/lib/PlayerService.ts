@@ -138,7 +138,8 @@ export class PlayerService {
     private readonly db: Database,
     private readonly santaAgent: () => Promise<Agent>,
     private readonly santaAccountDid: string,
-    private readonly dmSender: DmSender
+    private readonly dmSender: DmSender,
+    public readonly ensureElfDids: ReadonlySet<string>
   ) {
     this.followingChangedWebhook = buildWebhookNotifier(
       process.env.FOLLOWING_CHANGED_WEBHOOK,
@@ -276,6 +277,7 @@ export class PlayerService {
       max_giftees: 0,
       opted_out: null,
       booted: null,
+      admin: this.ensureElfDids.has(player_did) ? 1 : 0,
       ...attributes,
     };
 

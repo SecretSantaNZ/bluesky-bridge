@@ -29,7 +29,6 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         playerService,
         db,
         didResolver,
-        fullScopeHandles,
       } = app.blueskyBridge;
       const { session, state } = await client.callback(params);
 
@@ -39,7 +38,10 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         .executeTakeFirstOrThrow();
 
       let player: Player | undefined;
-      if (settings.signups_open) {
+      if (
+        settings.signups_open ||
+        playerService.ensureElfDids.has(session.did)
+      ) {
         player = await playerService.createPlayer(session.did);
       } else {
         player = await playerService.getPlayer(session.did);
@@ -71,16 +73,15 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         );
       }
 
+      const admin = player.admin ? true : undefined;
+
       const { returnUrl } = JSON.parse(state as string);
       const csrfToken = randomUUID();
       const sessionToken =
         await app.blueskyBridge.authTokenManager.generateToken(session.did, {
           csrfToken,
           startedAt: new Date().toISOString(),
-          admin:
-            player.admin || fullScopeHandles.has(player.handle.toLowerCase())
-              ? true
-              : undefined,
+          admin,
         });
       reply.setCookie('session', sessionToken, {
         path: '/',

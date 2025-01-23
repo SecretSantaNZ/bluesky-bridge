@@ -6,14 +6,18 @@ export const unauthenticatedAgent = new AtpAgent({
   service: 'https://public.api.bsky.app',
 });
 
+export const resolveHandle = async (handle: string): Promise<string> => {
+  const resolveHandle = await unauthenticatedAgent.resolveHandle({
+    handle,
+  });
+  return resolveHandle.data.did;
+};
+
 export const buildAtpClient = async (
   client: NodeOAuthClient,
   handle: string
 ): Promise<[() => Promise<Agent>, string]> => {
-  const resolveHandle = await unauthenticatedAgent.resolveHandle({
-    handle,
-  });
-  const did = resolveHandle.data.did;
+  const did = await resolveHandle(handle);
   return [
     memoize(
       async () => {

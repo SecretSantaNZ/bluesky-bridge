@@ -13,6 +13,7 @@ Environment=NODE_ENV=production
 Environment=SQLITE_LOCATION="/home/{{ service_name }}/data.sqlite"
 Environment=SANTA_BLUESKY_HANDLE={{ santa_bluesky_handle }}
 Environment=ROBOT_BLUESKY_HANDLE={{ robot_bluesky_handle }}
+Environment=ENSURE_ELF_HANDLES={{ elf_bluesky_handles | join(',') }}
 Environment=ACTION_USERNAME={{ action_username }}
 Environment=TOKEN_ISSUER={{ inventory_hostname }}
 Environment=PUBLIC_BASE_URL=https://{{ inventory_hostname }}

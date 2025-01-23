@@ -7,7 +7,7 @@ import { build } from './app.js';
 import { OauthSessionStore } from './lib/oauth.js';
 import { TokenManager } from './lib/TokenManager.js';
 import { createDb, migrateToLatest } from './lib/database/index.js';
-import { buildAtpClient } from './bluesky.js';
+import { buildAtpClient, resolveHandle } from './bluesky.js';
 import { PlayerService } from './lib/PlayerService.js';
 import { NudgeSender } from './lib/NudgeSender.js';
 import { DmSender } from './lib/DmSender.js';
@@ -20,6 +20,16 @@ dotenv.config({
     `${process.env.CREDENTIALS_DIRECTORY}/bluesky-bridge-creds`,
   ],
 });
+
+const resolveEnsureElfHandles = async (): Promise<Array<string>> => {
+  const handles = process.env.ENSURE_ELF_HANDLES;
+  if (!handles) {
+    return [];
+  }
+  return Promise.all(
+    handles.split(',').map((handle) => resolveHandle(handle.trim()))
+  );
+};
 
 const main = async () => {
   const db = createDb();
@@ -55,10 +65,12 @@ const main = async () => {
   ]);
   const santaHandle = process.env.SANTA_BLUESKY_HANDLE as string;
   const robotHandle = process.env.ROBOT_BLUESKY_HANDLE as string;
-  const [[santaAgent, santaAccountDid], [robotAgent]] = await Promise.all([
-    buildAtpClient(atOauthClient, santaHandle),
-    buildAtpClient(atOauthClient, robotHandle),
-  ]);
+  const [[santaAgent, santaAccountDid], [robotAgent], ensureElfDids] =
+    await Promise.all([
+      buildAtpClient(atOauthClient, santaHandle),
+      buildAtpClient(atOauthClient, robotHandle),
+      resolveEnsureElfHandles(),
+    ]);
   const didResolver = new DidResolver({
     didCache: new MemoryCache(),
     plcUrl: 'https://plc.directory',
@@ -71,7 +83,8 @@ const main = async () => {
     db,
     santaAgent,
     santaAccountDid,
-    dmSender
+    dmSender,
+    new Set(ensureElfDids)
   );
   const subscription = new FirehoseSubscription(
     db,
@@ -79,6 +92,12 @@ const main = async () => {
     santaAccountDid
   );
   playerService.addListener(subscription.playersChanged.bind(subscription));
+
+  await db
+    .updateTable('player')
+    .set({ admin: 1 })
+    .where('did', 'in', ensureElfDids)
+    .execute();
 
   const app = await build(
     { logger: true },
