@@ -287,7 +287,7 @@ export class PlayerService {
       .onConflict((oc) =>
         oc.column('did').doUpdateSet((eb) => ({
           // handle: eb.ref('excluded.handle'),
-          avatar_url: eb.ref('excluded.santa_following_uri'),
+          avatar_url: eb.ref('excluded.avatar_url'),
           // following_santa_uri: eb.ref('excluded.following_santa_uri'),
           santa_following_uri: eb.ref('excluded.santa_following_uri'),
         }))
