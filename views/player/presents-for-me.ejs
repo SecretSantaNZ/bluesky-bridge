@@ -6,7 +6,7 @@
   <div class="flex-grow flex-shrink">
     <h1>Presents for me</h1>
     <% if (myGifts.length === 0) { %>
-      <p>Once you're Santa has sent a present it will show up here. Don't worry, we'll also DM you</p>
+      <p>Once your Santa has sent a present it will show up here. Don't worry, we'll also DM you</p>
     <% } else { %>
       <p><%= myGifts.length %> <%= plur('gift', myGifts.length) %> <%= myGifts.length > 1 ? 'are on their' : 'is on it\'s' %> way!</p>
     <% } %>
