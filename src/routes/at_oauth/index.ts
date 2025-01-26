@@ -126,7 +126,13 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
     async (request, reply) => {
       try {
         const client = app.blueskyBridge.atOauthClient;
-        const handle = request.body.handle;
+        let handle = request.body.handle
+          .replace(/^@/, '')
+          .replace(/@/g, '.')
+          .trim();
+        if (!handle.includes('.')) {
+          handle += '.bsky.social';
+        }
         const fullPerms = app.blueskyBridge.fullScopeHandles.has(
           handle.toLowerCase()
         );

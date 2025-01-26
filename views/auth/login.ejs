@@ -3,7 +3,18 @@
   <input type="hidden" name="returnToken" value="<%= returnToken %>"/>
   <div class="space-y-8">
     <h1>Login<%= settings.signups_open ? ' or Sign up' : '' %></h1>
-    <%- include('../partials/input-text.ejs', {id: 'handle', label: 'Handle', placeholder: 'secretsantanz.bsky.social'}); %>
+    <div x-data="{term: '', actors: []}">
+      <%- include('../partials/input-text.ejs', {id: 'handle', name: 'handle', label: 'Handle', placeholder: 'secretsantanz.bsky.social', xModel: 'term', attributes: {
+        list: 'handle_suggestions',
+        autocomplete: 'false',
+        '@keypress.debounce': "actors = JSON.parse(await $fetch('https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=' + encodeURIComponent(term.replace(/^@/, '').trim()))).actors",
+      }}); %>
+      <datalist id="handle_suggestions"> 
+        <template x-for="item in (actors || [])">
+          <option x-bind:value="(term.startsWith('@') ? '@' : '') + item.handle"></option>
+        </template>
+      </datalist>
+    </div>
     <%- include('../partials/error.ejs', { elementId: 'login-error' }) %>
     <div class="flex flex-col items-center">
       <%- include('../partials/activity-spinner.ejs') %>

@@ -5,11 +5,11 @@
       <%- include('../partials/input-text.ejs', {id: 'new_player_handle', name: 'handle', label: 'Handle', placeholder: 'coolplayer.bsky.social', xModel: 'modalData.term', attributes: {
         list: 'new_player_handles',
         autocomplete: 'false',
-        '@keypress.debounce': "modalData.actors = JSON.parse(await $fetch('https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=' + modalData.term)).actors",
+        '@keypress.debounce': "modalData.actors = JSON.parse(await $fetch('https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=' + encodeURIComponent(modalData.term.replace(/^@/, '').trim())))).actors",
       }}); %>
       <datalist id="new_player_handles"> 
         <template x-for="item in (modalData.actors || [])">
-          <option x-bind:value="item.handle"></option>
+          <option x-bind:value="(modalData.term.startsWith('@') ? '@' : '') + item.handle"></option>
         </template>
       </datalist>
     </div>
