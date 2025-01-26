@@ -1,8 +1,24 @@
-<form hx-post="/atproto-login" id="login" hx-swap="none">
+<form hx-post="/atproto-login" id="login" hx-swap="none" x-data="<%= JSON.stringify({mode: locals.mode || (settings.signups_open ? 'choose' : 'login'), allowModeChange: Boolean(settings.signups_open)}) %>">
   <input type="hidden" name="requestId" value="<%= requestId %>"/>
   <input type="hidden" name="returnToken" value="<%= returnToken %>"/>
-  <div class="space-y-8">
-    <h1>Login<%= settings.signups_open ? ' or Sign up' : '' %></h1>
+  <div class="flex space-x-8" x-show="mode === 'choose'">
+    <button type="button" @click.prevent="mode = 'signup'" class="flex-grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none">Sign up</button>
+    <button type="button" @click.prevent="mode = 'login'" class="flex-grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none">Login</button>
+  </div>
+  <div class="space-y-8" x-show="mode !== 'choose'">
+    <h1 x-text="mode === 'login' ? 'Login' : 'Sign up'"></h1>
+    <div x-show="mode === 'signup'" class="space-y-2">
+      <p>To sign up:</p>
+      <div class="pl-6">
+        <ol class="list-decimal space-y-2">
+          <li><b>Enter your handle below</b></li>
+          <li><b>Login with your Bluesky password</b><br/>
+            NB: you are entering your password into Bluesky, not the Secret Santa app.
+            We do not have access to your password or any access to your Bluesky account.</li>
+          <li><b>Fill out your address and preferences</b></li>
+        </ol>
+      </div>
+    </div>
     <div x-data="{term: '', actors: []}">
       <%- include('../partials/input-text.ejs', {id: 'handle', name: 'handle', label: 'Handle', placeholder: 'secretsantanz.bsky.social', xModel: 'term', attributes: {
         list: 'handle_suggestions',
@@ -14,11 +30,17 @@
           <option x-bind:value="(term.startsWith('@') ? '@' : '') + item.handle"></option>
         </template>
       </datalist>
+      <div x-show="mode === 'login'" class="mt-2">
+        You will be sent to Bluesky to login with your Bluesky password.
+      </div>
     </div>
     <%- include('../partials/error.ejs', { elementId: 'login-error' }) %>
-    <div class="flex flex-col items-center">
+    <input type="hidden" name="mode" x-bind:value="mode"/>
+    <div class="flex justify-center items-center">
+      <button type="button" x-show="allowModeChange" @click.prevent="mode = 'choose'" class="text-gray-400">Back</button>
+      <div class="flex-grow"></div>
       <%- include('../partials/activity-spinner.ejs') %>
-      <input type="submit" name="login" value="Login" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+      <input type="submit" name="login" x-bind:value="mode === 'login' ? 'Login' : 'Sign up'" x-bind:class="(allowModeChange ? 'w-48' : 'w-full') + ' rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none'" />
     </div>
   </div>
 </form>

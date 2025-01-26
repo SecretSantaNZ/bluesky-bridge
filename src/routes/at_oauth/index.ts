@@ -108,7 +108,10 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         this.blueskyBridge,
         reply,
         appState.returnUrl ?? '/',
-        { errorMessage: 'message' in e ? e.message : 'Unknown error' }
+        {
+          errorMessage: 'message' in e ? e.message : 'Unknown error',
+          mode: appState.mode,
+        }
       );
     }
   });
@@ -120,6 +123,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         body: z.object({
           handle: z.string(),
           returnToken: z.string(),
+          mode: z.string(),
         }),
       },
     },
@@ -146,6 +150,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         const state = JSON.stringify({
           requestId,
           returnUrl,
+          mode: request.body.mode,
         });
 
         const url = await client.authorize(handle, {
