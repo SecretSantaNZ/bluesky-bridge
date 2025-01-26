@@ -15,6 +15,12 @@
   <div class="size-10 flex-shrink-0 flex-grow-0 i-mdi-message-bubble"></div>
 </div>
 <div x-show="!isMobileWidth || cardExpanded">
+<% if (sentNudges.length === 0) { %>
+  <div class="mt-8 space-y-2">
+    <p>Once you have your Giftee's address you can send them a nudge under &quot;My giftee&quot;.</p>
+    <p>Nudges are a post by <a href="https://bsky.app/profile/robosanta.secretsanta.nz" target="_blank">@robosanta.secretsanta.nz</a> that tag your Giftee so you can nudge them for a little more information.</p>
+  </div>
+<% } %>
 <% sentNudges.forEach(function(nudge) {
   const nudgeText = `@${ nudge.giftee_handle } nudged with ${ nudge.nudge_type } on ${ formatDatetime(nudge.created_at) }`;
 %>

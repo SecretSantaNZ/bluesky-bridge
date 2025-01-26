@@ -1,6 +1,7 @@
 <form hx-post="/player/send-nudge" hx-swap="none" id="send-nudge" x-data="<%= JSON.stringify({nudge_type: nudgeTypes[0].id, nudgeGreetings, nudgeSignoffs}) %>">
   <div class="space-y-8">
     <h1>Nudge @<span x-text="modalData.giftee_handle"></span></h1>
+    <p>Nudges are a post by <a href="https://bsky.app/profile/robosanta.secretsanta.nz" target="_blank">@robosanta.secretsanta.nz</a> that tag your Giftee so you can nudge them for a little more information.</p>
     <div class="pl-6">
       <ul class="list-disc space-y-2">
         <li><b>Hint</b><br/>Asks your Giftee to tweet a hint so you can choose the perfect gift.</li>

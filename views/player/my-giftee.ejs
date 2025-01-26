@@ -5,13 +5,13 @@
   <div x-show="isMobileWidth" x-bind:class="'size-10 flex-shrink-0 flex-grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
   <div class="flex-grow flex-shrink">
     <h1>My giftee</h1>
-    <p>Meet your Giftee, sleuth their socials, learn about them and then find them the perfect gift</p>
+    <p>Meet your Giftee, sleuth their socials, learn about them and then find them the perfect gift.</p>
   </div>
   <div class="size-10 flex-shrink-0 flex-grow-0 i-mdi-person-card-details"></div>
 </div>
 <div x-show="!isMobileWidth || cardExpanded">
   <% if (giftees.length === 0) { %>
-  <p class="mt-8 italic">Your Giftee isn't assigned yet, check back soon.</p>
+    <p class="mt-8 italic">Your Giftee isn't assigned yet, check back soon.</p>
   <% } else { giftees.forEach(function (giftee) { %>
     <div class="mt-8">
       <div class="flex items-center">
@@ -29,6 +29,7 @@
         </div>
       <% } else { %>
         <p class="italic">Address will be released soon.</p>
+        <p class="italic mt-2">You can send nudges once addresses are released.</p>
       <% } %>
     </div>
   <% }); } %>
