@@ -4,6 +4,7 @@
       <h1 x-text="'Game mode for @' + modalData.handle"></h1>
     <% } else { %>
       <h1>How do you want to play?</h1>
+      <p>As a regular player, you send one and receive one gift. As a Super Santa, you send multiple and receive one gift.</p>
     <% } %>
     <%- include('../partials/drop-down.ejs', {id: 'game_mode', xModel: 'modalData.game_mode', label: 'Game mode', options: [
       {id: 'Regular', text: 'Regular'},
