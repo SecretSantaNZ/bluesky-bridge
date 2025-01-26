@@ -35,7 +35,7 @@
             </a>
           </div>
           <% if (player) { %>
-            <div class="relative" x-data x-cloak>
+            <div class="relative text-slate-800 dark:text-slate-200" x-data x-cloak>
               <% if (!player.booted) { %>
                 <button @click.stop.prevent="userMenuOpen = !userMenuOpen" class="rounded-full flex-shrink-0">
                   <%- include('../partials/avatar.ejs', {avatar_url: player.avatar_url}) %>
