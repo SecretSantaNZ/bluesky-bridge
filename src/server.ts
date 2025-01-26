@@ -13,6 +13,7 @@ import { NudgeSender } from './lib/NudgeSender.js';
 import { DmSender } from './lib/DmSender.js';
 import { initAtLoginClient } from './lib/initAtLoginClient.js';
 import { FirehoseSubscription } from './subscription.js';
+import { FeedSubscription } from './FeedSubscription.js';
 
 dotenv.config({
   path: [
@@ -92,6 +93,7 @@ const main = async () => {
     santaAccountDid
   );
   playerService.addListener(subscription.playersChanged.bind(subscription));
+  const feedSubscription = new FeedSubscription(db);
 
   await db
     .updateTable('player')
@@ -111,6 +113,7 @@ const main = async () => {
       fullScopeHandles: new Set(
         [santaHandle, robotHandle].map((s) => s.toLowerCase())
       ),
+      santaAccountDid,
       santaAgent,
       robotAgent,
       settingsChanged: async (settings) =>
@@ -118,6 +121,7 @@ const main = async () => {
           playerService.settingsChanged(settings),
           nudgeSender.settingsChanged(settings),
           dmSender.settingsChanged(settings),
+          feedSubscription.settingsChanged(settings),
         ]),
       didResolver,
     }
@@ -131,6 +135,7 @@ const main = async () => {
   });
 
   subscription.start();
+  feedSubscription.start();
 };
 
 main().catch((e) => {

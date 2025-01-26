@@ -11,6 +11,8 @@
   <%- include('../partials/input-checkbox.ejs', {id: 'send_messages', label: 'Send nudges & DMs', xModel: 'send_messages'}); %>
   <%- include('../partials/input-text.ejs', {id: 'nudge_rate', label: 'Nudge rate', placeholder: '', xModel: 'nudge_rate'}); %>
   <%- include('../partials/input-text.ejs', {id: 'dm_rate', label: 'DM rate', placeholder: '', xModel: 'dm_rate'}); %>
+  <%- include('../partials/input-checkbox.ejs', {id: 'feed_player_only', label: 'Only show players in feeds', xModel: 'feed_player_only'}); %>
+  <%- include('../partials/input-text.ejs', {id: 'feed_max_distance_from_tag', label: 'Feed - Max distance from tag', placeholder: '', xModel: 'feed_max_distance_from_tag', input_type: 'number'}); %>
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
   <%- include('../partials/activity-spinner.ejs') %>
   <input type="submit" name="save" value="Save" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />

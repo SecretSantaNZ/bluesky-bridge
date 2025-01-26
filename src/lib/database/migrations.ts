@@ -928,3 +928,74 @@ migrations['008'] = {
     await db.schema.alterTable('tracking').dropColumn('deactivated').execute();
   },
 };
+
+migrations['009'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .createTable('post')
+      .addColumn('uri', 'varchar', (col) => col.primaryKey())
+      .addColumn('author', 'varchar', (col) => col.notNull())
+      .addColumn('replyParent', 'varchar')
+      .addColumn('replyParentAuthor', 'varchar')
+      .addColumn('indexedAt', 'varchar')
+      .addColumn('time_us', 'numeric', (col) => col.notNull())
+      .addColumn('hasHashtag', 'int2', (col) => col.notNull())
+      .addColumn('byPlayer', 'int2', (col) => col.notNull())
+      .addColumn('distanceFromHashtag', 'numeric', (col) => col.notNull())
+      .addColumn('distanceFromPlayerWithHashtag', 'numeric', (col) =>
+        col.notNull()
+      )
+      .addColumn('rootByPlayerWithHashtag', 'numeric', (col) => col.notNull())
+      .execute();
+
+    await db.schema
+      .createIndex('idx_post_indexedAt_distanceFromHashtag')
+      .on('post')
+      .columns(['indexedAt', 'distanceFromHashtag'])
+      .execute();
+
+    await db.schema
+      .createIndex('idx_post_indexedAt_distanceFromPlayerWithHashtag')
+      .on('post')
+      .columns(['indexedAt', 'distanceFromPlayerWithHashtag'])
+      .execute();
+
+    await db.schema
+      .createIndex('idx_post_time_us')
+      .on('post')
+      .columns(['indexedAt', 'time_us'])
+      .execute();
+
+    await db.schema
+      .alterTable('settings')
+      .addColumn('feed_player_only', 'int2', (col) =>
+        col.notNull().defaultTo(0)
+      )
+      .execute();
+
+    await db.schema
+      .alterTable('settings')
+      .addColumn('feed_max_distance_from_tag', 'numeric', (col) =>
+        col.notNull().defaultTo(4)
+      )
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('feed_player_only')
+      .execute();
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('feed_max_distance_from_tag')
+      .execute();
+    await db.schema
+      .dropIndex('idx_post_indexedAt_distanceFromHashtag')
+      .execute();
+    await db.schema
+      .dropIndex('idx_post_indexedAt_distanceFromPlayerWithHashtag')
+      .execute();
+    await db.schema.dropIndex('idx_post_time_us').execute();
+    await db.schema.dropTable('post').execute();
+  },
+};

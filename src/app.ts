@@ -29,6 +29,7 @@ import type { DidResolver } from '@atproto/identity';
 import type { Agent } from '@atproto/api';
 import { match } from './routes/match/index.js';
 import { nudge } from './routes/nudge/index.js';
+import { xrpc } from './routes/xrpc/index.js';
 import type { Settings } from './lib/database/schema.js';
 
 declare module 'fastify' {
@@ -45,6 +46,7 @@ declare module 'fastify' {
       db: Database;
       atOauthClient: NodeOAuthClient;
       fullScopeHandles: ReadonlySet<string>;
+      santaAccountDid: string;
       santaAgent: () => Promise<Agent>;
       robotAgent: () => Promise<Agent>;
       settingsChanged: (settings: Omit<Settings, 'id'>) => Promise<unknown>;
@@ -98,6 +100,7 @@ export const build = async (
   await app.register(nudge, { prefix: '/nudge' });
   await app.register(at_oauth);
   await app.register(view);
+  await app.register(xrpc);
   await app.register(publicContent);
 
   return app;

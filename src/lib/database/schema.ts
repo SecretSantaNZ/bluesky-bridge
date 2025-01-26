@@ -18,6 +18,7 @@ export interface DatabaseSchema {
   carrier: Carrier;
   tracking: Tracking;
   settings: Settings;
+  post: Post;
 }
 
 export interface JwtMacKey {
@@ -187,4 +188,23 @@ export interface Settings {
   dm_rate: string;
   auto_follow: number;
   send_messages: number;
+  feed_player_only: 0 | 1;
+  feed_max_distance_from_tag: number;
 }
+
+export type Post = {
+  uri: string;
+  author: string;
+  replyParent: string | null;
+  replyParentAuthor: string | null;
+  indexedAt: string;
+  time_us: number;
+
+  hasHashtag: 0 | 1;
+  byPlayer: 0 | 1;
+
+  distanceFromHashtag: number;
+  distanceFromPlayerWithHashtag: number;
+
+  rootByPlayerWithHashtag: 0 | 1;
+};

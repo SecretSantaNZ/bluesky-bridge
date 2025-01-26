@@ -16,6 +16,8 @@ const dataSchema = z.object({
   dm_rate: z.string(),
   auto_follow: z.coerce.boolean().optional(),
   send_messages: z.coerce.boolean().optional(),
+  feed_player_only: z.coerce.boolean().optional(),
+  feed_max_distance_from_tag: z.coerce.number(),
 });
 
 function toData(settings: Omit<Settings, 'id'>): z.infer<typeof dataSchema> {
@@ -24,6 +26,7 @@ function toData(settings: Omit<Settings, 'id'>): z.infer<typeof dataSchema> {
     signups_open: Boolean(settings.signups_open),
     auto_follow: Boolean(settings.auto_follow),
     send_messages: Boolean(settings.send_messages),
+    feed_player_only: Boolean(settings.feed_player_only),
   };
 }
 
@@ -60,6 +63,7 @@ export const settings: FastifyPluginAsync = async (rawApp) => {
         signups_open: request.body.signups_open ? 1 : 0,
         auto_follow: request.body.auto_follow ? 1 : 0,
         send_messages: request.body.send_messages ? 1 : 0,
+        feed_player_only: request.body.feed_player_only ? 1 : 0,
       };
       await db.updateTable('settings').set(updates).execute();
       await settingsChanged(updates);
