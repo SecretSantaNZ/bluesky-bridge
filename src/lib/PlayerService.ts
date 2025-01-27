@@ -520,7 +520,7 @@ export class PlayerService {
     await this.db.deleteFrom('tracking').execute();
     await this.db.deleteFrom('nudge').execute();
     await this.db.deleteFrom('match').execute();
-    await this.db.deleteFrom('player').where('admin', '<>', 1).execute();
+    await this.db.deleteFrom('player').execute();
   }
 
   addListener(listener: PlayersChangedListener) {
