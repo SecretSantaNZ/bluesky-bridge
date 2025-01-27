@@ -999,3 +999,25 @@ migrations['009'] = {
     await db.schema.dropTable('post').execute();
   },
 };
+
+migrations['010'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema.dropTable('auth_request').execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema
+      .createTable('auth_request')
+      .addColumn('request_id', 'varchar', (col) => col.primaryKey())
+      .addColumn('auth_code', 'varchar', (col) => col.notNull().unique())
+      .addColumn('auth_state', 'varchar', (col) =>
+        col.notNull().check(sql`auth_state in ('pending', 'authenticated')`)
+      )
+      .addColumn('client_id', 'varchar', (col) => col.notNull())
+      .addColumn('redirect_uri', 'varchar', (col) => col.notNull())
+      .addColumn('scope', 'varchar')
+      .addColumn('state', 'varchar', (col) => col.notNull())
+      .addColumn('user_did', 'varchar', (col) => col.notNull())
+      .addColumn('started_at', 'varchar', (col) => col.notNull())
+      .execute();
+  },
+};

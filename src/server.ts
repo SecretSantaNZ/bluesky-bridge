@@ -3,8 +3,6 @@ import dotenv from 'dotenv';
 import { DidResolver, MemoryCache } from '@atproto/identity';
 
 import { build } from './app.js';
-// import { Subscription } from './subscription.js';
-import { OauthSessionStore } from './lib/oauth.js';
 import { TokenManager } from './lib/TokenManager.js';
 import { createDb, migrateToLatest } from './lib/database/index.js';
 import { buildAtpClient, resolveHandle } from './bluesky.js';
@@ -35,13 +33,6 @@ const resolveEnsureElfHandles = async (): Promise<Array<string>> => {
 const main = async () => {
   const db = createDb();
   await migrateToLatest(db);
-
-  const oauthSessionStore = new OauthSessionStore(db);
-  oauthSessionStore.registerClient({
-    client_id: process.env.OAUTH_CLIENT_ID as string,
-    client_secret_hash: process.env.OAUTH_CLIENT_SECRET_HASH as string,
-    redirectUris: new Set([process.env.OAUTH_REDIRECT_URI as string]),
-  });
 
   const tokenIssuer = process.env.TOKEN_ISSUER as string;
   const returnTokenManager = new TokenManager<{ returnUrl: string }>(
@@ -104,7 +95,6 @@ const main = async () => {
   const app = await build(
     { logger: true },
     {
-      oauthSessionStore,
       returnTokenManager,
       authTokenManager,
       playerService,

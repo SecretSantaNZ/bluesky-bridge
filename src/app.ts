@@ -12,14 +12,11 @@ import fastifyCookie from '@fastify/cookie';
 import fastifyStatic from '@fastify/static';
 import ejs from 'ejs';
 
-import type { OauthSessionStore } from './lib/oauth.js';
 import type { TokenManager } from './lib/TokenManager.js';
 
 import { action } from './routes/action/index.js';
-import { sync } from './routes/sync/index.js';
 import { view } from './routes/view/index.js';
 import { publicContent } from './routes/public/index.js';
-import { bsky } from './routes/bsky/index.js';
 import { player } from './routes/player/index.js';
 import type { Database } from './lib/database/index.js';
 import type { PlayerService } from './lib/PlayerService.js';
@@ -35,7 +32,6 @@ import type { Settings } from './lib/database/schema.js';
 declare module 'fastify' {
   export interface FastifyInstance {
     blueskyBridge: {
-      oauthSessionStore: OauthSessionStore;
       returnTokenManager: TokenManager<{ returnUrl: string }>;
       authTokenManager: TokenManager<{
         csrfToken: string;
@@ -93,8 +89,6 @@ export const build = async (
   app.setSerializerCompiler(serializerCompiler);
 
   await app.register(action, { prefix: '/action' });
-  await app.register(sync, { prefix: '/sync' });
-  await app.register(bsky, { prefix: '/bsky' });
   await app.register(player, { prefix: '/player' });
   await app.register(match, { prefix: '/match' });
   await app.register(nudge, { prefix: '/nudge' });

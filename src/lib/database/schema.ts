@@ -5,7 +5,6 @@ export interface DatabaseSchema {
   jwk_key: JwkKey;
   at_oauth_state: AtOauthState;
   at_oauth_session: AtOauthSession;
-  auth_request: AuthRequest;
   message: Message;
   player: Player;
   match: Match;
@@ -44,18 +43,6 @@ export interface AtOauthSession {
   key: string;
   data: string;
   created_at: string;
-}
-
-export interface AuthRequest {
-  request_id: string;
-  auth_code: string;
-  auth_state: 'pending' | 'authenticated';
-  client_id: string;
-  redirect_uri: string;
-  scope?: string;
-  state: string;
-  user_did: string;
-  started_at: string;
 }
 
 export interface Message {
