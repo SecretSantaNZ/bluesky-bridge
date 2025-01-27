@@ -1003,6 +1003,26 @@ migrations['009'] = {
 migrations['010'] = {
   async up(db: Kysely<unknown>) {
     await db.schema.dropTable('auth_request').execute();
+
+    const signoffResult = await (db as Database)
+      .insertInto('nudge_signoff')
+      .values({
+        text: 'Oh, and what is your favourite colour?',
+      })
+      .executeTakeFirst();
+
+    const hintTypeId = await (db as Database)
+      .selectFrom('nudge_type')
+      .select('id')
+      .where('name', '=', 'Hint')
+      .executeTakeFirstOrThrow();
+    await (db as Database)
+      .insertInto('nudge_type_signoff')
+      .values({
+        signoff: Number(signoffResult.insertId!),
+        nudge_type: hintTypeId.id,
+      })
+      .execute();
   },
   async down(db: Kysely<unknown>) {
     await db.schema
