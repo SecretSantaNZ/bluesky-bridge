@@ -1,0 +1,18 @@
+<form hx-post="/atproto-login" id="login" hx-swap="none">
+  <div class="space-y-8">
+    <h1>Login</h1>
+    <%- include('../partials/input-text.ejs', {id: 'handle', name: 'handle', label: 'Handle', placeholder: 'secretsantanz.bsky.social', xModel: 'term', attributes: {
+      autocomplete: 'false',
+    }}); %>
+    <div class="mt-2">
+      You will be sent to your mastodon instance to login with your mastodon password.
+    </div>
+    <%- include('../partials/error.ejs', { elementId: 'login-error' }) %>
+    <input type="hidden" name="mode" x-bind:value="mode"/>
+    <div class="flex justify-center items-center">
+      <div class="flex-grow"></div>
+      <%- include('../partials/activity-spinner.ejs') %>
+      <input type="submit" name="login" value="Login" class="w-full rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+    </div>
+  </div>
+</form>
