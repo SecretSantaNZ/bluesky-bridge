@@ -19,6 +19,7 @@ Environment=TOKEN_ISSUER={{ inventory_hostname }}
 Environment=PUBLIC_BASE_URL=https://{{ inventory_hostname }}
 Environment=NEW_RELIC_APP_NAME={{ service_name }}
 Environment=NEW_RELIC_LICENSE_KEY={{ new_relic_license_key }}
+Environment=NEW_RELIC_LOG=stdout
 
 LoadCredentialEncrypted={{ service_name }}-creds:/home/{{ service_name }}/{{ service_name }}-creds.cred
 
