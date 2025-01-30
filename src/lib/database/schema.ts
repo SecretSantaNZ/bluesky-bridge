@@ -5,6 +5,7 @@ export interface DatabaseSchema {
   jwk_key: JwkKey;
   at_oauth_state: AtOauthState;
   at_oauth_session: AtOauthSession;
+  mastodon_client: MastodonClient;
   message: Message;
   player: Player;
   match: Match;
@@ -194,4 +195,10 @@ export type Post = {
   distanceFromPlayerWithHashtag: number;
 
   rootByPlayerWithHashtag: 0 | 1;
+};
+
+export type MastodonClient = {
+  instance: string;
+  client_id: string;
+  client_secret: string;
 };

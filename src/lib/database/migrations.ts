@@ -1041,3 +1041,17 @@ migrations['010'] = {
       .execute();
   },
 };
+
+migrations['011'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .createTable('mastodon_client')
+      .addColumn('instance', 'varchar', (col) => col.primaryKey())
+      .addColumn('client_id', 'varchar', (col) => col.notNull())
+      .addColumn('client_secret', 'varchar', (col) => col.notNull())
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.dropTable('mastodon_client').execute();
+  },
+};
