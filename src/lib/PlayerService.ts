@@ -251,6 +251,7 @@ export class PlayerService {
 
   async createPlayer(
     player_did: string,
+    player_type: 'bluesky' | 'mastodon',
     attributes: Partial<InsertObject<DatabaseSchema, 'player'>> = {}
   ): Promise<Player> {
     const [{ data: profile }, { relationships }] = await Promise.all([
@@ -278,6 +279,7 @@ export class PlayerService {
       opted_out: null,
       booted: null,
       admin: this.ensureElfDids.has(player_did) ? 1 : 0,
+      player_type,
       ...attributes,
     };
 
@@ -286,10 +288,11 @@ export class PlayerService {
       .values(player)
       .onConflict((oc) =>
         oc.column('did').doUpdateSet((eb) => ({
-          // handle: eb.ref('excluded.handle'),
+          handle: eb.ref('excluded.handle'),
           avatar_url: eb.ref('excluded.avatar_url'),
-          // following_santa_uri: eb.ref('excluded.following_santa_uri'),
+          following_santa_uri: eb.ref('excluded.following_santa_uri'),
           santa_following_uri: eb.ref('excluded.santa_following_uri'),
+          player_type: eb.ref('excluded.player_type'),
         }))
       )
       .returningAll()

@@ -19,6 +19,7 @@ export interface DatabaseSchema {
   tracking: Tracking;
   settings: Settings;
   post: Post;
+  mastodon_token: MastodonToken;
 }
 
 export interface JwtMacKey {
@@ -84,6 +85,12 @@ export interface Player {
   >;
   next_player_dm_after: Generated<string | null>;
   player_dm_status: Generated<'queued' | 'sent' | `error: ${string}`>;
+  player_type: 'bluesky' | 'mastodon';
+  mastodon_account: Generated<string | null>;
+  mastodon_id: Generated<string | null>;
+  mastodon_following_santa: Generated<null | 0 | 1>;
+  mastodon_followed_by_santa: Generated<null | 0 | 1>;
+  mastodon_follow_last_checked: Generated<null | string>;
 }
 
 export interface Match {
@@ -201,4 +208,11 @@ export type MastodonClient = {
   instance: string;
   client_id: string;
   client_secret: string;
+};
+
+export type MastodonToken = {
+  account: string;
+  token: string;
+  client_id: string;
+  issued_at: string;
 };

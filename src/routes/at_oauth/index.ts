@@ -61,6 +61,7 @@ export async function finishLogin(
   request: FastifyRequest,
   reply: FastifyReply,
   blueskyBridge: FastifyInstance['blueskyBridge'],
+  player_type: 'bluesky' | 'mastodon',
   stateRecord: { data: string } | undefined,
   process: () => Promise<string>
 ) {
@@ -81,7 +82,7 @@ export async function finishLogin(
 
     let player: Player | undefined;
     if (settings.signups_open || playerService.ensureElfDids.has(did)) {
-      player = await playerService.createPlayer(did);
+      player = await playerService.createPlayer(did, player_type);
     } else {
       player = await playerService.getPlayer(did);
     }
@@ -165,6 +166,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       request,
       reply,
       app.blueskyBridge,
+      'bluesky',
       retrievedState,
       async () => {
         const { session } =

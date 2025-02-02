@@ -152,55 +152,63 @@ export const mastodon: FastifyPluginAsync = async (rawApp) => {
         .returningAll()
         .where('key', '=', request.query.state)
         .executeTakeFirstOrThrow();
-      return finishLogin(request, reply, app.blueskyBridge, state, async () => {
-        const { pkceVerifier, instance } = JSON.parse(state.data);
+      return finishLogin(
+        request,
+        reply,
+        app.blueskyBridge,
+        'mastodon',
+        state,
+        async () => {
+          const { pkceVerifier, instance } = JSON.parse(state.data);
 
-        const tokenUrl = new URL('/oauth/token', `https://${instance}`).href;
+          const tokenUrl = new URL('/oauth/token', `https://${instance}`).href;
 
-        const baseUrl = process.env.PUBLIC_BASE_URL as string;
-        const redirectUri = `${baseUrl}/mastodon/callback`;
+          const baseUrl = process.env.PUBLIC_BASE_URL as string;
+          const redirectUri = `${baseUrl}/mastodon/callback`;
 
-        const client = await db
-          .selectFrom('mastodon_client')
-          .selectAll()
-          .where('instance', '=', instance)
-          .executeTakeFirstOrThrow();
+          const client = await db
+            .selectFrom('mastodon_client')
+            .selectAll()
+            .where('instance', '=', instance)
+            .executeTakeFirstOrThrow();
 
-        const { access_token } = tokenResponseSchema.parse(
-          await w
-            .url(tokenUrl)
-            .formData({
-              grant_type: 'authorization_code',
-              code: request.query.code,
-              client_id: client.client_id,
-              client_secret: client.client_secret,
-              redirect_uri: redirectUri,
-              code_verifier: pkceVerifier,
-            })
-            .post()
-            .json()
-        );
+          const { access_token } = tokenResponseSchema.parse(
+            await w
+              .url(tokenUrl)
+              .formData({
+                grant_type: 'authorization_code',
+                code: request.query.code,
+                client_id: client.client_id,
+                client_secret: client.client_secret,
+                redirect_uri: redirectUri,
+                code_verifier: pkceVerifier,
+              })
+              .post()
+              .json()
+          );
 
-        const verifyUrl = new URL(
-          '/api/v1/accounts/verify_credentials',
-          `https://${instance}`
-        ).href;
-        const { username } = mastoUserSchema.parse(
-          await w
-            .headers({
-              Authorization: `Bearer ${access_token}`,
-            })
-            .get(verifyUrl)
-            .json()
-        );
-        // FIXME handle errors for can't resolve and similar
-        const bridgyUsername = username.replace(/[_~]/g, '-');
-        const bskyHandle = `${bridgyUsername}.${instance}.ap.brid.gy`;
-        const response = await unauthenticatedAgent.resolveHandle({
-          handle: bskyHandle,
-        });
-        return response.data.did;
-      });
+          const verifyUrl = new URL(
+            '/api/v1/accounts/verify_credentials',
+            `https://${instance}`
+          ).href;
+          const { username } = mastoUserSchema.parse(
+            await w
+              .headers({
+                Authorization: `Bearer ${access_token}`,
+              })
+              .get(verifyUrl)
+              .json()
+          );
+          // FIXME handle errors for can't resolve and similar
+          const bridgyUsername = username.replace(/[_~]/g, '-');
+          const bskyHandle = `${bridgyUsername}.${instance}.ap.brid.gy`;
+          const response = await unauthenticatedAgent.resolveHandle({
+            handle: bskyHandle,
+          });
+
+          return response.data.did;
+        }
+      );
     }
   );
 };

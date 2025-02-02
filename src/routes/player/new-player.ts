@@ -26,12 +26,16 @@ export const newPlayer: FastifyPluginAsync = async (rawApp) => {
         handle: request.body.handle,
       });
       const playerDid = resolveHandleResult.data.did;
-      await playerService.createPlayer(playerDid, {
-        address: request.body.address || null,
-        delivery_instructions: request.body.delivery_instructions || null,
-        game_mode: 'Regular',
-        max_giftees: 1,
-      });
+      await playerService.createPlayer(
+        playerDid,
+        request.body.handle.endsWith('.ap.brid.gy') ? 'mastodon' : 'bluesky',
+        {
+          address: request.body.address || null,
+          delivery_instructions: request.body.delivery_instructions || null,
+          game_mode: 'Regular',
+          max_giftees: 1,
+        }
+      );
 
       const updatedPlayer = await db
         .selectFrom('player')
