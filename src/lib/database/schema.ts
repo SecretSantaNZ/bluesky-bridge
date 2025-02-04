@@ -212,6 +212,7 @@ export type MastodonClient = {
 
 export type MastodonToken = {
   account: string;
+  mastodon_id: string;
   token: string;
   client_id: string;
   issued_at: string;

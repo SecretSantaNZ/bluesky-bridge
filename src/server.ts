@@ -57,6 +57,7 @@ const main = async () => {
   ]);
   const santaHandle = process.env.SANTA_BLUESKY_HANDLE as string;
   const robotHandle = process.env.ROBOT_BLUESKY_HANDLE as string;
+  const santaMastodonHandle = process.env.SANTA_MASTODON_HANDLE as string;
   const [[santaAgent, santaAccountDid], [robotAgent], ensureElfDids] =
     await Promise.all([
       buildAtpClient(atOauthClient, santaHandle),
@@ -76,7 +77,8 @@ const main = async () => {
     santaAgent,
     santaAccountDid,
     dmSender,
-    new Set(ensureElfDids)
+    new Set(ensureElfDids),
+    santaMastodonHandle
   );
   const subscription = new FirehoseSubscription(
     db,

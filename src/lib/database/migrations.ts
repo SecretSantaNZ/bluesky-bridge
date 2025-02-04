@@ -1054,6 +1054,7 @@ migrations['011'] = {
     await db.schema
       .createTable('mastodon_token')
       .addColumn('account', 'varchar', (col) => col.primaryKey())
+      .addColumn('mastodon_id', 'varchar', (col) => col.notNull())
       .addColumn('token', 'varchar', (col) => col.notNull())
       .addColumn('client_id', 'varchar', (col) => col.notNull())
       .addColumn('issued_at', 'varchar', (col) => col.notNull())

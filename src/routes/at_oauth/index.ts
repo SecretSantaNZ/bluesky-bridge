@@ -12,6 +12,8 @@ import { addHours, addSeconds, isBefore } from 'date-fns';
 import type { Player } from '../../lib/PlayerService.js';
 import { returnLoginView } from '../view/index.js';
 import { startMastodonOauth } from '../mastodon/index.js';
+import type { DatabaseSchema } from '../../lib/database/schema.js';
+import type { InsertObject } from 'kysely';
 
 async function startAtOauth(
   request: FastifyRequest,
@@ -63,7 +65,10 @@ export async function finishLogin(
   blueskyBridge: FastifyInstance['blueskyBridge'],
   player_type: 'bluesky' | 'mastodon',
   stateRecord: { data: string } | undefined,
-  process: () => Promise<string>
+  process: () => Promise<{
+    did: string;
+    attributes: Partial<InsertObject<DatabaseSchema, 'player'>>;
+  }>
 ) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const state: any = stateRecord == null ? {} : JSON.parse(stateRecord.data);
@@ -73,7 +78,7 @@ export async function finishLogin(
   const { returnUrl } = appState;
   try {
     const { playerService, db, didResolver } = blueskyBridge;
-    const did = await process();
+    const { did, attributes } = await process();
 
     const settings = await db
       .selectFrom('settings')
@@ -82,7 +87,7 @@ export async function finishLogin(
 
     let player: Player | undefined;
     if (settings.signups_open || playerService.ensureElfDids.has(did)) {
-      player = await playerService.createPlayer(did, player_type);
+      player = await playerService.createPlayer(did, player_type, attributes);
     } else {
       player = await playerService.getPlayer(did);
     }
@@ -171,7 +176,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       async () => {
         const { session } =
           await app.blueskyBridge.atOauthClient.callback(params);
-        return session.did;
+        return { did: session.did, attributes: {} };
       }
     );
   });

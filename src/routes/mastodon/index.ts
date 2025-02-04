@@ -49,7 +49,9 @@ export async function startMastodonOauth(
   returnToken: string,
   mode: string
 ) {
-  const { db } = blueskyBridge;
+  const baseUrl = process.env.PUBLIC_BASE_URL as string;
+  const redirectUri = `${baseUrl}/mastodon/callback`;
+  const { db, playerService } = blueskyBridge;
   const handle = rawHandle
     .replace(/^@/, '')
     .replace(/^https:\/\//, '')
@@ -59,18 +61,27 @@ export async function startMastodonOauth(
   if (instance == null) {
     throw new BadRequestError('Cannot parse instance');
   }
-  const baseUrl = process.env.PUBLIC_BASE_URL as string;
-  const redirectUri = `${baseUrl}/mastodon/callback`;
 
   const {
     subject: requestId,
     data: { returnUrl },
   } = await blueskyBridge.returnTokenManager.validateToken(returnToken);
 
+  let clientKey = instance;
+  let client_name = baseUrl;
+  let scopes = 'profile';
+  if (
+    handle.toLowerCase() === playerService.santaMastodonHandle.toLowerCase()
+  ) {
+    clientKey = instance + ':full-access';
+    client_name = baseUrl + ' - full-access';
+    scopes = 'read write profile';
+  }
+
   let client = await db
     .selectFrom('mastodon_client')
     .selectAll()
-    .where('instance', '=', instance)
+    .where('instance', '=', clientKey)
     .executeTakeFirst();
   if (client == null) {
     const registerUrl = new URL('/api/v1/apps', `https://${instance}`).href;
@@ -78,9 +89,9 @@ export async function startMastodonOauth(
       await w
         .post(
           {
-            client_name: baseUrl,
+            client_name,
             redirect_uris: [redirectUri],
-            scopes: 'read write profile',
+            scopes,
             website: baseUrl,
           },
           registerUrl
@@ -124,7 +135,7 @@ export async function startMastodonOauth(
   authorizeUrl.searchParams.set('response_type', 'code');
   authorizeUrl.searchParams.set('client_id', client.client_id);
   authorizeUrl.searchParams.set('redirect_uri', redirectUri);
-  authorizeUrl.searchParams.set('scope', 'profile');
+  authorizeUrl.searchParams.set('scope', scopes);
   authorizeUrl.searchParams.set('state', stateKey);
   authorizeUrl.searchParams.set('code_challenge', pkceChallange);
   authorizeUrl.searchParams.set('code_challenge_method', 'S256');
@@ -146,7 +157,7 @@ export const mastodon: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function (request, reply) {
-      const { db } = rawApp.blueskyBridge;
+      const { db, playerService } = rawApp.blueskyBridge;
       const state = await db
         .deleteFrom('at_oauth_state')
         .returningAll()
@@ -172,7 +183,7 @@ export const mastodon: FastifyPluginAsync = async (rawApp) => {
             .where('instance', '=', instance)
             .executeTakeFirstOrThrow();
 
-          const { access_token } = tokenResponseSchema.parse(
+          const { access_token, created_at } = tokenResponseSchema.parse(
             await w
               .url(tokenUrl)
               .formData({
@@ -191,7 +202,7 @@ export const mastodon: FastifyPluginAsync = async (rawApp) => {
             '/api/v1/accounts/verify_credentials',
             `https://${instance}`
           ).href;
-          const { username } = mastoUserSchema.parse(
+          const { id: id_from_user, username } = mastoUserSchema.parse(
             await w
               .headers({
                 Authorization: `Bearer ${access_token}`,
@@ -199,14 +210,47 @@ export const mastodon: FastifyPluginAsync = async (rawApp) => {
               .get(verifyUrl)
               .json()
           );
+          const mastodon_account = `${username}@${instance}`;
+          const santaMastodonHandle = playerService.santaMastodonHandle;
+          if (
+            mastodon_account.toLowerCase() === santaMastodonHandle.toLowerCase()
+          ) {
+            await this.blueskyBridge.db
+              .insertInto('mastodon_token')
+              .values({
+                account: santaMastodonHandle,
+                client_id: client.client_id,
+                mastodon_id: id_from_user,
+                token: access_token,
+                issued_at: new Date(created_at * 1000).toISOString(),
+              })
+              .onConflict((cb) =>
+                cb.doUpdateSet({
+                  client_id: client.client_id,
+                  token: access_token,
+                  issued_at: new Date(created_at * 1000).toISOString(),
+                })
+              )
+              .execute();
+          }
+
+          const following =
+            await playerService.lookupMastodonFollowing(mastodon_account);
+
           // FIXME handle errors for can't resolve and similar
-          const bridgyUsername = username.replace(/[_~]/g, '-');
-          const bskyHandle = `${bridgyUsername}.${instance}.ap.brid.gy`;
+          const bskyHandle = `${mastodon_account.replace(/[_~]/g, '-').replace('@', '.')}.ap.brid.gy`;
           const response = await unauthenticatedAgent.resolveHandle({
             handle: bskyHandle,
           });
 
-          return response.data.did;
+
+          return {
+            did: response.data.did,
+            attributes: {
+              mastodon_account,
+              ...following,
+            },
+          };
         }
       );
     }

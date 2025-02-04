@@ -9,6 +9,9 @@ import { unauthenticatedAgent } from '../bluesky.js';
 import { queryFullMatch, type Database } from './database/index.js';
 import fetch from 'node-fetch';
 import { InternalServerError } from 'http-errors-enhanced';
+import { safeFetchWrap } from '@atproto-labs/fetch-node';
+import wretch from 'wretch';
+import FormDataAddon from 'wretch/addons/formData';
 
 import type {
   DatabaseSchema,
@@ -18,6 +21,7 @@ import type {
 import ms from 'ms';
 import type { InsertObject, SelectType } from 'kysely';
 import type { DmSender } from './DmSender.js';
+import { z } from 'zod';
 
 type SelectedPlayer = {
   [K in keyof DbPlayer]: SelectType<DbPlayer[K]>;
@@ -40,6 +44,15 @@ export type Player = Omit<
   address_review_required: boolean;
   opted_out: boolean;
 };
+
+const w = wretch()
+  .polyfills({
+    fetch: safeFetchWrap(),
+  })
+  .addon(FormDataAddon)
+  .options({
+    redirect: 'error',
+  });
 
 const dbPlayerToPlayer = (dbPlayer: SelectedPlayer): Player => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -133,13 +146,15 @@ export class PlayerService {
     giftee_for_count: number;
   }>;
   private autoFollowIntervalHandle?: ReturnType<typeof setInterval>;
+  private santaMastodonInstance: string;
 
   constructor(
     private readonly db: Database,
     private readonly santaAgent: () => Promise<Agent>,
     private readonly santaAccountDid: string,
     private readonly dmSender: DmSender,
-    public readonly ensureElfDids: ReadonlySet<string>
+    public readonly ensureElfDids: ReadonlySet<string>,
+    public readonly santaMastodonHandle: string
   ) {
     this.followingChangedWebhook = buildWebhookNotifier(
       process.env.FOLLOWING_CHANGED_WEBHOOK,
@@ -153,6 +168,7 @@ export class PlayerService {
       process.env.OPTED_OUT_WEBHOOK,
       'opted out'
     );
+    this.santaMastodonInstance = santaMastodonHandle.split('@').pop() as string;
 
     this.init();
   }
@@ -528,5 +544,71 @@ export class PlayerService {
 
   addListener(listener: PlayersChangedListener) {
     this.listeners.push(listener);
+  }
+
+  async lookupMastodonFollowing(
+    mastodon_account: string
+  ): Promise<
+    Pick<
+      InsertObject<DatabaseSchema, 'player'>,
+      | 'mastodon_id'
+      | 'mastodon_followed_by_santa'
+      | 'mastodon_following_santa'
+      | 'mastodon_follow_last_checked'
+    >
+  > {
+    const santaToken = await this.db
+      .selectFrom('mastodon_token')
+      .selectAll()
+      .where('account', '=', this.santaMastodonHandle)
+      .executeTakeFirstOrThrow();
+
+    if (mastodon_account === this.santaMastodonHandle) {
+      return {
+        mastodon_id: santaToken.mastodon_id,
+        mastodon_following_santa: 1,
+        mastodon_followed_by_santa: 1,
+        mastodon_follow_last_checked: '9999-12-30T23:59:59.999Z',
+      };
+    } else {
+      const lookupUrl = new URL(
+        '/api/v1/accounts/lookup',
+        `https://${this.santaMastodonInstance}`
+      );
+      lookupUrl.searchParams.set('acct', mastodon_account);
+      const { id: mastodon_id } = z
+        .object({ id: z.string() })
+        .parse(await w.get(lookupUrl.href).json());
+
+      const relationshipsUrl = new URL(
+        '/api/v1/accounts/relationships',
+        `https://${this.santaMastodonInstance}`
+      );
+      relationshipsUrl.searchParams.append('id[]', mastodon_id);
+
+      const relationships = z
+        .array(
+          z.object({
+            id: z.string(),
+            following: z.boolean(),
+            followed_by: z.boolean(),
+            requested: z.boolean(),
+          })
+        )
+        .parse(
+          await w
+            .headers({
+              Authorization: `Bearer ${santaToken.token}`,
+            })
+            .get(relationshipsUrl.href)
+            .json()
+        );
+      return {
+        mastodon_id,
+        mastodon_following_santa: relationships[0]?.following ? 1 : 0,
+        mastodon_followed_by_santa: relationships[0]?.followed_by ? 1 : 0,
+        mastodon_follow_last_checked: new Date().toISOString(),
+      };
+    }
   }
 }
