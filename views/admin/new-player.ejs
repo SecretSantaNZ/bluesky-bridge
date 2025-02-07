@@ -1,6 +1,10 @@
 <form hx-post="/player/new-player" hx-swap="none" id="new-player" @ss-address-changed="modalData.address = $event.detail.address;">
   <div class="space-y-8">
     <h1>Add player</h1>
+    <%- include('../partials/drop-down.ejs', {id: 'player_type', xModel: 'modalData.player_type', label: 'Player type', options: [
+      {id: 'bluesky', text: 'Bluesky'},
+      {id: 'mastodon', text: 'Mastodon'},
+    ]}); %>
     <div>
       <%- include('../partials/input-text.ejs', {id: 'new_player_handle', name: 'handle', label: 'Handle', placeholder: 'coolplayer.bsky.social', xModel: 'modalData.term', attributes: {
         list: 'new_player_handles',
