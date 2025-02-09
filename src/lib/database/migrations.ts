@@ -1128,3 +1128,44 @@ migrations['011'] = {
     await db.schema.dropTable('mastodon_client').execute();
   },
 };
+
+migrations['012'] = {
+  async up(db: Kysely<unknown>) {
+    await sql`drop trigger player_update_signup_complete`.execute(db);
+    await sql`
+      create trigger player_update_signup_complete after update of profile_complete, following_santa_uri, opted_out, booted, player_dm_status, player_type, mastodon_following_santa on player for each row begin
+        update player set signup_complete = 1 where id = new.id and (
+          new.profile_complete = 1
+          and new.following_santa_uri is not null
+          and new.opted_out is null
+          and new.booted is null
+          and new.player_dm_status NOT LIKE 'error:%'
+          and (player_type <> 'mastodon> or mastodon_following_santa = 1)
+        ) and old.signup_complete = 0;
+        update player set signup_complete = 0 where id = new.id and not (
+          new.profile_complete = 1
+          and new.following_santa_uri is not null
+          and new.opted_out is null
+          and new.booted is null
+          and new.player_dm_status NOT LIKE 'error:%'
+          and (player_type <> 'mastodon> or mastodon_following_santa = 1)
+        ) and old.signup_complete = 1;
+
+        update player set deactivated = 0 where id = new.id and new.opted_out is null and new.booted is null and old.deactivated = 1;
+        update player set deactivated = 1 where id = new.id and not (new.opted_out is null and new.booted is null) and old.deactivated = 0;
+      end;
+    `.execute(db);
+  },
+  async down(db: Kysely<unknown>) {
+    await sql`drop trigger player_update_signup_complete`.execute(db);
+    await sql`
+      create trigger player_update_signup_complete after update of profile_complete, following_santa_uri, opted_out, booted, player_dm_status on player for each row begin
+        update player set signup_complete = 1 where id = new.id and new.profile_complete = 1 and new.following_santa_uri is not null and new.opted_out is null and new.booted is null and new.player_dm_status NOT LIKE 'error:%' and old.signup_complete = 0;
+        update player set signup_complete = 0 where id = new.id and not (new.profile_complete = 1 and new.following_santa_uri is not null and new.opted_out is null and new.booted is null and new.player_dm_status NOT LIKE 'error:%') and old.signup_complete = 1;
+
+        update player set deactivated = 0 where id = new.id and new.opted_out is null and new.booted is null and old.deactivated = 1;
+        update player set deactivated = 1 where id = new.id and not (new.opted_out is null and new.booted is null) and old.deactivated = 0;
+      end;
+    `.execute(db);
+  },
+};
