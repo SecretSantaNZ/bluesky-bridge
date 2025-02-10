@@ -201,7 +201,6 @@ export class PlayerService {
       .limit(4)
       .execute();
     console.log(`Found ${playersToFollow.length} players to follow`);
-
     for (const { did, handle } of playersToFollow) {
       try {
         console.log(`Following ${handle} (${did})`);
@@ -211,6 +210,7 @@ export class PlayerService {
         newrelic.recordCustomEvent('SecretSantaSantaAutoFollow', {
           playerDid: did,
           playerHandle: handle,
+          followType: 'bluesky',
           followUri: uri,
           santaDid: this.santaAccountDid,
         });
@@ -226,6 +226,57 @@ export class PlayerService {
           })
           .where('did', '=', did)
           .executeTakeFirst();
+      }
+    }
+
+    const [mastodonPlayersToFollow, santaToken] = await Promise.all([
+      this.db
+        .selectFrom('player')
+        .select(['did', 'handle', 'mastodon_account', 'mastodon_id'])
+        .where('player_type', '=', 'mastodon')
+        .where('mastodon_followed_by_santa', '=', 0)
+        .where('signup_complete', '=', 1)
+        .limit(4)
+        .execute(),
+      this.getSantaMastodonToken(),
+    ]);
+    console.log(
+      `Found ${mastodonPlayersToFollow.length} mastodon players to follow`
+    );
+    for (const {
+      did,
+      mastodon_account,
+      mastodon_id,
+    } of mastodonPlayersToFollow) {
+      try {
+        console.log(`Following @${mastodon_account} (${did})`);
+        await w
+          .auth(`Bearer ${santaToken.token}`)
+          .url(
+            new URL(
+              `/api/v1/accounts/${mastodon_id}/follow`,
+              `https://${this.santaMastodonInstance}`
+            ).href
+          )
+          .post()
+          .json();
+
+        newrelic.recordCustomEvent('SecretSantaSantaAutoFollow', {
+          playerDid: did,
+          playerHandle: mastodon_account ?? '',
+          followType: 'mastodon',
+        });
+        await this.db
+          .updateTable('player')
+          .set({ mastodon_followed_by_santa: 1 })
+          .where('did', '=', did)
+          .execute();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        console.error(error);
+        console.error(
+          `Error following @${mastodon_account} (${did}): ${error.message}`
+        );
       }
     }
   }
@@ -557,6 +608,16 @@ export class PlayerService {
     this.listeners.push(listener);
   }
 
+  async getSantaMastodonToken() {
+    const santaToken = await this.db
+      .selectFrom('mastodon_token')
+      .selectAll()
+      .where('account', '=', this.santaMastodonHandle)
+      .executeTakeFirstOrThrow();
+
+    return santaToken;
+  }
+
   async lookupMastodonFollowing(
     mastodon_account: string
   ): Promise<
@@ -568,11 +629,7 @@ export class PlayerService {
       | 'mastodon_follow_last_checked'
     >
   > {
-    const santaToken = await this.db
-      .selectFrom('mastodon_token')
-      .selectAll()
-      .where('account', '=', this.santaMastodonHandle)
-      .executeTakeFirstOrThrow();
+    const santaToken = await this.getSantaMastodonToken();
 
     if (mastodon_account === this.santaMastodonHandle) {
       return {
