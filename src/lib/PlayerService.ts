@@ -146,7 +146,6 @@ export class PlayerService {
     giftee_for_count: number;
   }>;
   private autoFollowIntervalHandle?: ReturnType<typeof setInterval>;
-  private santaMastodonInstance: string;
 
   constructor(
     private readonly db: Database,
@@ -154,7 +153,8 @@ export class PlayerService {
     private readonly santaAccountDid: string,
     private readonly dmSender: DmSender,
     public readonly ensureElfDids: ReadonlySet<string>,
-    public readonly santaMastodonHandle: string
+    public readonly santaMastodonHandle: string,
+    public readonly santaMastodonInstance: string
   ) {
     this.followingChangedWebhook = buildWebhookNotifier(
       process.env.FOLLOWING_CHANGED_WEBHOOK,
@@ -168,7 +168,6 @@ export class PlayerService {
       process.env.OPTED_OUT_WEBHOOK,
       'opted out'
     );
-    this.santaMastodonInstance = santaMastodonHandle.split('@').pop() as string;
 
     this.init();
   }

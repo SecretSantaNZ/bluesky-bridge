@@ -436,15 +436,14 @@ export class DmSender {
   private intervalId?: ReturnType<typeof setInterval>;
   private lastSettings?: Pick<Settings, 'dm_rate' | 'send_messages'>;
   private nextDmQueue = 0;
-  private santaMastodonInstance: string;
 
   constructor(
     private readonly db: Database,
     private readonly santaAgent: () => Promise<Agent>,
-    public readonly santaMastodonHandle: string
+    public readonly santaMastodonHandle: string,
+    public readonly santaMastodonInstance: string
   ) {
     this.init();
-    this.santaMastodonInstance = santaMastodonHandle.split('@').pop() as string;
   }
 
   private async init() {
