@@ -71,7 +71,7 @@ const main = async () => {
   });
 
   const nudgeSender = new NudgeSender(db, robotAgent);
-  const dmSender = new DmSender(db, santaAgent);
+  const dmSender = new DmSender(db, santaAgent, santaMastodonHandle);
   const playerService = new PlayerService(
     db,
     santaAgent,

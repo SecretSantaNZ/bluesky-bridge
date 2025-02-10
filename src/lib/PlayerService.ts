@@ -509,12 +509,16 @@ export class PlayerService {
       const matches = await queryFullMatch(this.db)
         .where('match.match_status', '<>', 'draft')
         .select('santa.did as santa_did')
+        .select('santa.player_type as santa_player_type')
+        .select('santa.mastodon_account as santa_mastodon_account')
         .where('match.giftee', '=', record.id)
         .execute();
       for (const match of matches) {
         const deets = {
           dmType: 'change-handle',
           recipientDid: match.santa_did,
+          playerType: match.santa_player_type,
+          recipientMastodonHandle: match.santa_mastodon_account ?? '',
           recordId: match.match_id,
           recipientHandle: match.santa_handle,
         };
