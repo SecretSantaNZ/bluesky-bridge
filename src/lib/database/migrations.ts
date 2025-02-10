@@ -1140,7 +1140,7 @@ migrations['012'] = {
           and new.opted_out is null
           and new.booted is null
           and new.player_dm_status NOT LIKE 'error:%'
-          and (player_type <> 'mastodon> or mastodon_following_santa = 1)
+          and (new.player_type <> 'mastodon' or new.mastodon_following_santa = 1)
         ) and old.signup_complete = 0;
         update player set signup_complete = 0 where id = new.id and not (
           new.profile_complete = 1
@@ -1148,7 +1148,7 @@ migrations['012'] = {
           and new.opted_out is null
           and new.booted is null
           and new.player_dm_status NOT LIKE 'error:%'
-          and (player_type <> 'mastodon> or mastodon_following_santa = 1)
+          and (new.player_type <> 'mastodon' or new.mastodon_following_santa = 1)
         ) and old.signup_complete = 1;
 
         update player set deactivated = 0 where id = new.id and new.opted_out is null and new.booted is null and old.deactivated = 1;

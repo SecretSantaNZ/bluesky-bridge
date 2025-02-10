@@ -244,10 +244,17 @@ export class PlayerService {
   async refreshFollowing(
     player_did: string
   ): Promise<SelectedPlayer | undefined> {
-    const { relationships } = await fetchRelationships(
-      this.santaAccountDid,
-      player_did
-    );
+    const { player_type, mastodon_account } = await this.db
+      .selectFrom('player')
+      .select(['player_type', 'mastodon_account'])
+      .where('did', '=', player_did)
+      .executeTakeFirstOrThrow();
+    const [{ relationships }, mastodonFollowing] = await Promise.all([
+      fetchRelationships(this.santaAccountDid, player_did),
+      player_type === 'mastodon'
+        ? this.lookupMastodonFollowing(mastodon_account as string)
+        : undefined,
+    ]);
     const relationship = AppBskyGraphDefs.isRelationship(relationships[0])
       ? relationships[0]
       : undefined;
@@ -257,6 +264,7 @@ export class PlayerService {
       .set({
         following_santa_uri: relationship?.followedBy ?? null,
         santa_following_uri: relationship?.following ?? null,
+        ...mastodonFollowing,
       })
       .where('did', '=', player_did)
       .returningAll()
@@ -550,7 +558,7 @@ export class PlayerService {
     mastodon_account: string
   ): Promise<
     Pick<
-      InsertObject<DatabaseSchema, 'player'>,
+      SelectedPlayer,
       | 'mastodon_id'
       | 'mastodon_followed_by_santa'
       | 'mastodon_following_santa'
@@ -603,10 +611,11 @@ export class PlayerService {
             .get(relationshipsUrl.href)
             .json()
         );
+
       return {
         mastodon_id,
-        mastodon_following_santa: relationships[0]?.following ? 1 : 0,
-        mastodon_followed_by_santa: relationships[0]?.followed_by ? 1 : 0,
+        mastodon_following_santa: relationships[0]?.followed_by ? 1 : 0,
+        mastodon_followed_by_santa: relationships[0]?.following ? 1 : 0,
         mastodon_follow_last_checked: new Date().toISOString(),
       };
     }

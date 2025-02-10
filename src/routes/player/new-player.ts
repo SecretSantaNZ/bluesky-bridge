@@ -56,6 +56,10 @@ export const newPlayer: FastifyPluginAsync = async (rawApp) => {
         ...additionalAttributes,
         address: request.body.address || null,
         delivery_instructions: request.body.delivery_instructions || null,
+      });
+      // Don't integrate this into the above create because the signup complete
+      // trigger only fires on an update
+      await playerService.patchPlayer(playerDid, {
         game_mode: 'Regular',
         max_giftees: 1,
       });
