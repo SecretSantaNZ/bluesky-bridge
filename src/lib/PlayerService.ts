@@ -45,6 +45,14 @@ export type Player = Omit<
   opted_out: boolean;
 };
 
+type MastodonRelationshipDetails = Pick<
+  SelectedPlayer,
+  | 'mastodon_id'
+  | 'mastodon_followed_by_santa'
+  | 'mastodon_following_santa'
+  | 'mastodon_follow_last_checked'
+>;
+
 const w = wretch()
   .polyfills({
     fetch: safeFetchWrap(),
@@ -178,6 +186,8 @@ export class PlayerService {
       .select('auto_follow')
       .executeTakeFirstOrThrow();
     await this.settingsChanged(settings);
+
+    setInterval(this.refreshMastodonFollowing.bind(this), ms('1 hour'));
   }
 
   async settingsChanged(settings: Pick<Settings, 'auto_follow'>) {
@@ -278,6 +288,36 @@ export class PlayerService {
           `Error following @${mastodon_account} (${did}): ${error.message}`
         );
       }
+    }
+  }
+
+  private async refreshMastodonFollowing() {
+    const playersToCheck = await this.db
+      .selectFrom('player')
+      .select(['did', 'mastodon_id'])
+      .where('player_type', '=', 'mastodon')
+      .where('mastodon_following_santa', '=', 0)
+      .where('deactivated', 'is', null)
+      .orderBy('mastodon_follow_last_checked asc')
+      .limit(25)
+      .execute();
+
+    const relationships = await this.queryMastodonRelationships(
+      ...playersToCheck.map((player) => player.mastodon_id as string)
+    );
+
+    for (const player of playersToCheck) {
+      const relationship = relationships[player.mastodon_id as string] ?? {
+        mastodon_id: player.mastodon_id,
+        mastodon_follow_last_checked: new Date().toISOString(),
+        mastodon_followed_by_santa: 0,
+        mastodon_following_santa: 0,
+      };
+      await this.db
+        .updateTable('player')
+        .set(relationship)
+        .where('did', '=', player.did)
+        .execute();
     }
   }
 
@@ -618,20 +658,57 @@ export class PlayerService {
     return santaToken;
   }
 
-  async lookupMastodonFollowing(
-    mastodon_account: string
-  ): Promise<
-    Pick<
-      SelectedPlayer,
-      | 'mastodon_id'
-      | 'mastodon_followed_by_santa'
-      | 'mastodon_following_santa'
-      | 'mastodon_follow_last_checked'
-    >
-  > {
+  async queryMastodonRelationships(
+    ...mastodonIds: Array<string>
+  ): Promise<Record<string, MastodonRelationshipDetails>> {
     const santaToken = await this.getSantaMastodonToken();
 
+    const relationshipsUrl = new URL(
+      '/api/v1/accounts/relationships',
+      `https://${this.santaMastodonInstance}`
+    );
+    for (const mastodon_id of mastodonIds) {
+      relationshipsUrl.searchParams.append('id[]', mastodon_id);
+    }
+
+    const relationships = z
+      .array(
+        z.object({
+          id: z.string(),
+          following: z.boolean(),
+          followed_by: z.boolean(),
+          requested: z.boolean(),
+        })
+      )
+      .parse(
+        await w
+          .headers({
+            Authorization: `Bearer ${santaToken.token}`,
+          })
+          .get(relationshipsUrl.href)
+          .json()
+      );
+
+    const now = new Date().toISOString();
+    return Object.fromEntries(
+      relationships
+        .map(
+          (relationship): MastodonRelationshipDetails => ({
+            mastodon_id: relationship.id,
+            mastodon_following_santa: relationship.followed_by ? 1 : 0,
+            mastodon_followed_by_santa: relationship.following ? 1 : 0,
+            mastodon_follow_last_checked: now,
+          })
+        )
+        .map((relationship) => [relationship.mastodon_id, relationship])
+    );
+  }
+
+  async lookupMastodonFollowing(
+    mastodon_account: string
+  ): Promise<MastodonRelationshipDetails> {
     if (mastodon_account === this.santaMastodonHandle) {
+      const santaToken = await this.getSantaMastodonToken();
       return {
         mastodon_id: santaToken.mastodon_id,
         mastodon_following_santa: 1,
@@ -648,36 +725,17 @@ export class PlayerService {
         .object({ id: z.string() })
         .parse(await w.get(lookupUrl.href).json());
 
-      const relationshipsUrl = new URL(
-        '/api/v1/accounts/relationships',
-        `https://${this.santaMastodonInstance}`
+      const relationships = await this.queryMastodonRelationships(mastodon_id);
+      const relationship = relationships[mastodon_id];
+
+      return (
+        relationship ?? {
+          mastodon_id,
+          mastodon_following_santa: 0,
+          mastodon_followed_by_santa: 0,
+          mastodon_follow_last_checked: new Date().toISOString(),
+        }
       );
-      relationshipsUrl.searchParams.append('id[]', mastodon_id);
-
-      const relationships = z
-        .array(
-          z.object({
-            id: z.string(),
-            following: z.boolean(),
-            followed_by: z.boolean(),
-            requested: z.boolean(),
-          })
-        )
-        .parse(
-          await w
-            .headers({
-              Authorization: `Bearer ${santaToken.token}`,
-            })
-            .get(relationshipsUrl.href)
-            .json()
-        );
-
-      return {
-        mastodon_id,
-        mastodon_following_santa: relationships[0]?.followed_by ? 1 : 0,
-        mastodon_followed_by_santa: relationships[0]?.following ? 1 : 0,
-        mastodon_follow_last_checked: new Date().toISOString(),
-      };
     }
   }
 }
