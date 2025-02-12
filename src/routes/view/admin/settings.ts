@@ -5,6 +5,7 @@ import type { Settings } from '../../../lib/database/schema.js';
 
 const dataSchema = z.object({
   signups_open: z.coerce.boolean().optional(),
+  mastodon_players: z.coerce.boolean().optional(),
   matches_sent_date: z.string(),
   signups_open_date: z.string(),
   signups_close_date: z.string(),
@@ -24,6 +25,7 @@ function toData(settings: Omit<Settings, 'id'>): z.infer<typeof dataSchema> {
   return {
     ...settings,
     signups_open: Boolean(settings.signups_open),
+    mastodon_players: Boolean(settings.mastodon_players),
     auto_follow: Boolean(settings.auto_follow),
     send_messages: Boolean(settings.send_messages),
     feed_player_only: Boolean(settings.feed_player_only),
@@ -61,6 +63,7 @@ export const settings: FastifyPluginAsync = async (rawApp) => {
       const updates: Omit<Settings, 'id'> = {
         ...request.body,
         signups_open: request.body.signups_open ? 1 : 0,
+        mastodon_players: request.body.mastodon_players ? 1 : 0,
         auto_follow: request.body.auto_follow ? 1 : 0,
         send_messages: request.body.send_messages ? 1 : 0,
         feed_player_only: request.body.feed_player_only ? 1 : 0,

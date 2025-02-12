@@ -27,6 +27,7 @@ import type { Agent } from '@atproto/api';
 import { match } from './routes/match/index.js';
 import { nudge } from './routes/nudge/index.js';
 import { xrpc } from './routes/xrpc/index.js';
+import { mastodon } from './routes/mastodon/index.js';
 import type { Settings } from './lib/database/schema.js';
 
 declare module 'fastify' {
@@ -96,6 +97,7 @@ export const build = async (
   await app.register(view);
   await app.register(xrpc);
   await app.register(publicContent);
+  await app.register(mastodon, { prefix: '/mastodon' });
 
   return app;
 };

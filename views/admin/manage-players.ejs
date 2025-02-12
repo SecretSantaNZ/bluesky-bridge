@@ -63,8 +63,12 @@
         <%- include('../partials/activity-spinner.ejs') %>
         <button class="htmx-request:hidden">
           <div class="flex sm:justify-center items-center">
-            <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.following_santa_uri"></div>
-            <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.following_santa_uri"></div>
+            <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="player.player_type === 'mastodon' && !player.following_santa_uri && !player.mastodon_following_santa"></div>
+            <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="player.player_type !== 'mastodon' && !player.following_santa_uri"></div>
+            <img src="/public/bluesky.svg" class="size-12 block pr-2 absolute" x-show="player.player_type === 'mastodon' && !player.following_santa_uri && player.mastodon_following_santa"/>
+            <img src="/public/mastodon.svg" class="size-12 block pr-2 absolute" x-show="player.player_type === 'mastodon' && player.following_santa_uri && !player.mastodon_following_santa"/>
+            <div class="i-mdi-circle-off-outline size-12" x-show="player.player_type === 'mastodon' && (!player.following_santa_uri || !player.mastodon_following_santa) && !(!player.following_santa_uri && !player.mastodon_following_santa)"></div>
+            <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.following_santa_uri && (player.player_type !== 'mastodon' || player.mastodon_following_santa)"></div>
             <div class="sm:hidden"><b>Following santa</b> <span class="italic">(Click to recheck)</span></div>
           </div>
           <div class="italic hidden sm:block">Click to recheck</div>

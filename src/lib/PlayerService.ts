@@ -9,6 +9,9 @@ import { unauthenticatedAgent } from '../bluesky.js';
 import { queryFullMatch, type Database } from './database/index.js';
 import fetch from 'node-fetch';
 import { InternalServerError } from 'http-errors-enhanced';
+import { safeFetchWrap } from '@atproto-labs/fetch-node';
+import wretch from 'wretch';
+import FormDataAddon from 'wretch/addons/formData';
 
 import type {
   DatabaseSchema,
@@ -18,6 +21,7 @@ import type {
 import ms from 'ms';
 import type { InsertObject, SelectType } from 'kysely';
 import type { DmSender } from './DmSender.js';
+import { z } from 'zod';
 
 type SelectedPlayer = {
   [K in keyof DbPlayer]: SelectType<DbPlayer[K]>;
@@ -40,6 +44,23 @@ export type Player = Omit<
   address_review_required: boolean;
   opted_out: boolean;
 };
+
+type MastodonRelationshipDetails = Pick<
+  SelectedPlayer,
+  | 'mastodon_id'
+  | 'mastodon_followed_by_santa'
+  | 'mastodon_following_santa'
+  | 'mastodon_follow_last_checked'
+>;
+
+const w = wretch()
+  .polyfills({
+    fetch: safeFetchWrap(),
+  })
+  .addon(FormDataAddon)
+  .options({
+    redirect: 'error',
+  });
 
 const dbPlayerToPlayer = (dbPlayer: SelectedPlayer): Player => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -139,7 +160,9 @@ export class PlayerService {
     private readonly santaAgent: () => Promise<Agent>,
     private readonly santaAccountDid: string,
     private readonly dmSender: DmSender,
-    public readonly ensureElfDids: ReadonlySet<string>
+    public readonly ensureElfDids: ReadonlySet<string>,
+    public readonly santaMastodonHandle: string,
+    public readonly santaMastodonHost: string
   ) {
     this.followingChangedWebhook = buildWebhookNotifier(
       process.env.FOLLOWING_CHANGED_WEBHOOK,
@@ -163,6 +186,8 @@ export class PlayerService {
       .select('auto_follow')
       .executeTakeFirstOrThrow();
     await this.settingsChanged(settings);
+
+    setInterval(this.refreshMastodonFollowing.bind(this), ms('1 hour'));
   }
 
   async settingsChanged(settings: Pick<Settings, 'auto_follow'>) {
@@ -186,7 +211,6 @@ export class PlayerService {
       .limit(4)
       .execute();
     console.log(`Found ${playersToFollow.length} players to follow`);
-
     for (const { did, handle } of playersToFollow) {
       try {
         console.log(`Following ${handle} (${did})`);
@@ -196,6 +220,7 @@ export class PlayerService {
         newrelic.recordCustomEvent('SecretSantaSantaAutoFollow', {
           playerDid: did,
           playerHandle: handle,
+          followType: 'bluesky',
           followUri: uri,
           santaDid: this.santaAccountDid,
         });
@@ -213,6 +238,87 @@ export class PlayerService {
           .executeTakeFirst();
       }
     }
+
+    const [mastodonPlayersToFollow, santaToken] = await Promise.all([
+      this.db
+        .selectFrom('player')
+        .select(['did', 'handle', 'mastodon_account', 'mastodon_id'])
+        .where('player_type', '=', 'mastodon')
+        .where('mastodon_followed_by_santa', '=', 0)
+        .where('signup_complete', '=', 1)
+        .limit(4)
+        .execute(),
+      this.getSantaMastodonToken(),
+    ]);
+    console.log(
+      `Found ${mastodonPlayersToFollow.length} mastodon players to follow`
+    );
+    for (const {
+      did,
+      mastodon_account,
+      mastodon_id,
+    } of mastodonPlayersToFollow) {
+      try {
+        console.log(`Following @${mastodon_account} (${did})`);
+        await w
+          .auth(`Bearer ${santaToken.token}`)
+          .url(
+            new URL(
+              `/api/v1/accounts/${mastodon_id}/follow`,
+              `https://${this.santaMastodonHost}`
+            ).href
+          )
+          .post()
+          .json();
+
+        newrelic.recordCustomEvent('SecretSantaSantaAutoFollow', {
+          playerDid: did,
+          playerHandle: mastodon_account ?? '',
+          followType: 'mastodon',
+        });
+        await this.db
+          .updateTable('player')
+          .set({ mastodon_followed_by_santa: 1 })
+          .where('did', '=', did)
+          .execute();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        console.error(error);
+        console.error(
+          `Error following @${mastodon_account} (${did}): ${error.message}`
+        );
+      }
+    }
+  }
+
+  private async refreshMastodonFollowing() {
+    const playersToCheck = await this.db
+      .selectFrom('player')
+      .select(['did', 'mastodon_id'])
+      .where('player_type', '=', 'mastodon')
+      .where('mastodon_following_santa', '=', 0)
+      .where('deactivated', 'is', null)
+      .orderBy('mastodon_follow_last_checked asc')
+      .limit(25)
+      .execute();
+
+    const relationships = await this.queryMastodonRelationships(
+      ...playersToCheck.map((player) => player.mastodon_id as string)
+    );
+
+    for (const player of playersToCheck) {
+      const relationship = relationships[player.mastodon_id as string] ?? {
+        mastodon_id: player.mastodon_id,
+        mastodon_follow_last_checked: new Date().toISOString(),
+        mastodon_followed_by_santa: 0,
+        mastodon_following_santa: 0,
+      };
+      await this.db
+        .updateTable('player')
+        .set(relationship)
+        .where('did', '=', player.did)
+        .execute();
+    }
   }
 
   async getPlayer(player_did: string): Promise<Player | undefined> {
@@ -228,10 +334,17 @@ export class PlayerService {
   async refreshFollowing(
     player_did: string
   ): Promise<SelectedPlayer | undefined> {
-    const { relationships } = await fetchRelationships(
-      this.santaAccountDid,
-      player_did
-    );
+    const { player_type, mastodon_account } = await this.db
+      .selectFrom('player')
+      .select(['player_type', 'mastodon_account'])
+      .where('did', '=', player_did)
+      .executeTakeFirstOrThrow();
+    const [{ relationships }, mastodonFollowing] = await Promise.all([
+      fetchRelationships(this.santaAccountDid, player_did),
+      player_type === 'mastodon'
+        ? this.lookupMastodonFollowing(mastodon_account as string)
+        : undefined,
+    ]);
     const relationship = AppBskyGraphDefs.isRelationship(relationships[0])
       ? relationships[0]
       : undefined;
@@ -241,6 +354,7 @@ export class PlayerService {
       .set({
         following_santa_uri: relationship?.followedBy ?? null,
         santa_following_uri: relationship?.following ?? null,
+        ...mastodonFollowing,
       })
       .where('did', '=', player_did)
       .returningAll()
@@ -251,6 +365,7 @@ export class PlayerService {
 
   async createPlayer(
     player_did: string,
+    player_type: 'bluesky' | 'mastodon',
     attributes: Partial<InsertObject<DatabaseSchema, 'player'>> = {}
   ): Promise<Player> {
     const [{ data: profile }, { relationships }] = await Promise.all([
@@ -278,6 +393,7 @@ export class PlayerService {
       opted_out: null,
       booted: null,
       admin: this.ensureElfDids.has(player_did) ? 1 : 0,
+      player_type,
       ...attributes,
     };
 
@@ -286,10 +402,11 @@ export class PlayerService {
       .values(player)
       .onConflict((oc) =>
         oc.column('did').doUpdateSet((eb) => ({
-          // handle: eb.ref('excluded.handle'),
+          handle: eb.ref('excluded.handle'),
           avatar_url: eb.ref('excluded.avatar_url'),
-          // following_santa_uri: eb.ref('excluded.following_santa_uri'),
+          following_santa_uri: eb.ref('excluded.following_santa_uri'),
           santa_following_uri: eb.ref('excluded.santa_following_uri'),
+          player_type: eb.ref('excluded.player_type'),
         }))
       )
       .returningAll()
@@ -482,12 +599,16 @@ export class PlayerService {
       const matches = await queryFullMatch(this.db)
         .where('match.match_status', '<>', 'draft')
         .select('santa.did as santa_did')
+        .select('santa.player_type as santa_player_type')
+        .select('santa.mastodon_account as santa_mastodon_account')
         .where('match.giftee', '=', record.id)
         .execute();
       for (const match of matches) {
         const deets = {
           dmType: 'change-handle',
           recipientDid: match.santa_did,
+          playerType: match.santa_player_type,
+          recipientMastodonHandle: match.santa_mastodon_account ?? '',
           recordId: match.match_id,
           recipientHandle: match.santa_handle,
         };
@@ -525,5 +646,96 @@ export class PlayerService {
 
   addListener(listener: PlayersChangedListener) {
     this.listeners.push(listener);
+  }
+
+  async getSantaMastodonToken() {
+    const santaToken = await this.db
+      .selectFrom('mastodon_token')
+      .selectAll()
+      .where('account', '=', this.santaMastodonHandle)
+      .executeTakeFirstOrThrow();
+
+    return santaToken;
+  }
+
+  async queryMastodonRelationships(
+    ...mastodonIds: Array<string>
+  ): Promise<Record<string, MastodonRelationshipDetails>> {
+    const santaToken = await this.getSantaMastodonToken();
+
+    const relationshipsUrl = new URL(
+      '/api/v1/accounts/relationships',
+      `https://${this.santaMastodonHost}`
+    );
+    for (const mastodon_id of mastodonIds) {
+      relationshipsUrl.searchParams.append('id[]', mastodon_id);
+    }
+
+    const relationships = z
+      .array(
+        z.object({
+          id: z.string(),
+          following: z.boolean(),
+          followed_by: z.boolean(),
+          requested: z.boolean(),
+        })
+      )
+      .parse(
+        await w
+          .headers({
+            Authorization: `Bearer ${santaToken.token}`,
+          })
+          .get(relationshipsUrl.href)
+          .json()
+      );
+
+    const now = new Date().toISOString();
+    return Object.fromEntries(
+      relationships
+        .map(
+          (relationship): MastodonRelationshipDetails => ({
+            mastodon_id: relationship.id,
+            mastodon_following_santa: relationship.followed_by ? 1 : 0,
+            mastodon_followed_by_santa: relationship.following ? 1 : 0,
+            mastodon_follow_last_checked: now,
+          })
+        )
+        .map((relationship) => [relationship.mastodon_id, relationship])
+    );
+  }
+
+  async lookupMastodonFollowing(
+    mastodon_account: string
+  ): Promise<MastodonRelationshipDetails> {
+    if (mastodon_account === this.santaMastodonHandle) {
+      const santaToken = await this.getSantaMastodonToken();
+      return {
+        mastodon_id: santaToken.mastodon_id,
+        mastodon_following_santa: 1,
+        mastodon_followed_by_santa: 1,
+        mastodon_follow_last_checked: '9999-12-30T23:59:59.999Z',
+      };
+    } else {
+      const lookupUrl = new URL(
+        '/api/v1/accounts/lookup',
+        `https://${this.santaMastodonHost}`
+      );
+      lookupUrl.searchParams.set('acct', mastodon_account);
+      const { id: mastodon_id } = z
+        .object({ id: z.string() })
+        .parse(await w.get(lookupUrl.href).json());
+
+      const relationships = await this.queryMastodonRelationships(mastodon_id);
+      const relationship = relationships[mastodon_id];
+
+      return (
+        relationship ?? {
+          mastodon_id,
+          mastodon_following_santa: 0,
+          mastodon_followed_by_santa: 0,
+          mastodon_follow_last_checked: new Date().toISOString(),
+        }
+      );
+    }
   }
 }

@@ -1041,3 +1041,160 @@ migrations['010'] = {
       .execute();
   },
 };
+
+migrations['011'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .createTable('mastodon_client')
+      .addColumn('instance', 'varchar', (col) => col.primaryKey())
+      .addColumn('client_id', 'varchar', (col) => col.notNull())
+      .addColumn('client_secret', 'varchar', (col) => col.notNull())
+      .execute();
+
+    await db.schema
+      .createTable('mastodon_token')
+      .addColumn('account', 'varchar', (col) => col.primaryKey())
+      .addColumn('mastodon_id', 'varchar', (col) => col.notNull())
+      .addColumn('token', 'varchar', (col) => col.notNull())
+      .addColumn('client_id', 'varchar', (col) => col.notNull())
+      .addColumn('issued_at', 'varchar', (col) => col.notNull())
+      .execute();
+
+    await db.schema
+      .alterTable('player')
+      .addColumn('player_type', 'varchar', (col) =>
+        col
+          .notNull()
+          .check(sql`player_type in ('bluesky', 'mastodon')`)
+          .defaultTo('bluesky')
+      )
+      .execute();
+
+    await db.schema
+      .alterTable('player')
+      .addColumn('mastodon_account', 'varchar')
+      .execute();
+
+    await db.schema
+      .alterTable('player')
+      .addColumn('mastodon_id', 'varchar')
+      .execute();
+
+    await db.schema
+      .alterTable('player')
+      .addColumn('mastodon_following_santa', 'int2')
+      .execute();
+
+    await db.schema
+      .alterTable('player')
+      .addColumn('mastodon_followed_by_santa', 'int2')
+      .execute();
+
+    await db.schema
+      .alterTable('player')
+      .addColumn('mastodon_follow_last_checked', 'varchar')
+      .execute();
+
+    await db.schema
+      .createIndex('idx_player_mastodon_follow_last_checked')
+      .on('player')
+      .column('mastodon_follow_last_checked')
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema
+      .dropIndex('idx_player_mastodon_follow_last_checked')
+      .execute();
+    await db.schema.alterTable('player').dropColumn('player_type').execute();
+    await db.schema
+      .alterTable('player')
+      .dropColumn('mastodon_account')
+      .execute();
+    await db.schema.alterTable('player').dropColumn('mastodon_id').execute();
+    await db.schema
+      .alterTable('player')
+      .dropColumn('mastodon_following_santa')
+      .execute();
+    await db.schema
+      .alterTable('player')
+      .dropColumn('mastodon_followed_by_santa')
+      .execute();
+    await db.schema
+      .alterTable('player')
+      .dropColumn('mastodon_follow_last_checked')
+      .execute();
+
+    await db.schema.dropTable('mastodon_token').execute();
+    await db.schema.dropTable('mastodon_client').execute();
+  },
+};
+
+migrations['012'] = {
+  async up(db: Kysely<unknown>) {
+    await sql`drop trigger player_update_signup_complete`.execute(db);
+    await sql`
+      create trigger player_update_signup_complete after update of profile_complete, following_santa_uri, opted_out, booted, player_dm_status, player_type, mastodon_following_santa on player for each row begin
+        update player set signup_complete = 1 where id = new.id and (
+          new.profile_complete = 1
+          and new.following_santa_uri is not null
+          and new.opted_out is null
+          and new.booted is null
+          and new.player_dm_status NOT LIKE 'error:%'
+          and (new.player_type <> 'mastodon' or new.mastodon_following_santa = 1)
+        ) and old.signup_complete = 0;
+        update player set signup_complete = 0 where id = new.id and not (
+          new.profile_complete = 1
+          and new.following_santa_uri is not null
+          and new.opted_out is null
+          and new.booted is null
+          and new.player_dm_status NOT LIKE 'error:%'
+          and (new.player_type <> 'mastodon' or new.mastodon_following_santa = 1)
+        ) and old.signup_complete = 1;
+
+        update player set deactivated = 0 where id = new.id and new.opted_out is null and new.booted is null and old.deactivated = 1;
+        update player set deactivated = 1 where id = new.id and not (new.opted_out is null and new.booted is null) and old.deactivated = 0;
+      end;
+    `.execute(db);
+  },
+  async down(db: Kysely<unknown>) {
+    await sql`drop trigger player_update_signup_complete`.execute(db);
+    await sql`
+      create trigger player_update_signup_complete after update of profile_complete, following_santa_uri, opted_out, booted, player_dm_status on player for each row begin
+        update player set signup_complete = 1 where id = new.id and new.profile_complete = 1 and new.following_santa_uri is not null and new.opted_out is null and new.booted is null and new.player_dm_status NOT LIKE 'error:%' and old.signup_complete = 0;
+        update player set signup_complete = 0 where id = new.id and not (new.profile_complete = 1 and new.following_santa_uri is not null and new.opted_out is null and new.booted is null and new.player_dm_status NOT LIKE 'error:%') and old.signup_complete = 1;
+
+        update player set deactivated = 0 where id = new.id and new.opted_out is null and new.booted is null and old.deactivated = 1;
+        update player set deactivated = 1 where id = new.id and not (new.opted_out is null and new.booted is null) and old.deactivated = 0;
+      end;
+    `.execute(db);
+  },
+};
+
+migrations['013'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('player')
+      .addColumn('mastodon_host', 'varchar')
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.alterTable('player').dropColumn('mastodon_host').execute();
+  },
+};
+
+migrations['014'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('settings')
+      .addColumn('mastodon_players', 'int2', (col) =>
+        col.notNull().defaultTo(0)
+      )
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('mastodon_players')
+      .execute();
+  },
+};

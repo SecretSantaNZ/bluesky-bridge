@@ -1,20 +1,41 @@
-<% if (!player.following_santa) { %>
-  <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
-    <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
-    <div class="flex-shrink flex-grow">
-      <h1>You must follow @secretsanta.nz</h1>
-      <p>You need to follow <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> to complete your registration.</p>
+<% if (player.player_type === 'bluesky') { %>
+  <% if (!player.following_santa) { %>
+    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+      <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="flex-shrink flex-grow">
+        <h1>You must follow @secretsanta.nz</h1>
+        <p>You need to follow <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> to complete your registration.</p>
+      </div>
     </div>
-  </div>
-<% } %>
-<% if (player.player_dm_status.startsWith('error:')) { %>
-  <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
-    <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
-    <div class="flex-shrink flex-grow">
-      <h1>@secretsanta.nz could not DM you</h1>
-      <p>Maybe you have DMs closed? Please DM <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> and we'll sort it out.</p>
+  <% } %>
+  <% if (player.player_dm_status.startsWith('error:')) { %>
+    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+      <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="flex-shrink flex-grow">
+        <h1>@secretsanta.nz could not DM you</h1>
+        <p>Maybe you have DMs closed? Please DM <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> and we'll sort it out.</p>
+      </div>
     </div>
-  </div>
+  <% } %>
+<% } else if (player.player_type === 'mastodon') { %>
+  <% if (!player.following_santa) { %>
+    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+      <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="flex-shrink flex-grow">
+        <h1>You must follow @secretsanta.nz@bsky.brid.gy</h1>
+        <p>You need to follow <a href="https://<%= player.mastodon_host %>/@secretsanta.nz@bsky.brid.gy" target="_blank">@secretsanta.nz@bsky.brid.gy</a> to complete your registration.</p>
+      </div>
+    </div>
+  <% } %>
+  <% if (!player.mastodon_following_santa) { %>
+    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+      <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="flex-shrink flex-grow">
+        <h1>You must follow @<%= santaMastodonHandle %></h1>
+        <p>You need to follow <a href="https://<%= player.mastodon_host %>/@<%= santaMastodonUsername %><%= player.mastodon_host === santaMastodonHost ? '' : '@' + santaMastodonHost %>" target="_blank">@<%= santaMastodonHandle %></a> to complete your registration.</p>
+      </div>
+    </div>
+  <% } %>
 <% } %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/key-information.ejs' }) %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/my-details.ejs' }) %>

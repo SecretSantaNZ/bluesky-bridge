@@ -12,6 +12,7 @@ import { DmSender } from './lib/DmSender.js';
 import { initAtLoginClient } from './lib/initAtLoginClient.js';
 import { FirehoseSubscription } from './subscription.js';
 import { FeedSubscription } from './FeedSubscription.js';
+import { resolveMastodonHandle } from './routes/mastodon/index.js';
 
 dotenv.config({
   path: [
@@ -57,12 +58,22 @@ const main = async () => {
   ]);
   const santaHandle = process.env.SANTA_BLUESKY_HANDLE as string;
   const robotHandle = process.env.ROBOT_BLUESKY_HANDLE as string;
-  const [[santaAgent, santaAccountDid], [robotAgent], ensureElfDids] =
-    await Promise.all([
-      buildAtpClient(atOauthClient, santaHandle),
-      buildAtpClient(atOauthClient, robotHandle),
-      resolveEnsureElfHandles(),
-    ]);
+  const santaMastodonHandle = process.env.SANTA_MASTODON_HANDLE as string;
+  const [, initialSantaMastodonHost] = santaMastodonHandle.split('@');
+  const [
+    [santaAgent, santaAccountDid],
+    [robotAgent],
+    ensureElfDids,
+    { host: santaMastodonHost },
+  ] = await Promise.all([
+    buildAtpClient(atOauthClient, santaHandle),
+    buildAtpClient(atOauthClient, robotHandle),
+    resolveEnsureElfHandles(),
+    resolveMastodonHandle(
+      santaMastodonHandle,
+      initialSantaMastodonHost as string
+    ),
+  ]);
   const didResolver = new DidResolver({
     didCache: new MemoryCache(),
     plcUrl: 'https://plc.directory',
@@ -70,13 +81,20 @@ const main = async () => {
   });
 
   const nudgeSender = new NudgeSender(db, robotAgent);
-  const dmSender = new DmSender(db, santaAgent);
+  const dmSender = new DmSender(
+    db,
+    santaAgent,
+    santaMastodonHandle,
+    santaMastodonHost
+  );
   const playerService = new PlayerService(
     db,
     santaAgent,
     santaAccountDid,
     dmSender,
-    new Set(ensureElfDids)
+    new Set(ensureElfDids),
+    santaMastodonHandle,
+    santaMastodonHost
   );
   const subscription = new FirehoseSubscription(
     db,

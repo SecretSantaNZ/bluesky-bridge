@@ -10,7 +10,12 @@
   <%- include('../partials/avatar.ejs', {avatar_url: player.avatar_url}) %>
 </div>
 <div x-show="!isMobileWidth || cardExpanded" class="flex flex-col flex-grow">
-  <div class="font-semibold mt-8 text-xl"><a href="https://bsky.app/profile/<%= encodeURIComponent(player.handle) %>" target="_blank">@<%= player.handle %></a></div>
+  <div class="font-semibold mt-8 text-xl">
+  <% if (player.player_type === 'mastodon') {%>
+    <a href="https://<%= player.mastodon_host %>/@<%= encodeURIComponent(player.mastodon_account.split('@')[0]) %>" target="_blank">@<%= player_display_handle %></a></div>
+  <% } else {%>
+    <a href="https://bsky.app/profile/<%= encodeURIComponent(player.handle) %>" target="_blank">@<%= player.handle %></a></div>
+  <% } %>
   <div class="mt-4 flex items-start">
     <div class="flex-grow flex-shrink">
       <h2 class="text-md font-semibold">My address</h2>

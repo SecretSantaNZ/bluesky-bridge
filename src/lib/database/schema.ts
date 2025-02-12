@@ -5,6 +5,7 @@ export interface DatabaseSchema {
   jwk_key: JwkKey;
   at_oauth_state: AtOauthState;
   at_oauth_session: AtOauthSession;
+  mastodon_client: MastodonClient;
   message: Message;
   player: Player;
   match: Match;
@@ -18,6 +19,7 @@ export interface DatabaseSchema {
   tracking: Tracking;
   settings: Settings;
   post: Post;
+  mastodon_token: MastodonToken;
 }
 
 export interface JwtMacKey {
@@ -83,6 +85,13 @@ export interface Player {
   >;
   next_player_dm_after: Generated<string | null>;
   player_dm_status: Generated<'queued' | 'sent' | `error: ${string}`>;
+  player_type: 'bluesky' | 'mastodon';
+  mastodon_account: Generated<string | null>;
+  mastodon_host: Generated<string | null>;
+  mastodon_id: Generated<string | null>;
+  mastodon_following_santa: Generated<null | 0 | 1>;
+  mastodon_followed_by_santa: Generated<null | 0 | 1>;
+  mastodon_follow_last_checked: Generated<null | string>;
 }
 
 export interface Match {
@@ -164,6 +173,7 @@ export interface Tracking {
 export interface Settings {
   id: number;
   signups_open: number;
+  mastodon_players: 0 | 1;
   signups_open_date: string;
   signups_close_date: string;
   matches_sent_date: string;
@@ -194,4 +204,18 @@ export type Post = {
   distanceFromPlayerWithHashtag: number;
 
   rootByPlayerWithHashtag: 0 | 1;
+};
+
+export type MastodonClient = {
+  instance: string;
+  client_id: string;
+  client_secret: string;
+};
+
+export type MastodonToken = {
+  account: string;
+  mastodon_id: string;
+  token: string;
+  client_id: string;
+  issued_at: string;
 };

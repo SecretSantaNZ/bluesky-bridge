@@ -8,7 +8,7 @@ import type { SimpleStore, Value } from '@atproto-labs/simple-store';
 
 const generateKeyPair = promisify(generateKeyPairCB);
 
-function buildStore<D extends Value>(
+export function buildStore<D extends Value>(
   database: Database,
   table: 'at_oauth_state' | 'at_oauth_session'
 ): SimpleStore<string, D> {

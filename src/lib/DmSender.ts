@@ -8,11 +8,25 @@ import { TZDate } from '@date-fns/tz';
 import { set, isAfter, isBefore, addHours } from 'date-fns';
 import type { Settings } from './database/schema.js';
 import { formatDate } from '../lib/dates.js';
+import { safeFetchWrap } from '@atproto-labs/fetch-node';
+import wretch from 'wretch';
+import FormDataAddon from 'wretch/addons/formData';
+
+const w = wretch()
+  .polyfills({
+    fetch: safeFetchWrap(),
+  })
+  .addon(FormDataAddon)
+  .options({
+    redirect: 'error',
+  });
 
 export interface DM {
   dmType: string;
+  playerType: 'bluesky' | 'mastodon';
   recipientDid: string;
   recipientHandle: string;
+  recipientMastodonHandle: string | null;
   recordId: number;
   rawMessage: string;
   markSent: () => Promise<unknown>;
@@ -27,7 +41,7 @@ export type DMQueue = (
 const signupComplete1DMQueue: DMQueue = async (db, settings) => {
   const player = await db
     .selectFrom('player')
-    .select(['id', 'handle', 'did'])
+    .select(['id', 'handle', 'did', 'player_type', 'mastodon_account'])
     .where('player.signup_complete', '=', 1)
     .where('player.next_player_dm', '=', 'signup-complete-1')
     .where('player.player_dm_status', '=', 'queued')
@@ -65,6 +79,8 @@ const signupComplete1DMQueue: DMQueue = async (db, settings) => {
     dmType: 'signup-complete-1',
     recipientDid: player.did,
     recipientHandle: player.handle,
+    playerType: player.player_type,
+    recipientMastodonHandle: player.mastodon_account,
     recordId: player.id,
     rawMessage,
     markSent,
@@ -75,7 +91,7 @@ const signupComplete1DMQueue: DMQueue = async (db, settings) => {
 const signupComplete2DMQueue: DMQueue = async (db, settings) => {
   const player = await db
     .selectFrom('player')
-    .select(['id', 'handle', 'did'])
+    .select(['id', 'handle', 'did', 'player_type', 'mastodon_account'])
     .where('player.signup_complete', '=', 1)
     .where('player.next_player_dm', '=', 'signup-complete-2')
     .where('player.next_player_dm_after', '<=', new Date().toISOString())
@@ -111,6 +127,8 @@ const signupComplete2DMQueue: DMQueue = async (db, settings) => {
     dmType: 'signup-complete-2',
     recipientDid: player.did,
     recipientHandle: player.handle,
+    playerType: player.player_type,
+    recipientMastodonHandle: player.mastodon_account,
     recordId: player.id,
     rawMessage,
     markSent,
@@ -121,7 +139,15 @@ const signupComplete2DMQueue: DMQueue = async (db, settings) => {
 const signupComplete3DMQueue: DMQueue = async (db, settings) => {
   const player = await db
     .selectFrom('player')
-    .select(['id', 'handle', 'did', 'delivery_instructions', 'address'])
+    .select([
+      'id',
+      'handle',
+      'did',
+      'player_type',
+      'mastodon_account',
+      'delivery_instructions',
+      'address',
+    ])
     .where('player.signup_complete', '=', 1)
     .where('player.next_player_dm', '=', 'signup-complete-3')
     .where('player.next_player_dm_after', '<=', new Date().toISOString())
@@ -161,6 +187,8 @@ const signupComplete3DMQueue: DMQueue = async (db, settings) => {
     dmType: 'signup-complete-3',
     recipientDid: player.did,
     recipientHandle: player.handle,
+    playerType: player.player_type,
+    recipientMastodonHandle: player.mastodon_account,
     recordId: player.id,
     rawMessage,
     markSent,
@@ -177,6 +205,8 @@ const matchHandleDMQueue: DMQueue = async (db, settings) => {
       'giftee.handle as giftee_handle',
       'santa.did as santa_did',
       'santa.handle as santa_handle',
+      'santa.player_type as santa_player_type',
+      'santa.mastodon_account as santa_mastodon_account',
       'match.id as match_id',
     ])
     .where('match.deactivated', 'is', null)
@@ -212,6 +242,8 @@ const matchHandleDMQueue: DMQueue = async (db, settings) => {
     dmType: 'match-handle',
     recipientDid: match.santa_did,
     recipientHandle: match.santa_handle,
+    playerType: match.santa_player_type,
+    recipientMastodonHandle: match.santa_mastodon_account,
     recordId: match.match_id,
     rawMessage,
     markSent,
@@ -230,6 +262,8 @@ const matchAddressDMQueue: DMQueue = async (db, settings) => {
       'giftee.address as giftee_address',
       'santa.did as santa_did',
       'santa.handle as santa_handle',
+      'santa.player_type as santa_player_type',
+      'santa.mastodon_account as santa_mastodon_account',
       'match.id as match_id',
     ])
     .where('match.deactivated', 'is', null)
@@ -268,6 +302,8 @@ const matchAddressDMQueue: DMQueue = async (db, settings) => {
     dmType: 'match-address',
     recipientDid: match.santa_did,
     recipientHandle: match.santa_handle,
+    playerType: match.santa_player_type,
+    recipientMastodonHandle: match.santa_mastodon_account,
     recordId: match.match_id,
     rawMessage,
     markSent,
@@ -288,6 +324,8 @@ const trackingDMQueue: DMQueue = async (db, settings) => {
       'tracking.giftwrap_status as giftwrap_status',
       'giftee.did as giftee_did',
       'giftee.handle as giftee_handle',
+      'giftee.player_type as giftee_player_type',
+      'giftee.mastodon_account as giftee_mastodon_account',
       'tracking.id as tracking_id',
     ])
     .where('tracking.deactivated', 'is', null)
@@ -329,6 +367,8 @@ const trackingDMQueue: DMQueue = async (db, settings) => {
     dmType: 'tracking',
     recipientDid: tracking.giftee_did,
     recipientHandle: tracking.giftee_handle,
+    playerType: tracking.giftee_player_type,
+    recipientMastodonHandle: tracking.giftee_mastodon_account,
     recordId: tracking.tracking_id,
     rawMessage,
     markSent,
@@ -339,7 +379,7 @@ const trackingDMQueue: DMQueue = async (db, settings) => {
 const pokeInactiveDMQueue: DMQueue = async (db, settings) => {
   const player = await db
     .selectFrom('player')
-    .select(['id', 'handle', 'did'])
+    .select(['id', 'handle', 'did', 'player_type', 'mastodon_account'])
     .where('player.following_santa_uri', 'is not', null)
     .where('player.next_player_dm', '=', 'poke-inactive')
     .where('player.next_player_dm_after', '<=', new Date().toISOString())
@@ -373,6 +413,8 @@ const pokeInactiveDMQueue: DMQueue = async (db, settings) => {
     dmType: 'poke-inactive',
     recipientDid: player.did,
     recipientHandle: player.handle,
+    playerType: player.player_type,
+    recipientMastodonHandle: player.mastodon_account,
     recordId: player.id,
     rawMessage,
     markSent,
@@ -397,7 +439,9 @@ export class DmSender {
 
   constructor(
     private readonly db: Database,
-    private readonly santaAgent: () => Promise<Agent>
+    private readonly santaAgent: () => Promise<Agent>,
+    public readonly santaMastodonHandle: string,
+    public readonly santaMastodonHost: string
   ) {
     this.init();
   }
@@ -437,43 +481,70 @@ export class DmSender {
       return;
     }
 
-    const message = new RichText({
-      text: dm.rawMessage + '\n\n[Sent by 🤖]',
+    const text = dm.rawMessage + '\n\n[Sent by 🤖]';
+    const bskyMessage = new RichText({
+      text,
     });
-    await message.detectFacets(client);
+    await bskyMessage.detectFacets(client);
+    const mastodonMessage = `@${dm.recipientMastodonHandle} ${text}`;
 
     try {
-      const {
-        data: { convo },
-      } = await client.api.chat.bsky.convo.getConvoForMembers(
-        {
-          members: [sendFromDid, dm.recipientDid],
-        },
-        {
-          headers: {
-            'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
+      if (dm.playerType === 'bluesky') {
+        const {
+          data: { convo },
+        } = await client.api.chat.bsky.convo.getConvoForMembers(
+          {
+            members: [sendFromDid, dm.recipientDid],
           },
-        }
-      );
-      await client.api.chat.bsky.convo.sendMessage(
-        {
-          convoId: convo.id,
-          message: {
-            text: message.text,
-            facets: message.facets,
+          {
+            headers: {
+              'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
+            },
+          }
+        );
+        await client.api.chat.bsky.convo.sendMessage(
+          {
+            convoId: convo.id,
+            message: {
+              text: bskyMessage.text,
+              facets: bskyMessage.facets,
+            },
           },
-        },
-        {
-          encoding: 'application/json',
-          headers: {
-            'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
-          },
-        }
-      );
+          {
+            encoding: 'application/json',
+            headers: {
+              'atproto-proxy': 'did:web:api.bsky.chat#bsky_chat',
+            },
+          }
+        );
+      } else {
+        const santaToken = await this.db
+          .selectFrom('mastodon_token')
+          .selectAll()
+          .where('account', '=', this.santaMastodonHandle)
+          .executeTakeFirstOrThrow();
+
+        await w
+          .headers({
+            Authorization: `Bearer ${santaToken.token}`,
+          })
+          .post(
+            {
+              status: mastodonMessage,
+              language: 'en',
+              visibility: 'direct',
+            },
+            new URL('/api/v1/statuses', `https://${this.santaMastodonHost}`)
+              .href
+          )
+          .json();
+      }
       await dm.markSent();
       newrelic.recordCustomEvent('SecretSantaDMSent', {
         recipientDid: dm.recipientDid,
         recipientHandle: dm.recipientHandle,
+        playerType: dm.playerType,
+        recipientMastodonHandle: dm.recipientMastodonHandle ?? '',
         dmType: dm.dmType,
         recordId: dm.recordId,
       });
@@ -485,6 +556,8 @@ export class DmSender {
       newrelic.noticeError(e, {
         recipientDid: dm.recipientDid,
         recipientHandle: dm.recipientHandle,
+        playerType: dm.playerType,
+        recipientMastodonHandle: dm.recipientMastodonHandle ?? '',
         dmType: dm.dmType,
         recordId: dm.recordId,
       });

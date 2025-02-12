@@ -27,6 +27,10 @@ export const playerHome: FastifyPluginAsync = async (app) => {
       admin: request.tokenData?.admin,
       csrfToken: request.tokenData?.csrfToken,
       player,
+      player_display_handle:
+        player.player_type === 'mastodon'
+          ? player.mastodon_account
+          : player.handle,
       settings,
     };
 
@@ -130,6 +134,11 @@ export const playerHome: FastifyPluginAsync = async (app) => {
         myGifts,
         giftsIveSent,
         sentNudges,
+        santaMastodonHandle:
+          this.blueskyBridge.playerService.santaMastodonHandle,
+        santaMastodonUsername:
+          this.blueskyBridge.playerService.santaMastodonHandle.split('@')[0],
+        santaMastodonHost: this.blueskyBridge.playerService.santaMastodonHost,
       },
       {
         layout: 'layouts/base-layout.ejs',
