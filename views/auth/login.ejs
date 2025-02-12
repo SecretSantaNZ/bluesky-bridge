@@ -4,7 +4,7 @@
       defaultMode: locals.mode || null,
     }) %>,
     localMode: null,
-    accountType: $persist('bluesky'),
+    accountType: <%- settings.mastodon_players ? "$persist('bluesky')" : "'bluesky'" %>,
     get mode() {
       if (!this.signupsOpen) return 'login';
       if (this.localMode != null) return this.localMode;
@@ -18,16 +18,18 @@
   <input type="hidden" name="requestId" value="<%= requestId %>"/>
   <input type="hidden" name="returnToken" value="<%= returnToken %>"/>
   <input type="hidden" name="accountType" x-bind:value="accountType"/>
-  <div class="flex -mt-8 -mx-8 mb-8">
-    <button type="button" x-bind:class="(accountType === 'bluesky' ? '' : 'border-b ') + 'w-1/2 rounded-none border-slate-500 border-r p-4 flex items-center justify-center focus:ring-0'" @click="accountType = 'bluesky'">
-      <img src="/public/bluesky.svg" class="size-8 block pr-2"/>
-      <div x-bind:class="accountType === 'bluesky' ? 'font-semibold' : ''">Bluesky</div>
-    </button>
-    <button type="button" x-bind:class="(accountType === 'mastodon' ? '' : 'border-b ') + 'w-1/2 rounded-none border-slate-500 border-l p-4 flex items-center justify-center focus:ring-0'" @click="accountType = 'mastodon'">
-      <img src="/public/mastodon.svg" class="size-8 block pr-2"/>
-      <div x-bind:class="accountType === 'mastodon' ? 'font-semibold' : ''">Mastodon</div>
-    </button>
-  </div>
+  <% if (settings.mastodon_players) { %>
+    <div class="flex -mt-8 -mx-8 mb-8">
+      <button type="button" x-bind:class="(accountType === 'bluesky' ? '' : 'border-b ') + 'w-1/2 rounded-none border-slate-500 border-r p-4 flex items-center justify-center focus:ring-0'" @click="accountType = 'bluesky'">
+        <img src="/public/bluesky.svg" class="size-8 block pr-2"/>
+        <div x-bind:class="accountType === 'bluesky' ? 'font-semibold' : ''">Bluesky</div>
+      </button>
+      <button type="button" x-bind:class="(accountType === 'mastodon' ? '' : 'border-b ') + 'w-1/2 rounded-none border-slate-500 border-l p-4 flex items-center justify-center focus:ring-0'" @click="accountType = 'mastodon'">
+        <img src="/public/mastodon.svg" class="size-8 block pr-2"/>
+        <div x-bind:class="accountType === 'mastodon' ? 'font-semibold' : ''">Mastodon</div>
+      </button>
+    </div>
+  <% } %>
   <div class="flex space-x-8" x-show="mode === 'choose'">
     <button type="button" @click.prevent="mode = 'signup'" class="flex-grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none">Sign up</button>
     <button type="button" @click.prevent="mode = 'login'" class="flex-grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none">Login</button>

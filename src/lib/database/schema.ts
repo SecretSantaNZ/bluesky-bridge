@@ -173,6 +173,7 @@ export interface Tracking {
 export interface Settings {
   id: number;
   signups_open: number;
+  mastodon_players: 0 | 1;
   signups_open_date: string;
   signups_close_date: string;
   matches_sent_date: string;

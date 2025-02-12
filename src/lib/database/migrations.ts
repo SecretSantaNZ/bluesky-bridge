@@ -1181,3 +1181,20 @@ migrations['013'] = {
     await db.schema.alterTable('player').dropColumn('mastodon_host').execute();
   },
 };
+
+migrations['014'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('settings')
+      .addColumn('mastodon_players', 'int2', (col) =>
+        col.notNull().defaultTo(0)
+      )
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('mastodon_players')
+      .execute();
+  },
+};

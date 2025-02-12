@@ -14,6 +14,7 @@ import { returnLoginView } from '../view/index.js';
 import { startMastodonOauth } from '../mastodon/index.js';
 import type { DatabaseSchema } from '../../lib/database/schema.js';
 import type { InsertObject } from 'kysely';
+import { BadRequestError } from 'http-errors-enhanced';
 
 async function startAtOauth(
   request: FastifyRequest,
@@ -84,6 +85,10 @@ export async function finishLogin(
       .selectFrom('settings')
       .selectAll()
       .executeTakeFirstOrThrow();
+
+    if (player_type === 'mastodon' && !settings.mastodon_players) {
+      throw new BadRequestError('Mastodon players are not allowed');
+    }
 
     let player: Player | undefined;
     if (settings.signups_open || playerService.ensureElfDids.has(did)) {
@@ -206,6 +211,18 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function (request, reply) {
+      const settings = await this.blueskyBridge.db
+        .selectFrom('settings')
+        .selectAll()
+        .executeTakeFirstOrThrow();
+
+      if (
+        request.body.accountType === 'mastodon' &&
+        !settings.mastodon_players
+      ) {
+        throw new BadRequestError('Mastodon players are not allowed');
+      }
+
       if (request.body.accountType === 'bluesky') {
         return startAtOauth(
           request,
