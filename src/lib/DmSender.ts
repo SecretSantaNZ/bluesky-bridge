@@ -477,7 +477,7 @@ export class DmSender {
     const client = await this.santaAgent();
     const sendFromDid = client.sessionManager.did as string;
     if (sendFromDid === dm.recipientDid) {
-      await dm.markError('cant sent dms to self');
+      await dm.markSent();
       return;
     }
 
