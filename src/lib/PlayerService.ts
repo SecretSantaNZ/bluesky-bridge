@@ -363,6 +363,22 @@ export class PlayerService {
     return dbPlayer;
   }
 
+  async retryPlayerDms(player_did: string) {
+    const { data: profile } = await unauthenticatedAgent.getProfile({
+      actor: player_did,
+    });
+    const allowIncoming = profile.associated?.chat?.allowIncoming ?? 'none';
+
+    await this.db
+      .updateTable('player')
+      .set({
+        player_dm_status:
+          allowIncoming === 'none' ? 'error: DMs Disabled' : 'queued',
+      })
+      .where('did', '=', player_did)
+      .executeTakeFirst();
+  }
+
   async createPlayer(
     player_did: string,
     player_type: 'bluesky' | 'mastodon',
@@ -380,6 +396,7 @@ export class PlayerService {
 
     const handle = profile.handle;
     const following_santa_uri = relationship?.followedBy ?? null;
+    const allowIncoming = profile.associated?.chat?.allowIncoming ?? 'none';
     const player: InsertObject<DatabaseSchema, 'player'> = {
       did: player_did,
       handle,
@@ -394,6 +411,8 @@ export class PlayerService {
       booted: null,
       admin: this.ensureElfDids.has(player_did) ? 1 : 0,
       player_type,
+      player_dm_status:
+        allowIncoming === 'none' ? 'error: DMs Disabled' : 'queued',
       ...attributes,
     };
 
