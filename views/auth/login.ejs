@@ -52,13 +52,13 @@
     </div>
     <div x-data="{term: '', actors: []}">
       <div class="group">
-        <label for="handle" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300 scheme-light dark:scheme-dark" x-text="accountType === 'bluesky' ? 'Handle' : 'Instance'"></label>
+        <label for="handle" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300 scheme-light dark:scheme-dark">Handle</label>
         <input
           x-model="term"
           type="text"
           id="handle"
           name="handle"
-          x-bind:placeholder="accountType === 'bluesky' ? 'secretsantanz.bsky.social' : 'mastodon.nz'"
+          x-bind:placeholder="accountType === 'bluesky' ? 'coolplayer.bsky.social' : 'coolplayer@secretsanta.nz'"
           class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"
           x-bind:list="accountType === 'bluesky' ? 'handle_suggestions' : ''"
           autocomplete="false"
