@@ -1,6 +1,6 @@
 <form hx-post="/player/opt-in" hx-swap="none" id="opt-in">
   <div class="space-y-8">
-    <h1>@<%= player.handle%> opted out</h1>
+    <h1>@<%= player_display_handle  %> opted out</h1>
     <% if (settings.signups_open) { %>
       <p>You opted out of the game, but it's okay, if it was a mistake you can opt back in to play.</p>
       <%- include('../partials/error.ejs', { elementId: 'opt-in-error' }) %>

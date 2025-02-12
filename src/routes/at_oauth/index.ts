@@ -103,6 +103,10 @@ export async function finishLogin(
           replaceUrl: '/',
           player: undefined,
           player_handle,
+          player_display_handle:
+            player_type === 'mastodon'
+              ? attributes.mastodon_account
+              : player_handle,
         },
         {
           layout: 'layouts/base-layout.ejs',
@@ -111,7 +115,15 @@ export async function finishLogin(
     } else if (player.booted) {
       return reply.view(
         'player/booted-out-card.ejs',
-        { hideClose: true, replaceUrl: '/', player },
+        {
+          hideClose: true,
+          replaceUrl: '/',
+          player,
+          player_display_handle:
+            player.player_type === 'mastodon'
+              ? player.mastodon_account
+              : player.handle,
+        },
         {
           layout: 'layouts/base-layout.ejs',
         }

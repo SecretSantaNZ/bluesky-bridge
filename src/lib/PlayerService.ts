@@ -162,7 +162,7 @@ export class PlayerService {
     private readonly dmSender: DmSender,
     public readonly ensureElfDids: ReadonlySet<string>,
     public readonly santaMastodonHandle: string,
-    public readonly santaMastodonInstance: string
+    public readonly santaMastodonHost: string
   ) {
     this.followingChangedWebhook = buildWebhookNotifier(
       process.env.FOLLOWING_CHANGED_WEBHOOK,
@@ -265,7 +265,7 @@ export class PlayerService {
           .url(
             new URL(
               `/api/v1/accounts/${mastodon_id}/follow`,
-              `https://${this.santaMastodonInstance}`
+              `https://${this.santaMastodonHost}`
             ).href
           )
           .post()
@@ -665,7 +665,7 @@ export class PlayerService {
 
     const relationshipsUrl = new URL(
       '/api/v1/accounts/relationships',
-      `https://${this.santaMastodonInstance}`
+      `https://${this.santaMastodonHost}`
     );
     for (const mastodon_id of mastodonIds) {
       relationshipsUrl.searchParams.append('id[]', mastodon_id);
@@ -718,7 +718,7 @@ export class PlayerService {
     } else {
       const lookupUrl = new URL(
         '/api/v1/accounts/lookup',
-        `https://${this.santaMastodonInstance}`
+        `https://${this.santaMastodonHost}`
       );
       lookupUrl.searchParams.set('acct', mastodon_account);
       const { id: mastodon_id } = z

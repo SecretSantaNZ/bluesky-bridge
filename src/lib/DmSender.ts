@@ -441,7 +441,7 @@ export class DmSender {
     private readonly db: Database,
     private readonly santaAgent: () => Promise<Agent>,
     public readonly santaMastodonHandle: string,
-    public readonly santaMastodonInstance: string
+    public readonly santaMastodonHost: string
   ) {
     this.init();
   }
@@ -534,7 +534,7 @@ export class DmSender {
               language: 'en',
               visibility: 'direct',
             },
-            new URL('/api/v1/statuses', `https://${this.santaMastodonInstance}`)
+            new URL('/api/v1/statuses', `https://${this.santaMastodonHost}`)
               .href
           )
           .json();

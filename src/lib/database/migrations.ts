@@ -1169,3 +1169,15 @@ migrations['012'] = {
     `.execute(db);
   },
 };
+
+migrations['013'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('player')
+      .addColumn('mastodon_host', 'varchar')
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.alterTable('player').dropColumn('mastodon_host').execute();
+  },
+};

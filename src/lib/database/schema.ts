@@ -87,6 +87,7 @@ export interface Player {
   player_dm_status: Generated<'queued' | 'sent' | `error: ${string}`>;
   player_type: 'bluesky' | 'mastodon';
   mastodon_account: Generated<string | null>;
+  mastodon_host: Generated<string | null>;
   mastodon_id: Generated<string | null>;
   mastodon_following_santa: Generated<null | 0 | 1>;
   mastodon_followed_by_santa: Generated<null | 0 | 1>;

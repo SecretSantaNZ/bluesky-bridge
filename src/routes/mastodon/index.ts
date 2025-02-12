@@ -357,6 +357,7 @@ export const mastodon: FastifyPluginAsync = async (rawApp) => {
             did,
             attributes: {
               mastodon_account,
+              mastodon_host: host,
               ...following,
             },
           };
