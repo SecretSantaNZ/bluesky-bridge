@@ -30,16 +30,17 @@ export const newPlayer: FastifyPluginAsync = async (rawApp) => {
         InsertObject<DatabaseSchema, 'player'>
       > = {};
       if (request.body.player_type === 'mastodon') {
-        const [, host] = handle.split('@');
-        const { handle: mastodon_account } = await resolveMastodonHandle(
+        const [, instance] = handle.split('@');
+        const { handle: mastodon_account, host } = await resolveMastodonHandle(
           handle,
-          host as string
+          instance as string
         );
         handle = getBridgedHandle(mastodon_account);
         const following =
           await playerService.lookupMastodonFollowing(mastodon_account);
         additionalAttributes = {
           mastodon_account,
+          mastodon_host: host,
           ...following,
         };
       } else if (handle.endsWith('.ap.brid.gy')) {
