@@ -8,9 +8,11 @@ export function queryFullMatch(db: Database) {
     .select([
       'santa.handle as santa_handle',
       'santa.deactivated as santa_deactivated',
+      'santa.avatar_url as santa_avatar_url',
       'santa.booted as santa_booted',
       'giftee.handle as giftee_handle',
       'giftee.deactivated as giftee_deactivated',
+      'giftee.avatar_url as giftee_avatar_url',
       'giftee.booted as giftee_booted',
       'match.invalid_player as invalid_player',
       'match.id as match_id',

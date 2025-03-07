@@ -51,20 +51,8 @@
   </div>
   <template x-for="match in pager.pageData">
     <div class="grid sm:grid-cols-3 lg:grid-cols-6 lg:space-x-4 border-b py-2">
-      <div class="flex lg:justify-center items-center text-lg">
-        <div class="italic lg:hidden mr-2">Santa:</div>
-        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank">
-          <span x-text="'@' + match.santa_handle"></span>
-          <span x-show="match.santa_deactivated" x-text="match.santa_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
-        </a>
-      </div>
-      <div class="flex lg:justify-center items-center text-lg">
-        <div class="italic lg:hidden mr-2">Giftee:</div>
-        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank">
-          <span x-text="'@' + match.giftee_handle"></span>
-          <span x-show="match.giftee_deactivated" x-text="match.giftee_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
-        </a>
-      </div>
+      <%- include('./fragments/match-player.ejs', {description: 'Santa', side: 'santa'}) %>
+      <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
       <div class="flex lg:justify-center items-center text-lg">
         <div class="italic lg:hidden mr-2">Category:</div>
         <div x-text="match.super_santa_match ? 'Super santa' : match.tracking_count === 0 ? 'No tracking' : 'Present missing'"></div>
@@ -103,7 +91,7 @@
     <h1>Players available to Santa</h1>
     <template x-for="player in playersWhoCanHaveMoreGifees.slice(0, 15)">
       <div class="mb-2">
-        <span x-text="'@' + player.handle"></span> (<span x-text="player.giftee_count"></span>/<span x-text="player.max_giftees"></span>)
+        <%- include('./fragments/player-link.ejs') %>
       </div>
     </template>
     <div x-show="playersWhoCanHaveMoreGifees.length > 15">... and <span x-text="playersWhoCanHaveMoreGifees.length - 15"></span> more</div>

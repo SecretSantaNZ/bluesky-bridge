@@ -1,0 +1,39 @@
+<div class="flex sm:justify-center items-center text-lg">
+  <div class="italic sm:hidden mr-2"><%= description %>:</div>
+  <div class="size-10 block flex-shrink-0 rounded-full overflow-hidden">
+    <template x-if="<%= locals.row_prop || 'match' %>.<%= side %>_avatar_url">
+      <img
+        x-bind:src="<%= locals.row_prop || 'match' %>.<%= side %>_avatar_url"
+        alt=""
+      />
+    </template>
+    <template x-if="!<%= locals.row_prop || 'match' %>.<%= side %>_avatar_url">
+      <svg viewBox="0 0 24 24" fill="none" stroke="none" title="">
+        <circle cx="12" cy="12" r="12" fill="#0070ff"></circle>
+        <circle cx="12" cy="9.5" r="3.5" fill="#fff"></circle>
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="#fff"
+          d="M 12.058 22.784 C 9.422 22.784 7.007 21.836 5.137 20.262 C 5.667 17.988 8.534 16.25 11.99 16.25 C 15.494 16.25 18.391 18.036 18.864 20.357 C 17.01 21.874 14.64 22.784 12.058 22.784 Z"
+        ></path>
+      </svg>
+    </template>
+  </div>
+  <div class="ml-2">
+    <a
+      x-bind:href="'https://bsky.app/profile/' + encodeURIComponent(<%= locals.row_prop || 'match' %>.<%= side %>_handle)"
+      x-text="'@' + <%= locals.row_prop || 'match' %>.<%= side %>_handle"
+      target="_blank"
+    >
+      <span
+        x-text="'@' + <%= locals.row_prop || 'match' %>.<%= side %>_handle"
+      ></span>
+      <span
+        x-show="<%= locals.row_prop || 'match' %>.<%= side %>_deactivated"
+        x-text="<%= locals.row_prop || 'match' %>.<%= side %>_booted ? 'Booted' : 'Opted-out'"
+        class="font-semibold"
+      ></span
+    ></a>
+  </div>
+</div>

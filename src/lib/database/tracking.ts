@@ -23,11 +23,17 @@ export function queryTrackingWithMatch(db: Database) {
 export function queryTrackingWithGiftee(db: Database) {
   return queryTrackingWithMatch(db)
     .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
-    .select('giftee.handle as giftee_handle');
+    .select([
+      'giftee.handle as giftee_handle',
+      'giftee.avatar_url as giftee_avatar_url',
+    ]);
 }
 
 export function queryTrackingWithGifteeAndSanta(db: Database) {
   return queryTrackingWithGiftee(db)
     .innerJoin('player as santa', 'santa.id', 'match.santa')
-    .select('santa.handle as santa_handle');
+    .select([
+      'santa.handle as santa_handle',
+      'santa.avatar_url as santa_avatar_url',
+    ]);
 }

@@ -54,14 +54,8 @@
   </div>
   <template x-for="tracking in pager.pageData">
     <div class="grid lg:grid-cols-8 lg:space-x-4 border-b py-2">
-      <div class="flex lg:justify-center items-center text-lg">
-        <div class="italic lg:hidden mr-2">Santa:</div>
-        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(tracking.santa_handle)" target="_blank"x-text="'@' + tracking.santa_handle"></a>
-      </div>
-      <div class="flex lg:justify-center items-center text-lg">
-        <div class="italic lg:hidden mr-2">Giftee:</div>
-        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(tracking.giftee_handle)" target="_blank" x-text="'@' + tracking.giftee_handle"></a>
-      </div>
+      <%- include('./fragments/match-player.ejs', {row_prop: 'tracking', description: 'Santa', side: 'santa'}) %>
+      <%- include('./fragments/match-player.ejs', {row_prop: 'tracking', description: 'Giftee', side: 'giftee'}) %>
       <div class="flex lg:justify-center items-center text-lg">
         <div class="italic lg:hidden mr-2">Sent:</div>
         <div x-text="secretsantanz.formatDate(tracking.shipped_date)"></div>

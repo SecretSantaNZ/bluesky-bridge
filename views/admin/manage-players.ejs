@@ -56,9 +56,7 @@
   </div>
   <template x-for="player in activePlayersPager.pageData">
     <div class="grid sm:grid-cols-6 space-x-4 border-b py-2" x-init="htmx && htmx.process($el)">
-      <div class="flex justify-center items-center text-lg font-semibold">
-        <a x-bind:href="'https://bsky.app/profile/' + encodeURIComponent(player.handle)" x-text="'@' + player.handle" target="_blank"></a>
-      </div>
+      <%- include('./fragments/player-link.ejs') %>
       <form hx-post="/player/refresh-following" class="flex items-center sm:justify-center">
         <%- include('../partials/activity-spinner.ejs') %>
         <button class="htmx-request:hidden">
@@ -151,9 +149,7 @@
   </div>
   <template x-for="player in inactivePlayersPager.pageData">
     <div class="grid sm:grid-cols-3 space-x-4 border-b py-2" x-init="htmx && htmx.process($el)">
-      <div class="flex justify-center items-center text-lg font-semibold">
-        <a x-bind:href="'https://bsky.app/profile/' + encodeURIComponent(player.handle)" x-text="'@' + player.handle" target="_blank"></a>
-      </div>
+      <%- include('./fragments/player-link.ejs') %>
       <div class="flex justify-center items-center">
         <span x-text="player.booted ? 'Booted out' : 'Opted out'"></span>
       </div>

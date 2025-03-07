@@ -51,14 +51,8 @@
   </div>
   <template x-for="nudge in pager.pageData">
     <div class="grid sm:grid-cols-6 sm:space-x-4 border-b py-2">
-      <div class="flex sm:justify-center items-center text-lg">
-        <div class="italic sm:hidden mr-2">Santa:</div>
-        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(nudge.santa_handle)" target="_blank"x-text="'@' + nudge.santa_handle"></a>
-      </div>
-      <div class="flex sm:justify-center items-center text-lg">
-        <div class="italic sm:hidden mr-2">Giftee:</div>
-        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(nudge.giftee_handle)" target="_blank" x-text="'@' + nudge.giftee_handle"></a>
-      </div>
+      <%- include('./fragments/match-player.ejs', {row_prop: 'nudge', description: 'Santa', side: 'santa'}) %>
+      <%- include('./fragments/match-player.ejs', {row_prop: 'nudge', description: 'Giftee', side: 'giftee'}) %>
       <div class="flex sm:justify-center items-center text-lg">
         <div class="italic sm:hidden mr-2">Type:</div>
         <div x-text="nudge.nudge_type"></div>

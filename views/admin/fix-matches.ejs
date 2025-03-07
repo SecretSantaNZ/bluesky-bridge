@@ -33,20 +33,8 @@
       </div>
       <template x-for="match in brokenMatches">
         <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2">
-          <div class="flex sm:justify-center items-center text-lg">
-            <div class="italic sm:hidden mr-2">Santa:</div>
-            <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank">
-              <span x-text="'@' + match.santa_handle"></span>
-              <span x-show="match.santa_deactivated" x-text="match.santa_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
-            </a>
-          </div>
-          <div class="flex sm:justify-center items-center text-lg">
-            <div class="italic sm:hidden mr-2">Giftee:</div>
-            <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank">
-              <span x-text="'@' + match.giftee_handle"></span>
-              <span x-show="match.giftee_deactivated" x-text="match.giftee_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
-            </a>
-          </div>
+          <%- include('./fragments/match-player.ejs', {description: 'Santa', side: 'santa'}) %>
+          <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
           <div class="flex sm:justify-center items-center text-lg">
             <div class="italic sm:hidden mr-2">Status:</div>
             <div x-text="match.match_status"></div>
@@ -81,20 +69,8 @@
       </div>
       <template x-for="match in tooManyGifteeMatches">
         <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2">
-          <div class="flex sm:justify-center items-center text-lg">
-            <div class="italic sm:hidden mr-2">Santa:</div>
-            <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank">
-              <span x-text="'@' + match.santa_handle"></span>
-              <span x-show="match.santa_deactivated" x-text="match.santa_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
-            </a>
-          </div>
-          <div class="flex sm:justify-center items-center text-lg">
-            <div class="italic sm:hidden mr-2">Giftee:</div>
-            <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank">
-              <span x-text="'@' + match.giftee_handle"></span>
-              <span x-show="match.giftee_deactivated" x-text="match.giftee_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
-            </a>
-          </div>
+          <%- include('./fragments/match-player.ejs', {description: 'Santa', side: 'santa'}) %>
+          <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
           <div class="flex sm:justify-center items-center text-lg">
             <div class="italic sm:hidden mr-2">Status:</div>
             <div x-text="match.match_status"></div>
@@ -116,9 +92,7 @@
       </div>
       <template x-for="player in needsSantaAssigned.slice(0, 15)">
         <div class="grid sm:grid-cols-2 sm:space-x-4 border-b py-2">
-          <div class="flex justify-center items-center text-lg">
-            <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(player.handle)" target="_blank" x-text="'@' + player.handle"></a>
-          </div>
+          <%- include('./fragments/player-link.ejs') %>
           <div class="flex flex-col justify-center items-center">
             <button @click="$dispatch('ss-open-modal', {modal: 'assign-santa', modalData: player})" class="rounded-sm underline">Assign santa</button>
           </div>
@@ -138,14 +112,8 @@
       </div>
       <template x-for="match in tooManySantasMatches">
         <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2">
-          <div class="flex sm:justify-center items-center text-lg">
-            <div class="italic sm:hidden mr-2">Giftee:</div>
-            <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank" x-text="'@' + match.giftee_handle"></a>
-          </div>
-          <div class="flex sm:justify-center items-center text-lg">
-            <div class="italic sm:hidden mr-2">Santa:</div>
-            <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank" x-text="'@' + match.santa_handle"></a>
-          </div>
+          <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
+          <%- include('./fragments/match-player.ejs', {description: 'Santa', side: 'santa'}) %>
           <div class="flex sm:justify-center items-center text-lg">
             <div class="italic sm:hidden mr-2">Status:</div>
             <div x-text="match.match_status"></div>
@@ -173,7 +141,7 @@
     <h1>Players available to Santa</h1>
     <template x-for="player in playersWhoCanHaveMoreGifees.slice(0, 15)">
       <div class="mb-2">
-        <span x-text="'@' + player.handle"></span> (<span x-text="player.giftee_count"></span>/<span x-text="player.max_giftees"></span>)
+        <%- include('./fragments/player-link.ejs') %>
       </div>
     </template>
     <div x-show="playersWhoCanHaveMoreGifees.length > 15">... and <span x-text="playersWhoCanHaveMoreGifees.length - 15"></span> more</div>

@@ -63,20 +63,8 @@
   </div>
   <template x-for="match in pager.pageData">
     <div class="grid sm:grid-cols-3 sm:space-x-4 border-b py-2">
-      <div class="flex sm:justify-center items-center text-lg">
-        <div class="italic sm:hidden mr-2">Santa:</div>
-        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.santa_handle)" target="_blank">
-          <span x-text="'@' + match.santa_handle"></span>
-          <span x-show="match.santa_deactivated" x-text="match.santa_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
-        </a>
-      </div>
-      <div class="flex sm:justify-center items-center text-lg">
-        <div class="italic sm:hidden mr-2">Giftee:</div>
-        <a x-bind:href="'/admin/manage-players?handle=' + encodeURIComponent(match.giftee_handle)" target="_blank">
-          <span x-text="'@' + match.giftee_handle"></span>
-          <span x-show="match.giftee_deactivated" x-text="match.giftee_booted ? 'Booted' : 'Opted-out'" class="font-semibold"></span>
-        </a>
-      </div>
+      <%- include('./fragments/match-player.ejs', {description: 'Santa', side: 'santa'}) %>
+      <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
       <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center">
         <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">
           <div class="flex sm:justify-center items-center ">
