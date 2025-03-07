@@ -13,8 +13,10 @@ export const nudges: FastifyPluginAsync = async (app) => {
         .select([
           'santa.handle as santa_handle',
           'santa.avatar_url as santa_avatar_url',
+          'santa.note_count as santa_note_count',
           'giftee.handle as giftee_handle',
           'giftee.avatar_url as giftee_avatar_url',
+          'giftee.note_count as giftee_note_count',
           'nudge_type.name as nudge_type',
           'nudge.id as nudge_id',
           'nudge.created_at',

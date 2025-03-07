@@ -36,4 +36,12 @@
       ></span
     ></a>
   </div>
+  <div class="ml-2">
+    <template x-if="<%= locals.row_prop || 'match' %>.<%= side %>_note_count">
+      <div class="i-mdi-comment-text-multiple size-6"></div>
+    </template>
+    <template x-if="!<%= locals.row_prop || 'match' %>.<%= side %>_note_count">
+      <div class="i-mdi-comment-add-outline size-6"></div>
+    </template>
+  </div>
 </div>

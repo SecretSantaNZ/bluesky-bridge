@@ -26,6 +26,7 @@ export function queryTrackingWithGiftee(db: Database) {
     .select([
       'giftee.handle as giftee_handle',
       'giftee.avatar_url as giftee_avatar_url',
+      'giftee.note_count as giftee_note_count',
     ]);
 }
 
@@ -35,5 +36,6 @@ export function queryTrackingWithGifteeAndSanta(db: Database) {
     .select([
       'santa.handle as santa_handle',
       'santa.avatar_url as santa_avatar_url',
+      'santa.note_count as santa_note_count',
     ]);
 }

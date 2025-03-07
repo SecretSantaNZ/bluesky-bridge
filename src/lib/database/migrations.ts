@@ -1198,3 +1198,44 @@ migrations['014'] = {
       .execute();
   },
 };
+
+migrations['015'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .createTable('note')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('player_id', 'integer', (col) => col.notNull())
+      .addColumn('text', 'varchar', (col) => col.notNull())
+      .addColumn('author', 'varchar', (col) => col.notNull())
+      .addColumn('created_at', 'varchar', (col) => col.notNull())
+      .addForeignKeyConstraint('fk_note_player', ['player_id'], 'player', [
+        'id',
+      ])
+      .execute();
+
+    await db.schema
+      .alterTable('player')
+      .addColumn('note_count', 'integer', (col) => col.notNull().defaultTo(0))
+      .execute();
+
+    await sql`
+      create trigger note_after_insert after insert on note for each row begin
+        update player set note_count = note_count + 1 where id = new.player_id;
+      end;
+    `.execute(db);
+
+    await sql`
+      create trigger note_after_delete after delete on note for each row begin
+        update player set note_count = note_count - 1 where id = old.player_id;
+      end;
+    `.execute(db);
+  },
+  async down(db: Kysely<unknown>) {
+    await sql`drop trigger note_after_insert`.execute(db);
+    await sql`drop trigger note_after_delete`.execute(db);
+
+    await db.schema.alterTable('player').dropColumn('note_count').execute();
+
+    await db.schema.dropTable('note').execute();
+  },
+};

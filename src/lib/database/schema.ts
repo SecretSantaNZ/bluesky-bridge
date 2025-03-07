@@ -20,6 +20,7 @@ export interface DatabaseSchema {
   settings: Settings;
   post: Post;
   mastodon_token: MastodonToken;
+  note: Note;
 }
 
 export interface JwtMacKey {
@@ -92,6 +93,7 @@ export interface Player {
   mastodon_following_santa: Generated<null | 0 | 1>;
   mastodon_followed_by_santa: Generated<null | 0 | 1>;
   mastodon_follow_last_checked: Generated<null | string>;
+  note_count: Generated<number>;
 }
 
 export interface Match {
@@ -218,4 +220,12 @@ export type MastodonToken = {
   token: string;
   client_id: string;
   issued_at: string;
+};
+
+export type Note = {
+  id: GeneratedAlways<number>;
+  player_id: number;
+  text: string;
+  author: string;
+  created_at: string;
 };
