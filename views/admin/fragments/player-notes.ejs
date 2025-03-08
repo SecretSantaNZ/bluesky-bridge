@@ -1,0 +1,9 @@
+<% notes.forEach(function(note) { %>
+  <div class="mt-12 border-t">
+    <div class="whitespace-pre-wrap"><%= note.text %></div>
+    <div class="flex">
+      <div class="flex-grow flex-shrink"></div>
+      <div><%= note.author %> at <%= formatDatetime(note.created_at) %></div>
+    </div>
+  </div>
+<% }) %>

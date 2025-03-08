@@ -24,9 +24,9 @@ export function queryTrackingWithGiftee(db: Database) {
   return queryTrackingWithMatch(db)
     .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
     .select([
+      'giftee.did as giftee_did',
       'giftee.handle as giftee_handle',
       'giftee.avatar_url as giftee_avatar_url',
-      'giftee.note_count as giftee_note_count',
     ]);
 }
 
@@ -34,8 +34,11 @@ export function queryTrackingWithGifteeAndSanta(db: Database) {
   return queryTrackingWithGiftee(db)
     .innerJoin('player as santa', 'santa.id', 'match.santa')
     .select([
+      'santa.did as santa_did',
       'santa.handle as santa_handle',
       'santa.avatar_url as santa_avatar_url',
       'santa.note_count as santa_note_count',
+      // We only include note count here because this is used in admin screens, with giftee is used elsewhere
+      'giftee.note_count as giftee_note_count',
     ]);
 }

@@ -23,12 +23,23 @@
       target="_blank"
     ></a>
   </div>
-  <div class="ml-2">
-    <template x-if="player.note_count">
-      <div class="i-mdi-comment-text-multiple size-6"></div>
-    </template>
-    <template x-if="!player.note_count">
-      <div class="i-mdi-comment-add-outline size-6"></div>
-    </template>
-  </div>
+  <form
+    hx-get="/admin/fragments/player-notes"
+    hx-target="#player-notes"
+    hx-swap="innerHTML"
+    hx-indicator="#player-notes-container"
+    class="block ml-2"
+  >
+    <button
+      @click="$dispatch('ss-open-modal', {modal: 'player-notes', modalData: {...player}})"
+    >
+      <template x-if="player.note_count">
+        <div class="i-mdi-comment-text-multiple size-6"></div>
+      </template>
+      <template x-if="!player.note_count">
+        <div class="i-mdi-comment-add-outline size-6"></div>
+      </template>
+    </button>
+    <input type="hidden" name="player_did" x-bind:value="player.did" />
+  </form>
 </div>

@@ -1,0 +1,28 @@
+<div class="space-y-8">
+  <h1>Notes about @<span x-text="modalData.handle"></span></h1>
+  <form hx-post="/admin/fragments/player-notes" hx-swap="none" id="add-note">
+    <div class="space-y-8">
+      <div class="group">
+        <label
+          for="add-note-text"
+          class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300 scheme-light dark:scheme-dark"
+          >Note</label
+        >
+        <textarea
+          id="add-note-text"
+          name="note_text"
+          rows="5"
+          class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"
+          x-model="modalData.note_text"></textarea>
+      </div>
+      <%- include('../partials/error.ejs', { elementId: 'add-tracking-error' }) %>
+      <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: 'false', label: 'Add note' }); %>
+    </div>
+    <input type="hidden" name="player_did" x-bind:value="modalData.did" />
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+  </form>
+</div>
+<div id="player-notes-container">
+  <%- include('../partials/activity-spinner.ejs') %>
+  <div id="player-notes" class="htmx-request:hidden"></div>
+</div>

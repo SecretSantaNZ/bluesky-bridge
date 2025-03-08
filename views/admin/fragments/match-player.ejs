@@ -23,7 +23,6 @@
   <div class="ml-2">
     <a
       x-bind:href="'https://bsky.app/profile/' + encodeURIComponent(<%= locals.row_prop || 'match' %>.<%= side %>_handle)"
-      x-text="'@' + <%= locals.row_prop || 'match' %>.<%= side %>_handle"
       target="_blank"
     >
       <span
@@ -36,12 +35,29 @@
       ></span
     ></a>
   </div>
-  <div class="ml-2">
-    <template x-if="<%= locals.row_prop || 'match' %>.<%= side %>_note_count">
-      <div class="i-mdi-comment-text-multiple size-6"></div>
-    </template>
-    <template x-if="!<%= locals.row_prop || 'match' %>.<%= side %>_note_count">
-      <div class="i-mdi-comment-add-outline size-6"></div>
-    </template>
-  </div>
+  <form
+    hx-get="/admin/fragments/player-notes"
+    hx-target="#player-notes"
+    hx-swap="innerHTML"
+    hx-indicator="#player-notes-container"
+    class="block ml-2"
+  >
+    <button
+      @click="$dispatch('ss-open-modal', {modal: 'player-notes', modalData: {handle: <%= locals.row_prop || 'match' %>.<%= side %>_handle, did: <%= locals.row_prop || 'match' %>.<%= side %>_did}})"
+    >
+      <template x-if="<%= locals.row_prop || 'match' %>.<%= side %>_note_count">
+        <div class="i-mdi-comment-text-multiple size-6"></div>
+      </template>
+      <template
+        x-if="!<%= locals.row_prop || 'match' %>.<%= side %>_note_count"
+      >
+        <div class="i-mdi-comment-add-outline size-6"></div>
+      </template>
+    </button>
+    <input
+      type="hidden"
+      name="player_did"
+      x-bind:value="<%= locals.row_prop || 'match' %>.<%= side %>_did"
+    />
+  </form>
 </div>

@@ -109,6 +109,7 @@
       </div>
       <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
         <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/reassign-giftee.ejs', xShow: "showModal === 'reassign-giftee'", super_santa_match: 'true' }) %>
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/player-notes.ejs', xShow: "showModal === 'player-notes'", adminMode: true  }) %>
       </div>
     </div>
   </template>

@@ -83,3 +83,14 @@
     </div>
   </template>
 </div>
+<div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
+  <template x-teleport="body">
+    <div x-show="showModal">
+      <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
+      </div>
+      <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/player-notes.ejs', xShow: "showModal === 'player-notes'", adminMode: true  }) %>
+      </div>
+    </div>
+  </template>
+</div>
