@@ -19,7 +19,7 @@ export const playerNotes: FastifyPluginAsync = async (rawApp) => {
     async function (request, reply) {
       const notes = await this.blueskyBridge.db
         .selectFrom('note')
-        .innerJoin('player', 'player.id', 'note.player_id')
+        .innerJoin('player', 'player.did', 'note.player_did')
         .select(['note.id', 'note.text', 'note.author', 'note.created_at'])
         .where('player.did', '=', request.query.player_did)
         .orderBy('note.created_at desc')
@@ -54,7 +54,7 @@ export const playerNotes: FastifyPluginAsync = async (rawApp) => {
       await this.blueskyBridge.db
         .insertInto('note')
         .values({
-          player_id: player.id,
+          player_did: player.did,
           author: author.handle,
           text: request.body.note_text,
           created_at: new Date().toISOString(),

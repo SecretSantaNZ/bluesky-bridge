@@ -224,7 +224,7 @@ export type MastodonToken = {
 
 export type Note = {
   id: GeneratedAlways<number>;
-  player_id: number;
+  player_did: string;
   text: string;
   author: string;
   created_at: string;

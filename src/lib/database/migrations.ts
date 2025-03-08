@@ -1239,3 +1239,97 @@ migrations['015'] = {
     await db.schema.dropTable('note').execute();
   },
 };
+
+migrations['016'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema.dropTable('note').execute();
+    await db.schema
+      .createTable('note')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('player_did', 'varchar', (col) => col.notNull())
+      .addColumn('text', 'varchar', (col) => col.notNull())
+      .addColumn('author', 'varchar', (col) => col.notNull())
+      .addColumn('created_at', 'varchar', (col) => col.notNull())
+      .execute();
+
+    await db.schema
+      .createIndex('idx_note_player_did')
+      .on('note')
+      .column('player_did')
+      .execute();
+
+    await (db as Database)
+      .updateTable('player')
+      .set({ note_count: 0 })
+      .execute();
+
+    await sql`
+      create trigger note_after_insert after insert on note for each row begin
+        update player set note_count = note_count + 1 where did = new.player_did;
+      end;
+    `.execute(db);
+
+    await sql`
+      create trigger note_after_delete after delete on note for each row begin
+        update player set note_count = note_count - 1 where did = old.player_did;
+      end;
+    `.execute(db);
+
+    await sql`drop trigger player_after_insert`.execute(db);
+    await sql`
+    create trigger player_after_insert after insert on player for each row begin
+      update player set profile_complete = 1 where id = new.id and new.address is not null and new.address <> '' and new.game_mode is not null;
+
+      update player set giftee_count_status = 'can_have_more' where id = new.id and max_giftees is not null and giftee_count < max_giftees;
+      update player set giftee_count_status = 'full' where id = new.id and max_giftees is not null and giftee_count = max_giftees;
+      update player set giftee_count_status = 'too_many' where id = new.id and max_giftees is not null and giftee_count > max_giftees;
+
+      update player set note_count = (select count(*) from note where note.player_did = player.did) where player.did = new.did;
+    end;
+  `.execute(db);
+  },
+  async down(db: Kysely<unknown>) {
+    await (db as Database)
+      .updateTable('player')
+      .set({ note_count: 0 })
+      .execute();
+
+    await db.schema.dropIndex('idx_note_player_did').execute();
+    await db.schema.dropTable('note').execute();
+
+    await db.schema
+      .createTable('note')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('player_id', 'integer', (col) => col.notNull())
+      .addColumn('text', 'varchar', (col) => col.notNull())
+      .addColumn('author', 'varchar', (col) => col.notNull())
+      .addColumn('created_at', 'varchar', (col) => col.notNull())
+      .addForeignKeyConstraint('fk_note_player', ['player_id'], 'player', [
+        'id',
+      ])
+      .execute();
+
+    await sql`
+        create trigger note_after_insert after insert on note for each row begin
+          update player set note_count = note_count + 1 where id = new.player_id;
+        end;
+      `.execute(db);
+
+    await sql`
+        create trigger note_after_delete after delete on note for each row begin
+          update player set note_count = note_count - 1 where id = old.player_id;
+        end;
+      `.execute(db);
+
+    await sql`drop trigger player_after_insert`.execute(db);
+    await sql`
+    create trigger player_after_insert after insert on player for each row begin
+      update player set profile_complete = 1 where id = new.id and new.address is not null and new.address <> '' and new.game_mode is not null;
+
+      update player set giftee_count_status = 'can_have_more' where id = new.id and max_giftees is not null and giftee_count < max_giftees;
+      update player set giftee_count_status = 'full' where id = new.id and max_giftees is not null and giftee_count = max_giftees;
+      update player set giftee_count_status = 'too_many' where id = new.id and max_giftees is not null and giftee_count > max_giftees;
+    end;
+  `.execute(db);
+  },
+};
