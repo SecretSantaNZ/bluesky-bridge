@@ -1,6 +1,6 @@
 <% if (player.player_type === 'bluesky') { %>
   <% if (!player.following_santa) { %>
-    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
       <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
       <div class="flex-shrink flex-grow">
         <h1>You must follow @secretsanta.nz</h1>
@@ -9,7 +9,7 @@
     </div>
   <% } %>
   <% if (player.player_dm_status.startsWith('error:')) { %>
-    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
       <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
       <div class="flex-shrink flex-grow">
         <h1>@secretsanta.nz could not DM you</h1>
@@ -19,7 +19,7 @@
   <% } %>
 <% } else if (player.player_type === 'mastodon') { %>
   <% if (!player.following_santa) { %>
-    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
       <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
       <div class="flex-shrink flex-grow">
         <h1>You must follow @secretsanta.nz@bsky.brid.gy</h1>
@@ -28,7 +28,7 @@
     </div>
   <% } %>
   <% if (!player.mastodon_following_santa) { %>
-    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
       <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
       <div class="flex-shrink flex-grow">
         <h1>You must follow @<%= santaMastodonHandle %></h1>
@@ -36,6 +36,38 @@
       </div>
     </div>
   <% } %>
+<% } %>
+<% if (badges.length > 0) { %>
+  <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
+    <div class="flex">
+      <div class="flex-grow flex-shrink">
+        <h1>My badges</h1>
+      </div>
+      <div class="size-10 flex-shrink-0 flex-grow-0 i-mdi-star"></div>
+    </div>
+    <div class="grid justify-items-center <%= (function() {
+      switch (badges.length) {
+        case 1:
+          return '';
+        case 2:
+          return 'grid-cols-2'
+        case 3:
+          return 'grid-cols-3'
+        case 4:
+          return 'grid-cols-4'
+        case 5:
+          return 'grid-cols-5'
+        default:
+          return '';
+      }
+    })()%>">
+      <% badges.forEach((badge) => { %>
+        <button type="button" @click="$dispatch('ss-open-modal', {modal: 'badge-detail', modalData: <%= JSON.stringify(badge) %>})" class="block flex-shrink">
+          <img src="<%= badge.image_url %>" alt="<%= badge.title %>" class="object-contain mx-2 max-h-16"/>
+        </button> 
+      <% }) %>
+    </div>
+  </div>
 <% } %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/key-information.ejs' }) %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/my-details.ejs' }) %>
@@ -54,6 +86,7 @@
         <%- include('../layouts/card.ejs', { bodyTemplate: 'player/confirm-opt-out.ejs', xShow: "showModal === 'opt-out'" }) %>
         <%- include('../layouts/card.ejs', { bodyTemplate: 'player/add-tracking.ejs', xShow: "showModal === 'add-tracking'", mode: 'add' }) %>
         <%- include('../layouts/card.ejs', { bodyTemplate: 'player/send-nudge.ejs', xShow: "showModal === 'send-nudge'" }) %>
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/badge-detail.ejs', xShow: "showModal === 'badge-detail'" }) %>
       </div>
     </div>
   </template>

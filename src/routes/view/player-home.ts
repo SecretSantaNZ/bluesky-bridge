@@ -75,54 +75,79 @@ export const playerHome: FastifyPluginAsync = async (app) => {
 
   app.get('/', async function (request, reply) {
     const player = reply.locals?.player as Player;
-    const [giftees, carriers, myGifts, giftsIveSent, sentNudges, nudgeOptions] =
-      await Promise.all([
-        this.blueskyBridge.db
-          .selectFrom('match')
-          .innerJoin('player', 'player.id', 'match.giftee')
-          .select([
-            'player.avatar_url',
-            'player.handle',
-            'player.address',
-            'player.delivery_instructions',
-            'match.id as match_id',
-            'match.match_status',
-            'match.nudge_count',
-            'match.tracking_count',
-          ])
-          .where('match.santa', '=', player.id)
-          .where('match.deactivated', 'is', null)
-          .where('match.match_status', '<>', 'draft')
-          .execute(),
-        this.blueskyBridge.db
-          .selectFrom('carrier')
-          .selectAll()
-          .orderBy('id asc')
-          .execute(),
-        queryTrackingWithMatch(this.blueskyBridge.db)
-          .where('match.giftee', '=', player.id)
-          .orderBy('shipped_date asc')
-          .execute(),
-        queryTrackingWithGiftee(this.blueskyBridge.db)
-          .where('match.santa', '=', player.id)
-          .orderBy('shipped_date asc')
-          .execute(),
-        this.blueskyBridge.db
-          .selectFrom('nudge')
-          .innerJoin('match', 'match.id', 'nudge.match')
-          .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
-          .innerJoin('nudge_type', 'nudge_type.id', 'nudge.nudge_type')
-          .select([
-            'nudge_type.name as nudge_type',
-            'nudge.created_at',
-            'giftee.handle as giftee_handle',
-            'nudge.post_url',
-          ])
-          .where('match.santa', '=', player.id)
-          .orderBy('nudge.created_at asc')
-          .execute(),
-        loadNudgeOptions(this.blueskyBridge.db),
-      ]);
+    const [
+      giftees,
+      carriers,
+      myGifts,
+      giftsIveSent,
+      sentNudges,
+      nudgeOptions,
+      playerBadges,
+      sentBadge,
+    ] = await Promise.all([
+      this.blueskyBridge.db
+        .selectFrom('match')
+        .innerJoin('player', 'player.id', 'match.giftee')
+        .select([
+          'player.avatar_url',
+          'player.handle',
+          'player.address',
+          'player.delivery_instructions',
+          'match.id as match_id',
+          'match.match_status',
+          'match.nudge_count',
+          'match.tracking_count',
+        ])
+        .where('match.santa', '=', player.id)
+        .where('match.deactivated', 'is', null)
+        .where('match.match_status', '<>', 'draft')
+        .execute(),
+      this.blueskyBridge.db
+        .selectFrom('carrier')
+        .selectAll()
+        .orderBy('id asc')
+        .execute(),
+      queryTrackingWithMatch(this.blueskyBridge.db)
+        .where('match.giftee', '=', player.id)
+        .orderBy('shipped_date asc')
+        .execute(),
+      queryTrackingWithGiftee(this.blueskyBridge.db)
+        .where('match.santa', '=', player.id)
+        .orderBy('shipped_date asc')
+        .execute(),
+      this.blueskyBridge.db
+        .selectFrom('nudge')
+        .innerJoin('match', 'match.id', 'nudge.match')
+        .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
+        .innerJoin('nudge_type', 'nudge_type.id', 'nudge.nudge_type')
+        .select([
+          'nudge_type.name as nudge_type',
+          'nudge.created_at',
+          'giftee.handle as giftee_handle',
+          'nudge.post_url',
+        ])
+        .where('match.santa', '=', player.id)
+        .orderBy('nudge.created_at asc')
+        .execute(),
+      loadNudgeOptions(this.blueskyBridge.db),
+      this.blueskyBridge.db
+        .selectFrom('player_badge')
+        .innerJoin('badge', 'badge.id', 'player_badge.badge_id')
+        .select(['badge.title', 'badge.description', 'badge.image_url'])
+        .where('player_badge.player_did', '=', player.did)
+        .orderBy('recorded_at asc')
+        .execute(),
+      this.blueskyBridge.db
+        .selectFrom('badge')
+        .innerJoin('settings', 'settings.sent_present_badge_id', 'badge.id')
+        .select(['badge.title', 'badge.description', 'badge.image_url'])
+        .executeTakeFirst(),
+    ]);
+
+    const badges = [
+      ...(sentBadge && giftsIveSent.length > 1 ? [sentBadge] : []),
+      ...playerBadges,
+    ];
     return reply.view(
       'player/home.ejs',
       {
@@ -139,6 +164,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
         santaMastodonUsername:
           this.blueskyBridge.playerService.santaMastodonHandle.split('@')[0],
         santaMastodonHost: this.blueskyBridge.playerService.santaMastodonHost,
+        badges,
       },
       {
         layout: 'layouts/base-layout.ejs',

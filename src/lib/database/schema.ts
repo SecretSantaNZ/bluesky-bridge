@@ -21,6 +21,8 @@ export interface DatabaseSchema {
   post: Post;
   mastodon_token: MastodonToken;
   note: Note;
+  badge: Badge;
+  player_badge: PlayerBadge;
 }
 
 export interface JwtMacKey {
@@ -189,6 +191,9 @@ export interface Settings {
   send_messages: number;
   feed_player_only: 0 | 1;
   feed_max_distance_from_tag: number;
+  current_game_badge_id?: number;
+  sent_present_badge_id?: number;
+  super_santa_badge_id?: number;
 }
 
 export type Post = {
@@ -228,4 +233,17 @@ export type Note = {
   text: string;
   author: string;
   created_at: string;
+};
+
+export type Badge = {
+  id: GeneratedAlways<number>;
+  title: string;
+  description: string;
+  image_url: string;
+};
+
+export type PlayerBadge = {
+  player_did: string;
+  badge_id: number;
+  recorded_at: string;
 };

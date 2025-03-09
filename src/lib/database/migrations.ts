@@ -1333,3 +1333,119 @@ migrations['016'] = {
   `.execute(db);
   },
 };
+
+migrations['017'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .createTable('badge')
+      .addColumn('id', 'integer', (col) => col.primaryKey())
+      .addColumn('title', 'varchar', (col) => col.notNull())
+      .addColumn('description', 'varchar', (col) => col.notNull())
+      .addColumn('image_url', 'varchar', (col) => col.notNull())
+      .execute();
+
+    await db.schema
+      .createTable('player_badge')
+      .addColumn('player_did', 'varchar', (col) => col.notNull())
+      .addColumn('badge_id', 'integer', (col) => col.notNull())
+      .addColumn('recorded_at', 'varchar', (col) => col.notNull())
+      .addForeignKeyConstraint('fk_player_badge_badge', ['badge_id'], 'badge', [
+        'id',
+      ])
+      .execute();
+
+    await db.schema
+      .createIndex('idx_player_badge_player_did')
+      .on('player_badge')
+      .column('player_did')
+      .execute();
+
+    await db.schema
+      .alterTable('settings')
+      .addColumn('current_game_badge_id', 'integer')
+      .execute();
+
+    await db.schema
+      .alterTable('settings')
+      .addColumn('sent_present_badge_id', 'integer')
+      .execute();
+
+    await db.schema
+      .alterTable('settings')
+      .addColumn('super_santa_badge_id', 'integer')
+      .execute();
+
+    await sql`
+      create trigger match_insert_add_badges after insert on match for each row when new.match_status = 'locked' and new.deactivated is null begin
+        insert into player_badge (player_did, badge_id, recorded_at)
+          select player.did, current_game_badge_id, datetime('now')
+          from player
+          inner join settings
+          where player.id = new.santa
+          and settings.current_game_badge_id is not null
+        on conflict do nothing;
+
+        insert into player_badge (player_did, badge_id, recorded_at)
+          select player.did, super_santa_badge_id, datetime('now')
+          from player
+          inner join settings
+          where player.id = new.santa
+          and settings.super_santa_badge_id is not null
+          and (
+            (select count(*) from match where santa = new.santa and match_status = 'locked') > 1
+            or new.super_santa_match = 1
+          )
+        on conflict do nothing;
+      end;
+    `.execute(db);
+
+    await sql`
+      create trigger match_update_add_badges after update on match for each row when new.match_status = 'locked' and new.deactivated is null begin
+        insert into player_badge (player_did, badge_id, recorded_at)
+          select player.did, current_game_badge_id, datetime('now')
+          from player
+          inner join settings
+          where player.id = new.santa
+          and settings.current_game_badge_id is not null
+        on conflict do nothing;
+
+        insert into player_badge (player_did, badge_id, recorded_at)
+          select player.did, super_santa_badge_id, datetime('now')
+          from player
+          inner join settings
+          where player.id = new.santa
+          and settings.super_santa_badge_id is not null
+          and (
+            (select count(*) from match where santa = new.santa and match_status = 'locked') > 1
+            or new.super_santa_match = 1
+          )
+        on conflict do nothing;
+      end;
+    `.execute(db);
+  },
+  async down(db: Kysely<unknown>) {
+    await sql`drop trigger match_update_add_badges`.execute(db);
+    await sql`drop trigger match_insert_add_badges`.execute(db);
+
+    await db.schema.dropIndex('idx_player_badge_player_did').execute();
+
+    await db.schema.dropTable('player_badge').execute();
+
+    await db.schema.dropTable('badge').execute();
+
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('current_game_badge_id')
+      .execute();
+
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('sent_present_badge_id')
+      .execute();
+
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('super_santa_badge_id')
+      .execute();
+  },
+};
