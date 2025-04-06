@@ -35,7 +35,10 @@ export const playerHome: FastifyPluginAsync = async (app) => {
     };
 
     if (player.booted) {
-      return reply.clearCookie('session').view(
+      if (!player.admin) {
+        reply.clearCookie('session');
+      }
+      return reply.view(
         'player/booted-out-card.ejs',
         { hideClose: true },
         {

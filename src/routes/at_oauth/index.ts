@@ -98,6 +98,7 @@ export async function finishLogin(
     } else {
       player = await playerService.getPlayer(did);
     }
+    const admin = player?.admin ? true : undefined;
     if (player == null) {
       const didDoc = await didResolver.resolve(did);
       const player_handle = (didDoc?.alsoKnownAs?.[0] ?? '').replace(
@@ -119,7 +120,7 @@ export async function finishLogin(
           layout: 'layouts/base-layout.ejs',
         }
       );
-    } else if (player.booted) {
+    } else if (player.booted && !admin) {
       return reply.view(
         'player/booted-out-card.ejs',
         {
@@ -136,8 +137,6 @@ export async function finishLogin(
         }
       );
     }
-
-    const admin = player.admin ? true : undefined;
 
     const csrfToken = randomUUID();
     const sessionToken = await blueskyBridge.authTokenManager.generateToken(
