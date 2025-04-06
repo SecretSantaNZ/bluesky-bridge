@@ -37,6 +37,7 @@ declare module 'fastify' {
       authTokenManager: TokenManager<{
         csrfToken: string;
         startedAt: string;
+        handle: string;
         admin?: true;
       }>;
       playerService: PlayerService;

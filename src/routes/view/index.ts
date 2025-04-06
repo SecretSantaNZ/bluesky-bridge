@@ -55,7 +55,9 @@ export const view: FastifyPluginAsync = async (app) => {
 
   app.setErrorHandler(async function (error, request, reply) {
     if (error instanceof UnauthorizedError) {
-      return await returnLoginView(this.blueskyBridge, reply, request.url);
+      return await returnLoginView(this.blueskyBridge, reply, request.url, {
+        handle: error.handle,
+      });
     }
     request.log.error(error);
   });

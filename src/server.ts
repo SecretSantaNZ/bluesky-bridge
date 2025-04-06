@@ -45,6 +45,7 @@ const main = async () => {
   const authTokenManager = new TokenManager<{
     csrfToken: string;
     startedAt: string;
+    handle: string;
     admin?: true;
   }>(db, tokenIssuer, `${tokenIssuer}/endpoints`, '15 minutes');
 

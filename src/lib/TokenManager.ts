@@ -92,9 +92,7 @@ export class TokenManager<D extends Record<string, unknown>> {
     });
   }
 
-  async validateToken(
-    authToken: string
-  ): Promise<{ subject: string; data: D; expiresAt: number }> {
+  async verifyToken(authToken: string) {
     const decodedToken = await verifyJwt(
       authToken,
       (header, callback) =>
@@ -121,14 +119,34 @@ export class TokenManager<D extends Record<string, unknown>> {
     );
 
     if (typeof decodedToken === 'object' && decodedToken != null) {
+      return decodedToken;
+    }
+    console.warn(`Missing subject in token ${JSON.stringify(decodedToken)}`);
+    throw new UnauthorizedError('Invalid Token');
+  }
+
+  async validateToken(
+    authToken: string
+  ): Promise<{ subject: string; data: D; expiresAt: number }> {
+    try {
+      const decodedToken = await this.verifyToken(authToken);
+
       const { sub, exp, ...rest } = decodedToken;
       return {
         subject: sub as string,
         expiresAt: exp as number,
         data: rest as D,
       };
+    } catch (error) {
+      if (error instanceof jwt.JsonWebTokenError) {
+        const decodedToken = jwt.decode(authToken, {
+          json: true,
+        });
+        const unauthError = new UnauthorizedError('Expired token');
+        unauthError.handle = decodedToken?.handle;
+        throw unauthError;
+      }
+      throw error;
     }
-    console.warn(`Missing subject in token ${JSON.stringify(decodedToken)}`);
-    throw new UnauthorizedError('Invalid Token');
   }
 }

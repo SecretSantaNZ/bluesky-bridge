@@ -8,7 +8,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { randomUUID } from 'crypto';
 import { validateAuth } from '../../util/validateAuth.js';
-import { addHours, addSeconds, isBefore } from 'date-fns';
+import { addHours, isBefore } from 'date-fns';
 import type { Player } from '../../lib/PlayerService.js';
 import { returnLoginView } from '../view/index.js';
 import { startMastodonOauth } from '../mastodon/index.js';
@@ -40,6 +40,7 @@ async function startAtOauth(
       requestId,
       returnUrl,
       mode,
+      handle,
     });
 
     const url = await client.authorize(handle, {
@@ -68,6 +69,7 @@ export async function finishLogin(
   stateRecord: { data: string } | undefined,
   process: () => Promise<{
     did: string;
+    handle?: string;
     attributes: Partial<InsertObject<DatabaseSchema, 'player'>>;
   }>
 ) {
@@ -76,7 +78,7 @@ export async function finishLogin(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const appState: any =
     state.appState == null ? {} : JSON.parse(state.appState);
-  const { returnUrl } = appState;
+  const { returnUrl, handle } = appState;
   try {
     const { playerService, db, didResolver } = blueskyBridge;
     const { did, attributes } = await process();
@@ -143,6 +145,9 @@ export async function finishLogin(
       {
         csrfToken,
         startedAt: new Date().toISOString(),
+        handle: (player.player_type === 'mastodon'
+          ? player.mastodon_account
+          : player.handle) as string,
         admin,
       }
     );
@@ -151,10 +156,7 @@ export async function finishLogin(
       httpOnly: true,
       sameSite: 'lax',
       secure: true,
-      expires: addSeconds(
-        new Date(),
-        blueskyBridge.authTokenManager.expiresInSeconds
-      ),
+      maxAge: 24 * 60 * 60,
     });
 
     reply.redirect(303, returnUrl ?? '/');
@@ -164,6 +166,7 @@ export async function finishLogin(
     return returnLoginView(blueskyBridge, reply, returnUrl ?? '/', {
       errorMessage: 'message' in e ? e.message : 'Unknown error',
       mode: appState.mode,
+      handle,
     });
   }
 }
@@ -259,6 +262,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
     },
     async function (request, reply) {
       const startedAt = request.tokenData?.startedAt as string;
+      const handle = request.tokenData?.handle as string;
       // If session is over 12 hours old, clear cookie and refresh to require new login
       if (isBefore(startedAt, addHours(new Date(), -12))) {
         return reply
@@ -279,6 +283,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         await app.blueskyBridge.authTokenManager.generateToken(playerDid, {
           csrfToken: request.tokenData?.csrfToken as string,
           startedAt,
+          handle,
           admin: request.tokenData?.admin as true | undefined,
         });
       reply.setCookie('session', sessionToken, {
@@ -286,10 +291,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         httpOnly: true,
         sameSite: 'lax',
         secure: true,
-        expires: addSeconds(
-          new Date(),
-          app.blueskyBridge.authTokenManager.expiresInSeconds
-        ),
+        maxAge: 24 * 60 * 60,
       });
       return reply.code(204).send();
     }
