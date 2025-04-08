@@ -51,13 +51,13 @@ export class NudgeSender {
   async sendANudge() {
     const now = new TZDate(new Date(), 'Pacific/Auckland');
     const earliest = set(now, {
-      hours: 7,
+      hours: 9,
       minutes: 0,
       seconds: 0,
       milliseconds: 0,
     });
     const latest = set(earliest, {
-      hours: 22,
+      hours: 20,
     });
     if (!(isAfter(now, earliest) && isBefore(now, latest))) {
       console.log('skipping nudges, outside of time');
