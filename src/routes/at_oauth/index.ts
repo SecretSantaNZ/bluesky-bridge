@@ -274,7 +274,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       const player =
         await this.blueskyBridge.playerService.getPlayer(playerDid);
       // If player is unknown or booted, refresh to show the error screen
-      if (player == null || player.booted) {
+      if (player == null || (player.booted && !player.admin)) {
         return reply.code(204).header('HX-Refresh', 'true').send();
       }
 
