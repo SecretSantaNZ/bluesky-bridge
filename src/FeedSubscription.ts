@@ -41,7 +41,7 @@ function boolToDb<T extends Record<string, boolean>>(
 }
 
 export class FeedSubscription {
-  private gameHashtag = '';
+  private gameHashtags: Array<string> = [];
   private jetstream: Jetstream | undefined;
   constructor(private readonly db: Database) {
     setInterval(this.purge.bind(this), ms('1h'));
@@ -85,7 +85,18 @@ export class FeedSubscription {
   }
 
   async settingsChanged(settings: Pick<Settings, 'hashtag'>) {
-    this.gameHashtag = settings.hashtag.replace(/^#/, '').toLowerCase();
+    this.gameHashtags = Array.from(
+      new Set(
+        [
+          'MWSecretSantaAoNZ',
+          'MWSecretSantaNZ',
+          'SecretSantaAoNZ',
+          'SecretSantaNZ',
+          'NZSecretSanta',
+          settings.hashtag,
+        ].map((tag) => tag.replace(/^#/, '').toLowerCase())
+      )
+    );
   }
 
   async onPostCreate(event: CommitCreateEvent<'app.bsky.feed.post'>) {
@@ -95,7 +106,8 @@ export class FeedSubscription {
     const replyParentAuthor = authorFromPostUri(replyParent);
 
     const hashtags = getHashtags(event.commit.record);
-    const hasHashtag = hashtags.has(this.gameHashtag);
+    const hasHashtag =
+      this.gameHashtags.find((tag) => hashtags.has(tag)) != null;
     const player = await this.db
       .selectFrom('player')
       .select('did')
