@@ -1,3 +1,4 @@
+import newrelic from 'newrelic';
 import path from 'node:path';
 import type * as http from 'http';
 import fastify, { type FastifyInstance } from 'fastify';
@@ -79,6 +80,9 @@ export const build = async (
       ejs,
     },
     root: path.join(process.cwd(), 'views'),
+    defaultContext: {
+      newrelic,
+    },
   });
 
   await app.register(fastifyStatic, {
