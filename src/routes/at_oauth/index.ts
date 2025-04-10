@@ -26,7 +26,11 @@ async function startAtOauth(
 ) {
   try {
     const client = blueskyBridge.atOauthClient;
-    let handle = rawHandle.replace(/^@/, '').replace(/@/g, '.').trim();
+    let handle = rawHandle
+      .replace(/^@/, '')
+      .replace(/@/g, '.')
+      .trim()
+      .toLowerCase();
     if (!handle.includes('.')) {
       handle += '.bsky.social';
     }
