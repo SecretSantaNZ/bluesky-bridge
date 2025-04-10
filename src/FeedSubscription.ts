@@ -90,6 +90,8 @@ export class FeedSubscription {
         [
           'MWSecretSantaAoNZ',
           'MWSecretSantaNZ',
+          'MWSecretSanta',
+          'MWSS',
           'SecretSantaAoNZ',
           'SecretSantaNZ',
           'NZSecretSanta',
