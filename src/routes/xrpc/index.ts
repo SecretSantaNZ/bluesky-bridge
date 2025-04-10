@@ -74,28 +74,57 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
 
       let query = db.selectFrom('post').select('uri');
       if (feed === hashtagFeedUri) {
-        query = query.where('hasHashtag', '=', 1);
-        if (settings.feed_player_only) {
-          query = query.where('byPlayer', '=', 1);
-        }
+        query = query.where((eb) =>
+          eb.or([
+            eb('post.author', '=', santaAccountDid).and(
+              'post.replyParent',
+              'is',
+              null
+            ),
+            eb.and([
+              eb('hasHashtag', '=', 1),
+              ...(settings.feed_player_only ? [eb('byPlayer', '=', 1)] : []),
+            ]),
+          ])
+        );
       } else if (feed === hashtagWithRepliesFeedUri) {
         if (settings.feed_player_only) {
-          query = query
-            .where('distanceFromPlayerWithHashtag', '>=', 0)
-            .where(
-              'distanceFromPlayerWithHashtag',
-              '<=',
-              settings.feed_max_distance_from_tag
-            )
-            .where('byPlayer', '=', 1);
+          query = query.where((eb) =>
+            eb.or([
+              eb('post.author', '=', santaAccountDid).and(
+                'post.replyParent',
+                'is',
+                null
+              ),
+              eb.and([
+                eb('distanceFromPlayerWithHashtag', '>=', 0),
+                eb(
+                  'distanceFromPlayerWithHashtag',
+                  '<=',
+                  settings.feed_max_distance_from_tag
+                ),
+                eb('byPlayer', '=', 1),
+              ]),
+            ])
+          );
         } else {
-          query = query
-            .where('distanceFromHashtag', '>=', 0)
-            .where(
-              'distanceFromHashtag',
-              '<=',
-              settings.feed_max_distance_from_tag
-            );
+          query = query.where((eb) =>
+            eb.or([
+              eb('post.author', '=', santaAccountDid).and(
+                'post.replyParent',
+                'is',
+                null
+              ),
+              eb.and([
+                eb('distanceFromHashtag', '>=', 0),
+                eb(
+                  'distanceFromHashtag',
+                  '<=',
+                  settings.feed_max_distance_from_tag
+                ),
+              ]),
+            ])
+          );
         }
       } else if (feed === gifteeFeedUri) {
         const giftees = await queryFullMatch(db)
