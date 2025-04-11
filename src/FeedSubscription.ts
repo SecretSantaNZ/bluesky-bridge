@@ -80,7 +80,7 @@ export class FeedSubscription {
   private async purge() {
     await this.db
       .deleteFrom('post')
-      .where('indexedAt', '<', subDays(new Date(), 7).toISOString())
+      .where('indexedAt', '<', subDays(new Date(), 90).toISOString())
       .execute();
   }
 
