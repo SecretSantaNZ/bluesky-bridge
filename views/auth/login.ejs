@@ -14,7 +14,9 @@
     set mode(mode) {
       this.localMode = mode;
     },
-  }">
+  }"
+    @submit="newrelic.addPageAction('login_started', {mode, handle: handle.value, accountType})"
+  >
   <input type="hidden" name="requestId" value="<%= requestId %>"/>
   <input type="hidden" name="returnToken" value="<%= returnToken %>"/>
   <input type="hidden" name="accountType" x-bind:value="accountType"/>

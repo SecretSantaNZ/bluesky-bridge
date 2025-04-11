@@ -38,6 +38,9 @@
             </a>
           </div>
           <% if (player) { %>
+            <script>
+              newrelic.setUserId(<%- JSON.stringify(player.handle) %>);
+            </script>
             <div class="relative text-slate-800 dark:text-slate-200" x-data x-cloak>
               <% if (!player.booted || player.admin) { %>
                 <button @click.stop.prevent="userMenuOpen = !userMenuOpen" class="rounded-full flex-shrink-0">

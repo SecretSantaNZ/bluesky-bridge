@@ -1,3 +1,4 @@
+import newrelic from 'newrelic';
 import type {
   FastifyInstance,
   FastifyPluginAsync,
@@ -83,6 +84,10 @@ export async function finishLogin(
   const appState: any =
     state.appState == null ? {} : JSON.parse(state.appState);
   const { returnUrl, handle } = appState;
+  newrelic.recordCustomEvent('SecretSantaFinishLogin', {
+    handle,
+    accountType: player_type,
+  });
   try {
     const { playerService, db, didResolver } = blueskyBridge;
     const { did, attributes } = await process();
@@ -165,6 +170,11 @@ export async function finishLogin(
     reply.redirect(303, returnUrl ?? '/');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
+    newrelic.noticeError(e, {
+      handle,
+      accountType: player_type,
+      location: 'finishLogin',
+    });
     request.log.error(e);
     return returnLoginView(blueskyBridge, reply, returnUrl ?? '/', {
       errorMessage: 'message' in e ? e.message : 'Unknown error',
@@ -217,6 +227,11 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function (request, reply) {
+      newrelic.recordCustomEvent('SecretSantaStartLogin', {
+        handle: request.body.handle,
+        mode: request.body.mode,
+        accountType: request.body.accountType,
+      });
       const settings = await this.blueskyBridge.db
         .selectFrom('settings')
         .selectAll()
