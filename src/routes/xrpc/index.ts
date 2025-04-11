@@ -166,8 +166,9 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
 
         return reply.send(output);
       }
+
       const output: Queries['app.bsky.feed.getFeedSkeleton']['output'] = {
-        feed: result.slice(offset, limit).map((row) => ({
+        feed: result.slice(offset, offset + limit).map((row) => ({
           post: row.uri,
         })),
         cursor:
