@@ -153,10 +153,7 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
         throw new BadRequestError(`Unknown feed`);
       }
 
-      query = query.orderBy('indexedAt desc').limit(limit + 1);
-      if (offset) {
-        query.offset(offset);
-      }
+      query = query.orderBy('indexedAt desc').limit(offset + limit + 1);
       const result = await query.execute();
       if (result.length === 0 && feed === gifteeFeedUri) {
         const output: Queries['app.bsky.feed.getFeedSkeleton']['output'] = {
@@ -170,10 +167,11 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
         return reply.send(output);
       }
       const output: Queries['app.bsky.feed.getFeedSkeleton']['output'] = {
-        feed: result.slice(0, limit).map((row) => ({
+        feed: result.slice(offset, limit).map((row) => ({
           post: row.uri,
         })),
-        cursor: result.length > limit ? String(offset + limit) : undefined,
+        cursor:
+          result.length > offset + limit ? String(offset + limit) : undefined,
       };
 
       return reply.send(output);
