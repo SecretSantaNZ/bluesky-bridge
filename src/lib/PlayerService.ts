@@ -159,7 +159,7 @@ export class PlayerService {
     private readonly db: Database,
     private readonly santaAgent: () => Promise<Agent>,
     private readonly santaAccountDid: string,
-    private readonly dmSender: DmSender,
+    public readonly dmSender: DmSender,
     public readonly ensureElfDids: ReadonlySet<string>,
     public readonly santaMastodonHandle: string,
     public readonly santaMastodonHost: string

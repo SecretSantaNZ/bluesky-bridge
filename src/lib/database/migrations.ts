@@ -1333,3 +1333,25 @@ migrations['016'] = {
   `.execute(db);
   },
 };
+
+migrations['017'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .createTable('otp_login')
+      .addColumn('key', 'varchar', (col) => col.primaryKey())
+      .addColumn('code', 'varchar', (col) => col.notNull())
+      .addColumn('did', 'varchar', (col) => col.notNull())
+      .addColumn('expires', 'varchar', (col) => col.notNull())
+      .execute();
+
+    await db.schema
+      .createIndex('idx_otp_login_expires')
+      .on('otp_login')
+      .column('expires')
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.dropIndex('idx_otp_login_expires').execute();
+    await db.schema.dropTable('otp_login').execute();
+  },
+};

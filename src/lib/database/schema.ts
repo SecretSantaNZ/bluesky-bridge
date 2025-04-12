@@ -5,6 +5,7 @@ export interface DatabaseSchema {
   jwk_key: JwkKey;
   at_oauth_state: AtOauthState;
   at_oauth_session: AtOauthSession;
+  otp_login: OtpLogin;
   mastodon_client: MastodonClient;
   message: Message;
   player: Player;
@@ -228,4 +229,11 @@ export type Note = {
   text: string;
   author: string;
   created_at: string;
+};
+
+export type OtpLogin = {
+  key: string;
+  code: string;
+  did: string;
+  expires: string;
 };

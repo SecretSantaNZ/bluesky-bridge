@@ -7,15 +7,16 @@ import type {
 } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { randomUUID } from 'crypto';
+import { randomBytes, randomInt, randomUUID, timingSafeEqual } from 'crypto';
 import { validateAuth } from '../../util/validateAuth.js';
-import { addHours, isBefore } from 'date-fns';
+import { addHours, addMinutes, isBefore } from 'date-fns';
 import type { Player } from '../../lib/PlayerService.js';
 import { returnLoginView } from '../view/index.js';
 import { startMastodonOauth } from '../mastodon/index.js';
 import type { DatabaseSchema } from '../../lib/database/schema.js';
 import type { InsertObject } from 'kysely';
 import { BadRequestError } from 'http-errors-enhanced';
+import { unauthenticatedAgent } from '../../bluesky.js';
 
 async function startAtOauth(
   request: FastifyRequest,
@@ -23,7 +24,8 @@ async function startAtOauth(
   blueskyBridge: FastifyInstance['blueskyBridge'],
   rawHandle: string,
   returnToken: string,
-  mode: string
+  mode: string,
+  otpLogin: boolean
 ) {
   try {
     const client = blueskyBridge.atOauthClient;
@@ -41,6 +43,52 @@ async function startAtOauth(
       subject: requestId,
       data: { returnUrl },
     } = await blueskyBridge.returnTokenManager.validateToken(returnToken);
+
+    if (otpLogin) {
+      const resolveResult = await unauthenticatedAgent.resolveHandle({
+        handle,
+      });
+
+      const did = resolveResult.data.did;
+      const player = await blueskyBridge.playerService.getPlayer(did);
+      if (player == null || (player.booted && !player.admin)) {
+        throw new Error('Unknown player');
+      }
+      if (player.player_dm_status.startsWith('error:')) {
+        throw new Error('DMs disabled');
+      }
+
+      const key = randomBytes(21).toString('base64url');
+      const code = String(randomInt(1000000) + 1000000).substring(1);
+      const expires = addMinutes(new Date(), 15).toISOString();
+      await blueskyBridge.db
+        .insertInto('otp_login')
+        .values({
+          key,
+          code,
+          did,
+          expires,
+        })
+        .execute();
+
+      await blueskyBridge.playerService.dmSender.sendDm({
+        dmType: 'otp-login',
+        playerType: player.player_type,
+        recipientDid: did,
+        recipientHandle: player.handle,
+        recipientMastodonHandle: player.mastodon_account,
+        recordId: -1,
+        rawMessage: `Login to the app with code:\n\n${code}\n\nIf you are not trying to login right now, you can ignore this DM.`,
+        markSent: () => Promise.resolve(undefined),
+        markError: (errorText) => Promise.reject(new Error(errorText)),
+      });
+
+      return reply.view('auth/otp-login.ejs', {
+        key,
+        returnToken,
+      });
+    }
+
     const state = JSON.stringify({
       requestId,
       returnUrl,
@@ -167,7 +215,10 @@ export async function finishLogin(
       maxAge: 24 * 60 * 60,
     });
 
-    reply.redirect(303, returnUrl ?? '/');
+    if (request.headers['hx-request']) {
+      return reply.header('HX-Refresh', 'true').code(204).send();
+    }
+    return reply.redirect(303, returnUrl ?? '/');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     newrelic.noticeError(e, {
@@ -215,6 +266,49 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
   });
 
   app.post(
+    '/finish-otp-login',
+    {
+      schema: {
+        body: z.object({
+          returnToken: z.string(),
+          otpKey: z.string(),
+          code: z.string(),
+        }),
+      },
+    },
+    async function (request, reply) {
+      const result = await this.blueskyBridge.db
+        .selectFrom('otp_login')
+        .selectAll()
+        .where('key', '=', request.body.otpKey)
+        .where('expires', '>', new Date().toISOString())
+        .executeTakeFirst();
+      if (result == null) {
+        throw new Error('Expired Key');
+      }
+      const codeBuffer = Buffer.from(
+        (request.body.code + '000000').substring(0, 6),
+        'utf8'
+      );
+      const expectedCodeBuffer = Buffer.from(result.code, 'utf-8');
+      if (!timingSafeEqual(codeBuffer, expectedCodeBuffer)) {
+        throw new Error('Invalid code');
+      }
+
+      return finishLogin(
+        request,
+        reply,
+        app.blueskyBridge,
+        'bluesky',
+        undefined,
+        async () => {
+          return { did: result.did, attributes: {} };
+        }
+      );
+    }
+  );
+
+  app.post(
     '/start-login',
     {
       schema: {
@@ -223,6 +317,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
           returnToken: z.string(),
           mode: z.string(),
           accountType: z.enum(['bluesky', 'mastodon']),
+          otpLogin: z.string().optional(),
         }),
       },
     },
@@ -251,7 +346,8 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
           this.blueskyBridge,
           request.body.handle,
           request.body.returnToken,
-          request.body.mode
+          request.body.mode,
+          Boolean(request.body.otpLogin)
         );
       } else {
         return startMastodonOauth(

@@ -1,0 +1,30 @@
+<form hx-post="/finish-otp-login" id="login" hx-swap-oob="outerHTML" hx-swap="none">
+<input type="hidden" name="otpKey" value="<%= key %>"/>
+<input type="hidden" name="returnToken" value="<%= returnToken %>"/>
+<div class="space-y-8">
+  <h1>Login</h1>
+  <div>
+    You've been DMed a 6 digit code. Enter it below to login.
+  </div>
+  <div class="group">
+    <label for="code" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300 scheme-light dark:scheme-dark">Code</label>
+    <input
+      type="text"
+      id="code"
+      name="code"
+      minlength="6"
+      maxlength="6"
+      placeholder="000000"
+      class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"
+      autocomplete="false"
+    />
+  </div>
+  <%- include('../partials/error.ejs', { elementId: 'login-error' }) %>
+  <div class="flex justify-center items-center">
+    <button type="button" class="text-gray-400" @click.prevent="window.location.reload()">Back</button>
+    <div class="flex-grow"></div>
+    <%- include('../partials/activity-spinner.ejs') %>
+    <input type="submit" name="login" value="Login" class="w-48 rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+  </div>
+</div>
+</form>
