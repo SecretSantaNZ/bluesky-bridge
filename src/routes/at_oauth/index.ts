@@ -308,6 +308,20 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
     }
   );
 
+  app.setErrorHandler(async function (error, request, reply) {
+    newrelic.noticeError(error, {
+      method: request.method,
+      url: request.url,
+      // @ts-expect-error no type
+      ...request.body,
+    });
+    request.log.error({ url: request.url, error, body: request.body });
+    return reply.view('partials/error.ejs', {
+      errorMessage: error.message || 'Unknown Error',
+      elementId: 'login-error',
+    });
+  });
+
   app.post(
     '/start-login',
     {
