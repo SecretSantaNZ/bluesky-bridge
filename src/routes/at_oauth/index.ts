@@ -68,6 +68,7 @@ async function startAtOauth(
           code,
           did,
           expires,
+          attempts: 0,
         })
         .execute();
 
@@ -278,10 +279,14 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
     },
     async function (request, reply) {
       const result = await this.blueskyBridge.db
-        .selectFrom('otp_login')
-        .selectAll()
+        .updateTable('otp_login')
+        .set((eb) => ({
+          attempts: eb('attempts', '+', 1),
+        }))
         .where('key', '=', request.body.otpKey)
         .where('expires', '>', new Date().toISOString())
+        .where('attempts', '<', 3)
+        .returningAll()
         .executeTakeFirst();
       if (result == null) {
         throw new Error('Expired Key');
@@ -294,6 +299,11 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       if (!timingSafeEqual(codeBuffer, expectedCodeBuffer)) {
         throw new Error('Invalid code');
       }
+
+      await this.blueskyBridge.db
+        .deleteFrom('otp_login')
+        .where('key', '=', request.body.otpKey)
+        .executeTakeFirst();
 
       return finishLogin(
         request,

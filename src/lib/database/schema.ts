@@ -236,4 +236,5 @@ export type OtpLogin = {
   code: string;
   did: string;
   expires: string;
+  attempts: number;
 };

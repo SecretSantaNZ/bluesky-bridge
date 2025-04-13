@@ -1355,3 +1355,15 @@ migrations['017'] = {
     await db.schema.dropTable('otp_login').execute();
   },
 };
+
+migrations['018'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('otp_login')
+      .addColumn('attempts', 'numeric', (col) => col.defaultTo(0).notNull())
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.alterTable('otp_login').dropColumn('attempts').execute();
+  },
+};
