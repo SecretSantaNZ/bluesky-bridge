@@ -341,7 +341,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
           returnToken: z.string(),
           mode: z.string(),
           accountType: z.enum(['bluesky', 'mastodon']),
-          otpLogin: z.string().optional(),
+          otpLogin: z.union([z.string(), z.array(z.string())]).optional(),
         }),
       },
     },
@@ -363,6 +363,13 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         throw new BadRequestError('Mastodon players are not allowed');
       }
 
+      let otpLogin = false;
+      if (request.body.otpLogin) {
+        otpLogin = Array.isArray(request.body.otpLogin)
+          ? Boolean(request.body.otpLogin[0])
+          : Boolean(request.body.otpLogin);
+      }
+
       if (request.body.accountType === 'bluesky') {
         return startAtOauth(
           request,
@@ -371,7 +378,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
           request.body.handle,
           request.body.returnToken,
           request.body.mode,
-          Boolean(request.body.otpLogin)
+          otpLogin
         );
       } else {
         return startMastodonOauth(
