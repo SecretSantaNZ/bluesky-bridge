@@ -1367,3 +1367,42 @@ migrations['018'] = {
     await db.schema.alterTable('otp_login').dropColumn('attempts').execute();
   },
 };
+
+migrations['019'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('player')
+      .addColumn('post_count', 'numeric', (col) => col.defaultTo(0).notNull())
+      .execute();
+    await db.schema
+      .alterTable('player')
+      .addColumn('post_count_since_signup', 'numeric', (col) =>
+        col.defaultTo(0).notNull()
+      )
+      .execute();
+    await db.schema
+      .alterTable('player')
+      .addColumn('last_checked_post_count', 'varchar', (col) =>
+        col.defaultTo('1970-01-01T00:00:00.000Z').notNull()
+      )
+      .execute();
+    await db.schema
+      .createIndex('idx_player_last_checked_post_count')
+      .on('player')
+      .column('last_checked_post_count')
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.dropIndex('idx_player_last_checked_post_count').execute();
+
+    await db.schema.alterTable('player').dropColumn('post_count').execute();
+    await db.schema
+      .alterTable('player')
+      .dropColumn('post_count_since_signup')
+      .execute();
+    await db.schema
+      .alterTable('player')
+      .dropColumn('last_checked_post_count')
+      .execute();
+  },
+};

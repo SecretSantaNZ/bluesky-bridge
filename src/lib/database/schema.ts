@@ -95,6 +95,9 @@ export interface Player {
   mastodon_followed_by_santa: Generated<null | 0 | 1>;
   mastodon_follow_last_checked: Generated<null | string>;
   note_count: Generated<number>;
+  post_count: Generated<number>;
+  post_count_since_signup: Generated<number>;
+  last_checked_post_count: Generated<string>;
 }
 
 export interface Match {
