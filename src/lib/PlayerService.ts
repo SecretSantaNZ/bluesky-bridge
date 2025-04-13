@@ -369,13 +369,14 @@ export class PlayerService {
     });
     const allowIncoming = profile.associated?.chat?.allowIncoming ?? 'none';
 
-    await this.db
+    return this.db
       .updateTable('player')
       .set({
         player_dm_status:
           allowIncoming === 'none' ? 'error: DMs Disabled' : 'queued',
       })
       .where('did', '=', player_did)
+      .returningAll()
       .executeTakeFirst();
   }
 
