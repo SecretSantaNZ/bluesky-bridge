@@ -15,7 +15,11 @@ export const retryDm: FastifyPluginAsync = async (rawApp) => {
     async function handler(request, reply) {
       const playerDid = request.body.player_did;
       const { playerService } = app.blueskyBridge;
-      const player = await playerService.retryPlayerDms(playerDid);
+      await playerService.retryPlayerDms(playerDid);
+      const player = await this.blueskyBridge.db
+        .selectFrom('player')
+        .selectAll()
+        .where('did', '=', playerDid);
       if (player == null) {
         throw new NotFoundError();
       }
