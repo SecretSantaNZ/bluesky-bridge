@@ -1,6 +1,6 @@
 <% if (player.player_type === 'bluesky') { %>
   <% if (!player.following_santa) { %>
-    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
       <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
       <div class="flex-shrink flex-grow">
         <h1>You must follow @secretsanta.nz</h1>
@@ -9,17 +9,18 @@
     </div>
   <% } %>
   <% if (player.player_dm_status.startsWith('error:')) { %>
-    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
       <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
       <div class="flex-shrink flex-grow">
         <h1>@secretsanta.nz could not DM you</h1>
-        <p>Maybe you have DMs closed? Please DM <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> and we'll sort it out.</p>
+        <p>Make sure you <a href="/faq#how-do-i-enable-dms">enable DMs from people you follow</a>.</p>
+        <button class="mt-4" hx-trigger="click" hx-post="/player/retry-dm" hx-vals="<%= JSON.stringify({csrfToken}) %>"><div class="flex items-center"><div class="i-mdi-email-refresh-outline mr-2 size-6"></div>Retry...</div></button>
       </div>
     </div>
   <% } %>
 <% } else if (player.player_type === 'mastodon') { %>
   <% if (!player.following_santa) { %>
-    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
       <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
       <div class="flex-shrink flex-grow">
         <h1>You must follow @secretsanta.nz@bsky.brid.gy</h1>
@@ -28,7 +29,7 @@
     </div>
   <% } %>
   <% if (!player.mastodon_following_santa) { %>
-    <div class="max-lg:max-w-md lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
       <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
       <div class="flex-shrink flex-grow">
         <h1>You must follow @<%= santaMastodonHandle %></h1>

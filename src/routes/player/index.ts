@@ -15,6 +15,7 @@ import { bootPlayer } from './boot-player.js';
 import { restorePlayer } from './restore-player.js';
 import { newPlayer } from './new-player.js';
 import { assignSanta } from './assign-santa.js';
+import { retryDm } from './retry-dm.js';
 
 export const player: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -63,6 +64,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
   await app.register(optOut);
   await app.register(optIn);
   await app.register(sendNudge);
+  await app.register(retryDm);
   await app.register(addTracking);
   await app.register(tracking);
   await app.register(bootPlayer);
