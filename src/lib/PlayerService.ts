@@ -189,15 +189,15 @@ export class PlayerService {
       .executeTakeFirstOrThrow();
     await this.settingsChanged(settings);
 
-    setInterval(this.refreshMastodonFollowing.bind(this), ms('1 hour'));
-    setInterval(this.refreshPostCounts.bind(this), ms('1 hour'));
+    setInterval(this.refreshMastodonFollowing.bind(this), ms('60m'));
+    setInterval(this.refreshPostCounts.bind(this), ms('60m'));
   }
 
   async settingsChanged(settings: Pick<Settings, 'auto_follow'>) {
     if (settings.auto_follow && this.autoFollowIntervalHandle == null) {
       this.autoFollowIntervalHandle = setInterval(
         this.followPlayers.bind(this),
-        ms('1 hour')
+        ms('60m')
       );
     } else if (!settings.auto_follow && this.autoFollowIntervalHandle != null) {
       clearInterval(this.autoFollowIntervalHandle);
@@ -256,40 +256,44 @@ export class PlayerService {
     console.log(
       `Found ${mastodonPlayersToFollow.length} mastodon players to follow`
     );
-    for (const {
-      did,
-      mastodon_account,
-      mastodon_id,
-    } of mastodonPlayersToFollow) {
-      try {
-        console.log(`Following @${mastodon_account} (${did})`);
-        await w
-          .auth(`Bearer ${santaToken.token}`)
-          .url(
-            new URL(
-              `/api/v1/accounts/${mastodon_id}/follow`,
-              `https://${this.santaMastodonHost}`
-            ).href
-          )
-          .post()
-          .json();
+    if (santaToken == null) {
+      console.log('No santa mastodon token, skipping follows');
+    } else {
+      for (const {
+        did,
+        mastodon_account,
+        mastodon_id,
+      } of mastodonPlayersToFollow) {
+        try {
+          console.log(`Following @${mastodon_account} (${did})`);
+          await w
+            .auth(`Bearer ${santaToken.token}`)
+            .url(
+              new URL(
+                `/api/v1/accounts/${mastodon_id}/follow`,
+                `https://${this.santaMastodonHost}`
+              ).href
+            )
+            .post()
+            .json();
 
-        newrelic.recordCustomEvent('SecretSantaSantaAutoFollow', {
-          playerDid: did,
-          playerHandle: mastodon_account ?? '',
-          followType: 'mastodon',
-        });
-        await this.db
-          .updateTable('player')
-          .set({ mastodon_followed_by_santa: 1 })
-          .where('did', '=', did)
-          .execute();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        console.error(error);
-        console.error(
-          `Error following @${mastodon_account} (${did}): ${error.message}`
-        );
+          newrelic.recordCustomEvent('SecretSantaSantaAutoFollow', {
+            playerDid: did,
+            playerHandle: mastodon_account ?? '',
+            followType: 'mastodon',
+          });
+          await this.db
+            .updateTable('player')
+            .set({ mastodon_followed_by_santa: 1 })
+            .where('did', '=', did)
+            .execute();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+          console.error(error);
+          console.error(
+            `Error following @${mastodon_account} (${did}): ${error.message}`
+          );
+        }
       }
     }
   }
@@ -325,6 +329,7 @@ export class PlayerService {
   }
 
   private async refreshPostCounts() {
+    console.log('Refreshing Post Counts');
     const now = new Date();
     const nowIso = now.toISOString();
     const checkPlayersBefore = addDays(now, -1).toISOString();
@@ -341,6 +346,10 @@ export class PlayerService {
       .filter(
         (did) => did.startsWith('did:web:') || did.startsWith('did:plc:')
       );
+
+    console.log(
+      `Checking ${playersToCheck.length} players post counts before ${checkPlayersBefore}`
+    );
     if (playersToCheck.length === 0) return;
 
     const profilesResult = await unauthenticatedAgent.getProfiles({
@@ -718,7 +727,7 @@ export class PlayerService {
       .selectFrom('mastodon_token')
       .selectAll()
       .where('account', '=', this.santaMastodonHandle)
-      .executeTakeFirstOrThrow();
+      .executeTakeFirst();
 
     return santaToken;
   }
@@ -727,6 +736,10 @@ export class PlayerService {
     ...mastodonIds: Array<string>
   ): Promise<Record<string, MastodonRelationshipDetails>> {
     const santaToken = await this.getSantaMastodonToken();
+    if (santaToken == null) {
+      console.error('No santa mastodon token, skipping relationships check');
+      return {};
+    }
 
     const relationshipsUrl = new URL(
       '/api/v1/accounts/relationships',
@@ -774,6 +787,9 @@ export class PlayerService {
   ): Promise<MastodonRelationshipDetails> {
     if (mastodon_account === this.santaMastodonHandle) {
       const santaToken = await this.getSantaMastodonToken();
+      if (santaToken == null) {
+        throw new Error('No santa mastodon token');
+      }
       return {
         mastodon_id: santaToken.mastodon_id,
         mastodon_following_santa: 1,
