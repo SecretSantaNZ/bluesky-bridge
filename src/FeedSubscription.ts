@@ -112,11 +112,15 @@ export class FeedSubscription {
       this.gameHashtags.find((tag) => hashtags.has(tag)) != null;
     const player = await this.db
       .selectFrom('player')
-      .select('did')
+      .select(['did', 'deactivated', 'booted', 'admin', 'handle'])
       .where('did', '=', author)
-      .where('deactivated', '=', 0)
       .executeTakeFirst();
-    const byPlayer = player != null;
+    const byPlayer = Boolean(
+      player != null && (!player.deactivated || player.admin)
+    );
+    if (player?.booted && !player.admin) {
+      console.log(`dropping post from booted player ${player.handle}`);
+    }
 
     let distanceFromHashtag = hasHashtag ? 0 : -1;
     let distanceFromPlayerWithHashtag = hasHashtag && byPlayer ? 0 : -1;
