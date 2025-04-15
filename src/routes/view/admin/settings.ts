@@ -12,6 +12,7 @@ const dataSchema = z.object({
   send_by_date: z.string(),
   opening_date: z.string(),
   hashtag: z.string(),
+  feed_hashtags: z.string(),
   elf_list: z.string(),
   nudge_rate: z.string(),
   dm_rate: z.string(),

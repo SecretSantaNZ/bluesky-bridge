@@ -186,6 +186,7 @@ export interface Settings {
   send_by_date: string;
   opening_date: string;
   hashtag: string;
+  feed_hashtags: string;
   elf_list: string;
   nudge_rate: string;
   dm_rate: string;

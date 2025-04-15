@@ -1406,3 +1406,24 @@ migrations['019'] = {
       .execute();
   },
 };
+
+migrations['020'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('settings')
+      .addColumn('feed_hashtags', 'varchar', (col) =>
+        col
+          .defaultTo(
+            '#MWSecretSantaAoNZ, #MWSecretSantaNZ, #MWSecretSanta, #MWSS, #SecretSantaAoNZ, #SecretSantaNZ, #NZSecretSanta'
+          )
+          .notNull()
+      )
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('feed_hashtags')
+      .execute();
+  },
+};

@@ -51,7 +51,7 @@ export class FeedSubscription {
     const [settings, cursorResult] = await Promise.all([
       this.db
         .selectFrom('settings')
-        .select('hashtag')
+        .select(['hashtag', 'feed_hashtags'])
         .executeTakeFirstOrThrow(),
       this.db
         .selectFrom('post')
@@ -84,21 +84,17 @@ export class FeedSubscription {
       .execute();
   }
 
-  async settingsChanged(settings: Pick<Settings, 'hashtag'>) {
+  async settingsChanged(settings: Pick<Settings, 'hashtag' | 'feed_hashtags'>) {
     this.gameHashtags = Array.from(
       new Set(
-        [
-          'MWSecretSantaAoNZ',
-          'MWSecretSantaNZ',
-          'MWSecretSanta',
-          'MWSS',
-          'SecretSantaAoNZ',
-          'SecretSantaNZ',
-          'NZSecretSanta',
-          settings.hashtag,
-        ].map((tag) => tag.replace(/^#/, '').toLowerCase())
+        settings.feed_hashtags
+          .split(',')
+          .concat(settings.hashtag)
+          .map((tag) => tag.replace(/#/, '').trim().toLowerCase())
       )
     );
+
+    console.log({ gameHashtags: this.gameHashtags });
   }
 
   async onPostCreate(event: CommitCreateEvent<'app.bsky.feed.post'>) {
