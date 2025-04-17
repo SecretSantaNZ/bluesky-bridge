@@ -5,7 +5,7 @@
       handle: initialFilter,
       showSignupComplete: true,
       showSignupIncomplete: true,
-      sortBy: 'post-count',
+      sortBy: 'weighted',
     }, function(filters) {
       console.log(filters);
       const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
@@ -15,6 +15,8 @@
         if (filters.sortBy === 'post-count') {
           const recentPostsDiff = a.post_count_since_signup - b.post_count_since_signup;
           return recentPostsDiff !== 0 ? recentPostsDiff : (a.post_count - b.post_count);
+        } else if (filters.sortBy === 'weighted') {
+          return (a.post_count_since_signup * 10 + a.post_count) - (b.post_count_since_signup * 10 + b.post_count);
         } else {
           return a.id - b.id;
         }
@@ -53,6 +55,7 @@
         <select id="sort-active-players" x-model="activePlayersPager.filters.sortBy">
           <option value="sign-up">Sign up</option>
           <option value="post-count">Post count</option>
+          <option value="weighted">Weighted</option>
         </select>
       </div>
     </div>
