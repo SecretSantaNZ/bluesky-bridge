@@ -469,6 +469,9 @@ export class PlayerService {
       player_dm_status:
         allowIncoming === 'none' ? 'error: DMs Disabled' : 'queued',
       ...attributes,
+      post_count: profile.postsCount ?? 0,
+      post_count_since_signup: 0,
+      last_checked_post_count: new Date().toISOString(),
     };
 
     const result = await this.db
