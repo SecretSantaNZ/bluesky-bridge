@@ -22,7 +22,7 @@ import ms from 'ms';
 import type { InsertObject, SelectType } from 'kysely';
 import type { DmSender } from './DmSender.js';
 import { z } from 'zod';
-import { addDays } from 'date-fns';
+import { addHours } from 'date-fns';
 import type { ProfileViewDetailed } from '@atproto/api/dist/client/types/app/bsky/actor/defs.js';
 
 type SelectedPlayer = {
@@ -332,7 +332,7 @@ export class PlayerService {
     console.log('Refreshing Post Counts');
     const now = new Date();
     const nowIso = now.toISOString();
-    const checkPlayersBefore = addDays(now, -1).toISOString();
+    const checkPlayersBefore = addHours(now, -4).toISOString();
     const playersToCheckResult = await this.db
       .selectFrom('player')
       .select('did')
