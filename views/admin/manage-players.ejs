@@ -13,7 +13,8 @@
         !player.deactivated && (player.signup_complete ? filters.showSignupComplete : filters.showSignupIncomplete) && (!cleanHandleFilter || player.handle.toLowerCase().includes(cleanHandleFilter))
       ).sort((a,b) => {
         if (filters.sortBy === 'post-count') {
-          return a.post_count_since_signup - b.post_count_since_signup;
+          const recentPostsDiff = a.post_count_since_signup - b.post_count_since_signup;
+          return recentPostsDiff !== 0 ? recentPostsDiff : (a.post_count - b.post_count);
         } else {
           return a.id - b.id;
         }
