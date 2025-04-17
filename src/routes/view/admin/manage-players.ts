@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import * as dateUtils from '../../../lib/dates.js';
 
 export const managePlayers: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -21,6 +22,7 @@ export const managePlayers: FastifyPluginAsync = async (rawApp) => {
       return reply.view(
         'admin/manage-players.ejs',
         {
+          ...dateUtils,
           players,
           oneColumn: true,
           initialFilter: request.query.handle ?? '',

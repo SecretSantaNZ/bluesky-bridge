@@ -93,8 +93,6 @@ export class FeedSubscription {
           .map((tag) => tag.replace(/#/, '').trim().toLowerCase())
       )
     );
-
-    console.log({ gameHashtags: this.gameHashtags });
   }
 
   async onPostCreate(event: CommitCreateEvent<'app.bsky.feed.post'>) {
