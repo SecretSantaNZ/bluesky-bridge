@@ -422,7 +422,8 @@ export class PlayerService {
     const { data: profile } = await unauthenticatedAgent.getProfile({
       actor: player_did,
     });
-    const allowIncoming = profile.associated?.chat?.allowIncoming ?? 'none';
+    const allowIncoming =
+      profile.associated?.chat?.allowIncoming ?? 'following';
 
     this.db
       .updateTable('player')
@@ -451,7 +452,8 @@ export class PlayerService {
 
     const handle = profile.handle;
     const following_santa_uri = relationship?.followedBy ?? null;
-    const allowIncoming = profile.associated?.chat?.allowIncoming ?? 'none';
+    const allowIncoming =
+      profile.associated?.chat?.allowIncoming ?? 'following';
     const player: InsertObject<DatabaseSchema, 'player'> = {
       did: player_did,
       handle,
