@@ -23,19 +23,29 @@
     </button>
   </div>
   <div class="grid sm:grid-cols-3 sm:space-x-4 space-y-4 sm:space-y-0 justify-center mb-8">
-    <form x-show="countNeedsSantaAssigned > 0" hx-post="/match/auto-match" class="flex items-center sm:justify-center">
+    <form x-show="countNeedsSantaAssigned > 0" hx-post="/match/auto-match" class="flex flex-col items-stretch sm:justify-center">
+      <div class="flex items-end">
+        <div class="group flex-grow">
+          <label for="max_post_count_since_signup" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300">Max recent posts</label>
+          <input type="number" id="max_post_count_since_signup" name="max_post_count_since_signup" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
+        </div>
+        <div class="group flex-grow">
+          <label for="max_post_count" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300">Max total posts</label>
+          <input type="number" id="max_post_count" name="max_post_count" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
+        </div>
+      </div>
       <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Auto-match <span x-text="countNeedsSantaAssigned"></span> players</button>
       <%- include('../partials/activity-spinner.ejs') %>
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
     </form>
-    <form x-show="validDraftMatchesCount > 0" hx-post="/match/publish" class="flex items-center sm:justify-center">
+    <form x-show="validDraftMatchesCount > 0" hx-post="/match/publish" class="flex items-center justify-center">
       <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Publish <span x-text="validDraftMatchesCount"></span> matches</button>
       <%- include('../partials/activity-spinner.ejs') %>
       <input type="hidden" name="current_status" value="draft"/>
       <input type="hidden" name="target_status" value="shared"/>
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
     </form>
-    <form x-show="validDraftMatchesCount > 0" hx-post="/match/publish" class="flex items-center sm:justify-center">
+    <form x-show="validDraftMatchesCount > 0" hx-post="/match/publish" class="flex items-center justify-center">
       <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Publish <span x-text="validDraftMatchesCount"></span> matches<br/>(with address)</button>
       <%- include('../partials/activity-spinner.ejs') %>
       <input type="hidden" name="current_status" value="draft"/>

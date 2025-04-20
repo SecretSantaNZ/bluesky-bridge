@@ -15,7 +15,10 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
     '/auto-match',
     {
       schema: {
-        body: z.object({}),
+        body: z.object({
+          max_post_count_since_signup: z.coerce.number().optional(),
+          max_post_count: z.coerce.number().optional(),
+        }),
       },
     },
     async function handler(request, reply) {
@@ -27,6 +30,16 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
         .where('signup_complete', '=', 1)
         .where('giftee_for_count', '=', 0)
         .where('game_mode', '<>', 'Santa Only')
+        .where(
+          'post_count_since_signup',
+          '<',
+          request.body.max_post_count_since_signup || Number.MAX_SAFE_INTEGER
+        )
+        .where(
+          'post_count',
+          '<',
+          request.body.max_post_count || Number.MAX_SAFE_INTEGER
+        )
         .orderBy(sql`random()`)
         .execute();
 
@@ -39,6 +52,16 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
         .select(['id', 'giftee_count', 'max_giftees'])
         .where('signup_complete', '=', 1)
         .where('giftee_count_status', '=', 'can_have_more')
+        .where(
+          'post_count_since_signup',
+          '<',
+          request.body.max_post_count_since_signup || Number.MAX_SAFE_INTEGER
+        )
+        .where(
+          'post_count',
+          '<',
+          request.body.max_post_count || Number.MAX_SAFE_INTEGER
+        )
         .orderBy(
           sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end) asc`
         )
@@ -107,7 +130,9 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
         });
       }
 
-      await db.insertInto('match').values(matches).execute();
+      if (matches.length > 0) {
+        await db.insertInto('match').values(matches).execute();
+      }
 
       reply.header('HX-Refresh', 'true');
       return reply.code(204).send();
