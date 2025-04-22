@@ -5,6 +5,7 @@ import { promisify } from 'node:util';
 import type { AtOauthState, JwkKey } from './database/schema.js';
 import { NodeOAuthClient } from '@atproto/oauth-client-node';
 import type { SimpleStore, Value } from '@atproto-labs/simple-store';
+import AsyncLock from 'async-lock';
 
 const generateKeyPair = promisify(generateKeyPairCB);
 
@@ -53,6 +54,8 @@ export async function initAtLoginClient({
 }) {
   const keys = await database.selectFrom('jwk_key').selectAll().execute();
 
+  const lock = new AsyncLock();
+
   const keysToAdd = Math.max(3 - keys.length, 0);
   for (let i = 0; i < keysToAdd; i++) {
     const keyPair = await generateKeyPair('ec', {
@@ -97,5 +100,6 @@ export async function initAtLoginClient({
     ),
     stateStore: buildStore(database, 'at_oauth_state'),
     sessionStore: buildStore(database, 'at_oauth_session'),
+    requestLock: (key, fn) => lock.acquire(key, fn),
   });
 }
