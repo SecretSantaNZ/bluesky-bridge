@@ -17,7 +17,8 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
       schema: {
         body: z.object({
           max_post_count_since_signup: z.coerce.number().optional(),
-          max_post_count: z.coerce.number().optional(),
+          max_post_count_and: z.coerce.number().optional(),
+          max_post_count_threshold: z.coerce.number().optional(),
         }),
       },
     },
@@ -30,15 +31,23 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
         .where('signup_complete', '=', 1)
         .where('giftee_for_count', '=', 0)
         .where('game_mode', '<>', 'Santa Only')
-        .where(
-          'post_count_since_signup',
-          '<',
-          request.body.max_post_count_since_signup || Number.MAX_SAFE_INTEGER
-        )
-        .where(
-          'post_count',
-          '<',
-          request.body.max_post_count || Number.MAX_SAFE_INTEGER
+        .where((eb) =>
+          eb.or([
+            eb('post_count', '<', request.body.max_post_count_threshold || -1),
+            eb.and([
+              eb(
+                'post_count_since_signup',
+                '<',
+                request.body.max_post_count_since_signup ||
+                  Number.MAX_SAFE_INTEGER
+              ),
+              eb(
+                'post_count',
+                '<',
+                request.body.max_post_count_and || Number.MAX_SAFE_INTEGER
+              ),
+            ]),
+          ])
         )
         .orderBy(sql`random()`)
         .execute();
@@ -52,15 +61,23 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
         .select(['id', 'giftee_count', 'max_giftees'])
         .where('signup_complete', '=', 1)
         .where('giftee_count_status', '=', 'can_have_more')
-        .where(
-          'post_count_since_signup',
-          '<',
-          request.body.max_post_count_since_signup || Number.MAX_SAFE_INTEGER
-        )
-        .where(
-          'post_count',
-          '<',
-          request.body.max_post_count || Number.MAX_SAFE_INTEGER
+        .where((eb) =>
+          eb.or([
+            eb('post_count', '<', request.body.max_post_count_threshold || -1),
+            eb.and([
+              eb(
+                'post_count_since_signup',
+                '<',
+                request.body.max_post_count_since_signup ||
+                  Number.MAX_SAFE_INTEGER
+              ),
+              eb(
+                'post_count',
+                '<',
+                request.body.max_post_count_and || Number.MAX_SAFE_INTEGER
+              ),
+            ]),
+          ])
         )
         .orderBy(
           sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end) asc`

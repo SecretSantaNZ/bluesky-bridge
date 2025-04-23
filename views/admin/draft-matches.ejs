@@ -30,8 +30,12 @@
           <input type="number" id="max_post_count_since_signup" name="max_post_count_since_signup" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
         </div>
         <div class="group flex-grow">
-          <label for="max_post_count" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300">Max total posts</label>
-          <input type="number" id="max_post_count" name="max_post_count" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
+          <label for="max_post_count_and" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300">Max total posts</label>
+          <input type="number" id="max_post_count_and" name="max_post_count_and" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
+        </div>
+        <div class="group flex-grow">
+          <label for="max_post_count_threshold" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300">Posts threshold</label>
+          <input type="number" id="max_post_count_threshold" name="max_post_count_threshold" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
         </div>
       </div>
       <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Auto-match <span x-text="countNeedsSantaAssigned"></span> players</button>
