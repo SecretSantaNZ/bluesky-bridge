@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import {
   buildBrokenMatchesQuery,
+  buildMultipleGifteeMatchesQuery,
   buildTooManyGifteeMatchesQuery,
   buildTooManySantasMatchesQuery,
 } from './fix-matches.js';
@@ -15,6 +16,7 @@ export const draftMatches: FastifyPluginAsync = async (app) => {
       { cnt: brokenMatchCount },
       { cnt: tooManyGifteesCount },
       { cnt: tooManySantasCount },
+      { cnt: multipleGifteesCount },
     ] = await Promise.all([
       db
         .selectFrom('player')
@@ -39,12 +41,16 @@ export const draftMatches: FastifyPluginAsync = async (app) => {
         .clearSelect()
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
         .executeTakeFirstOrThrow(),
+      buildMultipleGifteeMatchesQuery(db)
+        .clearSelect()
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .executeTakeFirstOrThrow(),
     ]);
     const pageData = {
       countNeedsSantaAssigned,
       draftMatches,
       criticalMatchIssues: brokenMatchCount + tooManyGifteesCount,
-      warnMatchIssues: tooManySantasCount,
+      warnMatchIssues: tooManySantasCount + multipleGifteesCount,
     };
     return reply.view(
       'admin/draft-matches.ejs',

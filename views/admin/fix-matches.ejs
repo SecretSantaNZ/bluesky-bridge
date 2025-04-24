@@ -15,7 +15,7 @@
 </script>
 <div class="grid xl:grid-cols-3"
   x-data="<%= JSON.stringify({...pageData, showConfirm: ''}) %>"
-  @ss-match-deactivated.window="brokenMatches = brokenMatches.filter((match) => match.match_id !== event.detail.id)"
+  @ss-match-deactivated.window="brokenMatches = brokenMatches.filter((match) => match.match_id !== event.detail.id); multipleGifteeMatches = multipleGifteeMatches.filter((match) => match.match_id !== event.detail.id)"
   @ss-too-many-giftees-match-updated.window="tooManyGifteeMatches = mergeTooManyGifteeMatches(tooManyGifteeMatches, event.detail)"
   @ss-reload-data.window="Object.assign($data, JSON.parse(await $fetch(window.location.pathname + '?data=true')));"
 >
@@ -99,6 +99,42 @@
         </div>
       </template>
       <div x-show="needsSantaAssigned.length > 15">... and <span x-text="needsSantaAssigned.length - 15"></span> more</div>
+    </div>
+
+    <div class="mb-12" x-show="multipleGifteeMatches.length > 0">
+      <h1>Players with multiple giftees</h1>
+      <p>These players have multiple Giftees assigned. If we're not assigning super santas yet that's probably not right</p>
+      <div class="grid-cols-4 space-x-4 hidden sm:grid">
+        <div class="flex justify-center"><b>Santa</b></div>
+        <div class="flex justify-center"><b>Giftee</b></div>
+        <div class="flex justify-center"><b>Status</b></div>
+        <div class="flex justify-center"><b>Action</b></div>
+      </div>
+      <template x-for="match in multipleGifteeMatches">
+        <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2">
+          <%- include('./fragments/match-player.ejs', {description: 'Santa', side: 'santa'}) %>
+          <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Status:</div>
+            <div x-text="match.match_status"></div>
+          </div>
+          <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center">
+            <button x-show="`multi-giftee-match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `multi-giftee-match-${match.match_id}`">
+              <div class="flex sm:justify-center items-center ">
+                <div class="i-mdi-trash-can-outline size-10"></div>
+                <div class="sm:hidden"><b>Delete match</b></div>
+              </div>
+            </button>
+            <%- include('../partials/activity-spinner.ejs') %>
+            <input x-show="`multi-giftee-match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+            <button x-show="`multi-giftee-match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+              <div class="i-mdi-close size-10 text-gray-400"></div>
+            </button>
+            <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
+            <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+          </form>
+        </div>
+      </template>
     </div>
 
     <div class="mb-12" x-show="tooManySantasMatches.length > 0">

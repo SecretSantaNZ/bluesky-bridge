@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import {
   buildBrokenMatchesQuery,
+  buildMultipleGifteeMatchesQuery,
   buildTooManyGifteeMatchesQuery,
   buildTooManySantasMatchesQuery,
 } from './fix-matches.js';
@@ -14,6 +15,7 @@ export const adminHome: FastifyPluginAsync = async (app) => {
       { cnt: brokenMatchCount },
       { cnt: tooManyGifteesCount },
       { cnt: tooManySantasCount },
+      { cnt: multipleGifteesCount },
       { cnt: playersNeedingMatchesCount },
       { cnt: unsentMatches },
       { cnt: sharedMatches },
@@ -43,6 +45,10 @@ export const adminHome: FastifyPluginAsync = async (app) => {
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
         .executeTakeFirstOrThrow(),
       buildTooManySantasMatchesQuery(db)
+        .clearSelect()
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .executeTakeFirstOrThrow(),
+      buildMultipleGifteeMatchesQuery(db)
         .clearSelect()
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
         .executeTakeFirstOrThrow(),
@@ -111,7 +117,7 @@ export const adminHome: FastifyPluginAsync = async (app) => {
         signupCompleteCount,
         registeredPlayersCount,
         criticalMatchIssues: brokenMatchCount + tooManyGifteesCount,
-        warnMatchIssues: tooManySantasCount,
+        warnMatchIssues: tooManySantasCount + multipleGifteesCount,
         playersNeedingMatchesCount,
         unsentMatches,
         sharedMatches,
