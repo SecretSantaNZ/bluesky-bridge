@@ -140,8 +140,9 @@
   <div>
     <h1>Players available to Santa</h1>
     <template x-for="player in playersWhoCanHaveMoreGifees.slice(0, 15)">
-      <div class="mb-2">
+      <div class="mb-2 flex">
         <%- include('./fragments/player-link.ejs') %>
+        <div class="ml-2" x-text="`(${player.giftee_count} / ${player.max_giftees})`"></div>
       </div>
     </template>
     <div x-show="playersWhoCanHaveMoreGifees.length > 15">... and <span x-text="playersWhoCanHaveMoreGifees.length - 15"></span> more</div>
