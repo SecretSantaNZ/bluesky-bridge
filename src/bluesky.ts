@@ -24,7 +24,7 @@ export const buildAtpClient = async (
         const session = await client.restore(did);
         return new Agent(session);
       },
-      { promise: true }
+      { promise: true, maxAge: 600000 }
     ),
     did,
   ];
