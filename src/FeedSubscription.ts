@@ -99,11 +99,18 @@ export class FeedSubscription {
     const author = event.did;
     const uri = `at://${event.did}/${event.commit.collection}/${event.commit.rkey}`;
     const replyParent = event.commit.record.reply?.parent.uri;
+    let quoteUri: string | undefined = undefined;
+    if (event.commit.record.embed?.$type === 'app.bsky.embed.record') {
+      quoteUri = event.commit.record.embed.record.uri;
+    } else if (
+      event.commit.record.embed?.$type === 'app.bsky.embed.recordWithMedia'
+    ) {
+      quoteUri = event.commit.record.embed.record.record.uri;
+    }
     const replyParentAuthor = authorFromPostUri(replyParent);
 
     const hashtags = getHashtags(event.commit.record);
-    const hasHashtag =
-      this.gameHashtags.find((tag) => hashtags.has(tag)) != null;
+    let hasHashtag = this.gameHashtags.find((tag) => hashtags.has(tag)) != null;
     const player = await this.db
       .selectFrom('player')
       .select(['did', 'deactivated', 'booted', 'admin', 'handle'])
@@ -116,32 +123,44 @@ export class FeedSubscription {
       console.log(`dropping post from booted player ${player.handle}`);
     }
 
+    const [parentPost, quotedPost] = await Promise.all([
+      replyParent
+        ? this.db
+            .selectFrom('post')
+            .selectAll()
+            .where('uri', '=', replyParent)
+            .executeTakeFirst()
+        : undefined,
+      !hasHashtag && quoteUri
+        ? this.db
+            .selectFrom('post')
+            .selectAll()
+            .where('uri', '=', quoteUri)
+            .executeTakeFirst()
+        : undefined,
+    ]);
+    if (!hasHashtag && quotedPost) {
+      hasHashtag = quotedPost.hasHashtag === 1;
+    }
+
     let distanceFromHashtag = hasHashtag ? 0 : -1;
     let distanceFromPlayerWithHashtag = hasHashtag && byPlayer ? 0 : -1;
-
     let rootByPlayerWithHashtag = false;
-    if (replyParent) {
-      const parentPost = await this.db
-        .selectFrom('post')
-        .selectAll()
-        .where('uri', '=', replyParent)
-        .executeTakeFirst();
-      if (parentPost != null) {
-        distanceFromHashtag = hasHashtag
+    if (parentPost != null) {
+      distanceFromHashtag = hasHashtag
+        ? 0
+        : parentPost.distanceFromHashtag === -1
+          ? -1
+          : parentPost.distanceFromHashtag + 1;
+      distanceFromPlayerWithHashtag =
+        hasHashtag && byPlayer
           ? 0
-          : parentPost.distanceFromHashtag === -1
+          : parentPost.distanceFromPlayerWithHashtag === -1
             ? -1
-            : parentPost.distanceFromHashtag + 1;
-        distanceFromPlayerWithHashtag =
-          hasHashtag && byPlayer
-            ? 0
-            : parentPost.distanceFromPlayerWithHashtag === -1
-              ? -1
-              : parentPost.distanceFromPlayerWithHashtag + 1;
-        rootByPlayerWithHashtag = parentPost.replyParent
-          ? Boolean(parentPost.rootByPlayerWithHashtag)
-          : Boolean(parentPost.hasHashtag && parentPost.byPlayer);
-      }
+            : parentPost.distanceFromPlayerWithHashtag + 1;
+      rootByPlayerWithHashtag = parentPost.replyParent
+        ? Boolean(parentPost.rootByPlayerWithHashtag)
+        : Boolean(parentPost.hasHashtag && parentPost.byPlayer);
     }
 
     if (distanceFromHashtag < 0 && !byPlayer) {
