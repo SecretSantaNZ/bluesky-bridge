@@ -1445,7 +1445,7 @@ migrations['021'] = {
       )
       .execute();
   },
-  async down(db: Kysely<unknown>) {},
+  async down() {},
 };
 
 migrations['022'] = {
@@ -1465,6 +1465,10 @@ migrations['022'] = {
       .addColumn('recorded_at', 'varchar', (col) => col.notNull())
       .addForeignKeyConstraint('fk_player_badge_badge', ['badge_id'], 'badge', [
         'id',
+      ])
+      .addUniqueConstraint('unq_player_badge_player_badge', [
+        'player_did',
+        'badge_id',
       ])
       .execute();
 

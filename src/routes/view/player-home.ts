@@ -148,7 +148,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
     ]);
 
     const badges = [
-      ...(sentBadge && giftsIveSent.length > 1 ? [sentBadge] : []),
+      ...(sentBadge && giftsIveSent.length > 0 ? [sentBadge] : []),
       ...playerBadges,
     ];
     return reply.view(
