@@ -250,7 +250,7 @@ export type OtpLogin = {
 };
 
 export type Badge = {
-  id: GeneratedAlways<number>;
+  id: Generated<number>;
   title: string;
   description: string;
   image_url: string;

@@ -1545,6 +1545,45 @@ migrations['022'] = {
         on conflict do nothing;
       end;
     `.execute(db);
+
+    await (db as Database)
+      .insertInto('badge')
+      .values([
+        {
+          id: 1,
+          title: 'Present Sent!',
+          description:
+            "Ngā mihi! You've earned yourself the badge for being a great Santa and sending your gift on time. You're awesome!",
+          image_url:
+            'https://secretsantanz.imgix.net/badge-placeholder-b11c008e-69ca-45e2-9b53-b8768122e7d2?w=386&w386&auto=format',
+        },
+        {
+          id: 2,
+          title: 'MW 2025 Super Santa!',
+          description:
+            "Your kindness is legendary! You've earned the Super Santa badge. A little thank you for helping share the joy a little further.",
+          image_url:
+            'https://secretsantanz.imgix.net/badge-placeholder-b11c008e-69ca-45e2-9b53-b8768122e7d2?w=386&w386&auto=format',
+        },
+        {
+          id: 3,
+          title: 'MW 2025',
+          description:
+            "Celebrate good times, come on let's celebrate. Surprise, you get this badge for being an OG player of the first Bluesky Secret Santa AoNZ. Thanks for being part of the joy.",
+          image_url:
+            'https://secretsantanz.imgix.net/badge-placeholder-b11c008e-69ca-45e2-9b53-b8768122e7d2?w=386&w386&auto=format',
+        },
+      ])
+      .execute();
+
+    await (db as Database)
+      .updateTable('settings')
+      .set({
+        sent_present_badge_id: 1,
+        super_santa_badge_id: 2,
+        current_game_badge_id: 3,
+      })
+      .execute();
   },
   async down(db: Kysely<unknown>) {
     await sql`drop trigger match_update_add_badges`.execute(db);
