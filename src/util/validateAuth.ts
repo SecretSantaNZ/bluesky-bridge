@@ -25,6 +25,9 @@ export const validateAuth = <D extends Record<string, unknown>>(
       request.tokenSubject = result.subject;
       request.tokenData = result.data;
     } catch (e) {
+      if (e instanceof UnauthorizedError) {
+        throw e;
+      }
       const error = e as Error;
       throw new UnauthorizedError(error.message);
     }

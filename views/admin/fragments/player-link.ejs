@@ -1,4 +1,4 @@
-<div class="flex justify-center items-center text-lg font-semibold">
+<div x-data="{expandPostCount: false}" x-bind:class="'flex justify-center ' + (expandPostCount ? 'items-start' : 'items-center')">
   <div class="size-10 block flex-shrink-0 rounded-full overflow-hidden">
     <template x-if="player.avatar_url">
       <img x-bind:src="player.avatar_url" alt="" />
@@ -16,12 +16,21 @@
       </svg>
     </template>
   </div>
-  <div class="ml-2">
+  <div class="ml-2 flex flex-col items-center">
     <a
       x-bind:href="'https://bsky.app/profile/' + encodeURIComponent(player.handle)"
       x-text="'@' + player.handle"
       target="_blank"
+      class="text-lg font-semibold block"
     ></a>
+    <% if (locals.showPostCount ) { %>
+    <div @click="expandPostCount = !expandPostCount" class="whitespace-nowrap cursor-pointer">
+      <div x-show="!expandPostCount"><span x-text="player.post_count_since_signup"></span> / <span x-text="player.post_count"></span></div>
+      <div x-show="expandPostCount">Posts since sign up: <b><span x-text="player.post_count_since_signup"></span></b></div>
+      <div x-show="expandPostCount">Total posts sign up: <b><span x-text="player.post_count"></span></b></div>
+      <div x-show="expandPostCount">As of <b><span x-text="secretsantanz.formatDatetime(player.last_checked_post_count)"></span></b></div>
+    </div>
+    <% } %>
   </div>
   <form
     hx-get="/admin/fragments/player-notes"

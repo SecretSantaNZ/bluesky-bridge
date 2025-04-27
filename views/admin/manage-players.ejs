@@ -5,9 +5,22 @@
       handle: initialFilter,
       showSignupComplete: true,
       showSignupIncomplete: true,
+      sortBy: 'weighted',
     }, function(filters) {
+      console.log(filters);
       const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
-      return players.filter(player => !player.deactivated && (player.signup_complete ? filters.showSignupComplete : filters.showSignupIncomplete) && (!cleanHandleFilter || player.handle.toLowerCase().includes(cleanHandleFilter)));
+      return players.filter(player =>
+        !player.deactivated && (player.signup_complete ? filters.showSignupComplete : filters.showSignupIncomplete) && (!cleanHandleFilter || player.handle.toLowerCase().includes(cleanHandleFilter))
+      ).sort((a,b) => {
+        if (filters.sortBy === 'post-count') {
+          const recentPostsDiff = a.post_count_since_signup - b.post_count_since_signup;
+          return recentPostsDiff !== 0 ? recentPostsDiff : (a.post_count - b.post_count);
+        } else if (filters.sortBy === 'weighted') {
+          return (a.post_count_since_signup * 10 + a.post_count) - (b.post_count_since_signup * 10 + b.post_count);
+        } else {
+          return a.id - b.id;
+        }
+      });
     });
     inactivePlayersPager = secretsantanz.buildPager({
       handle: initialFilter,
@@ -37,6 +50,14 @@
         <label for="show-signup-incomplete">Signup incomplete</label>
       </div>
       <div class="flex-grow"></div>
+      <div>
+        <label for="sort-active-players">Sort:</label>
+        <select id="sort-active-players" x-model="activePlayersPager.filters.sortBy">
+          <option value="sign-up">Sign up</option>
+          <option value="post-count">Post count</option>
+          <option value="weighted">Weighted</option>
+        </select>
+      </div>
     </div>
 
     <button @click="$dispatch('ss-open-modal', {modal: 'new-player', modalData: {}})">
@@ -56,7 +77,7 @@
   </div>
   <template x-for="player in activePlayersPager.pageData">
     <div class="grid sm:grid-cols-6 space-x-4 border-b py-2" x-init="htmx && htmx.process($el)">
-      <%- include('./fragments/player-link.ejs') %>
+      <%- include('./fragments/player-link.ejs', { showPostCount: true }) %>
       <form hx-post="/player/refresh-following" class="flex items-center sm:justify-center">
         <%- include('../partials/activity-spinner.ejs') %>
         <button class="htmx-request:hidden">

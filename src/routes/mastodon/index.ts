@@ -203,6 +203,7 @@ export async function startMastodonOauth(
       requestId,
       returnUrl,
       mode,
+      handle,
     }),
     pkceVerifier,
     handle,

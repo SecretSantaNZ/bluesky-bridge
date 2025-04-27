@@ -15,7 +15,11 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
     '/auto-match',
     {
       schema: {
-        body: z.object({}),
+        body: z.object({
+          max_post_count_since_signup: z.coerce.number().optional(),
+          max_post_count_and: z.coerce.number().optional(),
+          max_post_count_threshold: z.coerce.number().optional(),
+        }),
       },
     },
     async function handler(request, reply) {
@@ -27,6 +31,24 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
         .where('signup_complete', '=', 1)
         .where('giftee_for_count', '=', 0)
         .where('game_mode', '<>', 'Santa Only')
+        .where((eb) =>
+          eb.or([
+            eb('post_count', '<', request.body.max_post_count_threshold || -1),
+            eb.and([
+              eb(
+                'post_count_since_signup',
+                '<',
+                request.body.max_post_count_since_signup ||
+                  Number.MAX_SAFE_INTEGER
+              ),
+              eb(
+                'post_count',
+                '<',
+                request.body.max_post_count_and || Number.MAX_SAFE_INTEGER
+              ),
+            ]),
+          ])
+        )
         .orderBy(sql`random()`)
         .execute();
 
@@ -39,9 +61,28 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
         .select(['id', 'giftee_count', 'max_giftees'])
         .where('signup_complete', '=', 1)
         .where('giftee_count_status', '=', 'can_have_more')
+        .where((eb) =>
+          eb.or([
+            eb('post_count', '<', request.body.max_post_count_threshold || -1),
+            eb.and([
+              eb(
+                'post_count_since_signup',
+                '<',
+                request.body.max_post_count_since_signup ||
+                  Number.MAX_SAFE_INTEGER
+              ),
+              eb(
+                'post_count',
+                '<',
+                request.body.max_post_count_and || Number.MAX_SAFE_INTEGER
+              ),
+            ]),
+          ])
+        )
         .orderBy(
           sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end) asc`
         )
+        .orderBy('giftee_count')
         .orderBy(sql`random()`)
         .execute();
       const santaQueue = [...playersThatCanSanata];
@@ -56,6 +97,20 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
         }
       }
 
+      const deactivatedMatches = await db
+        .selectFrom('match')
+        .select(['santa', 'giftee'])
+        .where('deactivated', 'is not', null)
+        .execute();
+      const forbiddenMatches = deactivatedMatches.reduce<
+        Record<number, Set<number>>
+      >((acc, match) => {
+        const set = acc[match.santa] ?? new Set<number>();
+        acc[match.santa] = set;
+        set.add(match.giftee);
+        return acc;
+      }, {});
+
       for (let i = 0; i < nodes.length; i++) {
         let swapWith = -1;
         let invalid = true;
@@ -67,20 +122,39 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
             (swapWith + nodes.length - 1) % nodes.length;
           const targetNextIndex = (swapWith + 1) % nodes.length;
 
+          const currentLeftSanta = nodes[previousIndex]?.santa as number;
+          const currentLeftGiftee = nodes[i]?.giftee as number;
+          const currentRightSanta = nodes[i]?.santa as number;
+          const currentRightGiftee = nodes[nextIndex]?.giftee as number;
+
+          const targetLeftSanta = nodes[targetPreviousIndex]?.santa as number;
+          const targetLeftGiftee = nodes[swapWith]?.giftee as number;
+          const targetRightSanta = nodes[swapWith]?.santa as number;
+          const targetRightGiftee = nodes[targetNextIndex]?.giftee as number;
+
           // g1-s1 g2-s2 g3-s3
           // s1 != g2 && s2 !== g3
           // g2 != s3 && g1 !== s3
           invalid =
-            // ensure neither position has either player as their own santa
-            nodes[targetPreviousIndex]?.santa === nodes[i]?.giftee ||
-            nodes[i]?.santa === nodes[targetNextIndex]?.giftee ||
-            nodes[previousIndex]?.santa === nodes[swapWith]?.giftee ||
-            nodes[swapWith]?.santa === nodes[nextIndex]?.giftee ||
-            // ensure neither position creates an imediate X is santa for Y and vica versa
-            nodes[targetPreviousIndex]?.giftee === nodes[i]?.santa ||
-            nodes[i]?.giftee === nodes[targetNextIndex]?.santa ||
-            nodes[previousIndex]?.giftee === nodes[swapWith]?.santa ||
-            nodes[swapWith]?.giftee === nodes[nextIndex]?.santa;
+            // Ensure moving current node to swap to won't make either player
+            // their own santa
+            targetLeftSanta === currentLeftGiftee ||
+            currentRightSanta === targetRightGiftee ||
+            // Ensure moving target node to current position won't make either
+            // player their own santa
+            currentLeftSanta === targetLeftGiftee ||
+            targetRightSanta === currentRightGiftee ||
+            // Ensure moving current node to swap to won't make a match that is already deactivated
+            forbiddenMatches[targetLeftSanta]?.has(currentLeftGiftee) ||
+            forbiddenMatches[currentRightSanta]?.has(targetRightGiftee) ||
+            // Ensure moving target node to current index won't make a match that is already deactivated
+            forbiddenMatches[currentLeftSanta]?.has(targetLeftGiftee) ||
+            forbiddenMatches[targetRightSanta]?.has(currentRightGiftee) ||
+            // ensure neither position creates an immediate X is santa for Y and vica versa
+            nodes[targetPreviousIndex]?.giftee === currentRightSanta ||
+            currentLeftGiftee === nodes[targetNextIndex]?.santa ||
+            nodes[previousIndex]?.giftee === targetRightSanta ||
+            targetLeftGiftee === nodes[nextIndex]?.santa;
         }
         if (invalid) {
           throw new Error('cannot find valid match after 10 attempts');
@@ -107,7 +181,9 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
         });
       }
 
-      await db.insertInto('match').values(matches).execute();
+      if (matches.length > 0) {
+        await db.insertInto('match').values(matches).execute();
+      }
 
       reply.header('HX-Refresh', 'true');
       return reply.code(204).send();

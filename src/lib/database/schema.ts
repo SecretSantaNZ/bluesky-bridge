@@ -5,6 +5,7 @@ export interface DatabaseSchema {
   jwk_key: JwkKey;
   at_oauth_state: AtOauthState;
   at_oauth_session: AtOauthSession;
+  otp_login: OtpLogin;
   mastodon_client: MastodonClient;
   message: Message;
   player: Player;
@@ -96,6 +97,9 @@ export interface Player {
   mastodon_followed_by_santa: Generated<null | 0 | 1>;
   mastodon_follow_last_checked: Generated<null | string>;
   note_count: Generated<number>;
+  post_count: Generated<number>;
+  post_count_since_signup: Generated<number>;
+  last_checked_post_count: Generated<string>;
 }
 
 export interface Match {
@@ -184,6 +188,7 @@ export interface Settings {
   send_by_date: string;
   opening_date: string;
   hashtag: string;
+  feed_hashtags: string;
   elf_list: string;
   nudge_rate: string;
   dm_rate: string;
@@ -233,6 +238,14 @@ export type Note = {
   text: string;
   author: string;
   created_at: string;
+};
+
+export type OtpLogin = {
+  key: string;
+  code: string;
+  did: string;
+  expires: string;
+  attempts: number;
 };
 
 export type Badge = {

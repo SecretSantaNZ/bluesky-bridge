@@ -13,6 +13,7 @@ import { initAtLoginClient } from './lib/initAtLoginClient.js';
 import { FirehoseSubscription } from './subscription.js';
 import { FeedSubscription } from './FeedSubscription.js';
 import { resolveMastodonHandle } from './routes/mastodon/index.js';
+import ms from 'ms';
 
 dotenv.config({
   path: [
@@ -45,6 +46,7 @@ const main = async () => {
   const authTokenManager = new TokenManager<{
     csrfToken: string;
     startedAt: string;
+    handle: string;
     admin?: true;
   }>(db, tokenIssuer, `${tokenIssuer}/endpoints`, '15 minutes');
 
@@ -109,6 +111,13 @@ const main = async () => {
     .set({ admin: 1 })
     .where('did', 'in', ensureElfDids)
     .execute();
+
+  setInterval(async () => {
+    await db
+      .deleteFrom('otp_login')
+      .where('expires', '<', new Date().toISOString())
+      .execute();
+  }, ms('5m'));
 
   const app = await build(
     { logger: true },

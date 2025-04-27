@@ -41,7 +41,7 @@ function boolToDb<T extends Record<string, boolean>>(
 }
 
 export class FeedSubscription {
-  private gameHashtag = '';
+  private gameHashtags: Array<string> = [];
   private jetstream: Jetstream | undefined;
   constructor(private readonly db: Database) {
     setInterval(this.purge.bind(this), ms('1h'));
@@ -51,7 +51,7 @@ export class FeedSubscription {
     const [settings, cursorResult] = await Promise.all([
       this.db
         .selectFrom('settings')
-        .select('hashtag')
+        .select(['hashtag', 'feed_hashtags'])
         .executeTakeFirstOrThrow(),
       this.db
         .selectFrom('post')
@@ -80,56 +80,87 @@ export class FeedSubscription {
   private async purge() {
     await this.db
       .deleteFrom('post')
-      .where('indexedAt', '<', subDays(new Date(), 7).toISOString())
+      .where('indexedAt', '<', subDays(new Date(), 90).toISOString())
       .execute();
   }
 
-  async settingsChanged(settings: Pick<Settings, 'hashtag'>) {
-    this.gameHashtag = settings.hashtag.replace(/^#/, '').toLowerCase();
+  async settingsChanged(settings: Pick<Settings, 'hashtag' | 'feed_hashtags'>) {
+    this.gameHashtags = Array.from(
+      new Set(
+        settings.feed_hashtags
+          .split(',')
+          .concat(settings.hashtag)
+          .map((tag) => tag.replace(/#/, '').trim().toLowerCase())
+      )
+    );
   }
 
   async onPostCreate(event: CommitCreateEvent<'app.bsky.feed.post'>) {
     const author = event.did;
     const uri = `at://${event.did}/${event.commit.collection}/${event.commit.rkey}`;
     const replyParent = event.commit.record.reply?.parent.uri;
+    let quoteUri: string | undefined = undefined;
+    if (event.commit.record.embed?.$type === 'app.bsky.embed.record') {
+      quoteUri = event.commit.record.embed.record.uri;
+    } else if (
+      event.commit.record.embed?.$type === 'app.bsky.embed.recordWithMedia'
+    ) {
+      quoteUri = event.commit.record.embed.record.record.uri;
+    }
     const replyParentAuthor = authorFromPostUri(replyParent);
 
     const hashtags = getHashtags(event.commit.record);
-    const hasHashtag = hashtags.has(this.gameHashtag);
+    let hasHashtag = this.gameHashtags.find((tag) => hashtags.has(tag)) != null;
     const player = await this.db
       .selectFrom('player')
-      .select('did')
+      .select(['did', 'deactivated', 'booted', 'admin', 'handle'])
       .where('did', '=', author)
-      .where('deactivated', '=', 0)
       .executeTakeFirst();
-    const byPlayer = player != null;
+    const byPlayer = Boolean(
+      player != null && (!player.deactivated || player.admin)
+    );
+    if (player?.booted && !player.admin) {
+      console.log(`dropping post from booted player ${player.handle}`);
+    }
+
+    const [parentPost, quotedPost] = await Promise.all([
+      replyParent
+        ? this.db
+            .selectFrom('post')
+            .selectAll()
+            .where('uri', '=', replyParent)
+            .executeTakeFirst()
+        : undefined,
+      !hasHashtag && quoteUri
+        ? this.db
+            .selectFrom('post')
+            .selectAll()
+            .where('uri', '=', quoteUri)
+            .executeTakeFirst()
+        : undefined,
+    ]);
+    if (!hasHashtag && quotedPost) {
+      hasHashtag = quotedPost.hasHashtag === 1;
+    }
 
     let distanceFromHashtag = hasHashtag ? 0 : -1;
     let distanceFromPlayerWithHashtag = hasHashtag && byPlayer ? 0 : -1;
-
     let rootByPlayerWithHashtag = false;
-    if (replyParent) {
-      const parentPost = await this.db
-        .selectFrom('post')
-        .selectAll()
-        .where('uri', '=', replyParent)
-        .executeTakeFirst();
-      if (parentPost != null) {
-        distanceFromHashtag = hasHashtag
+    if (parentPost != null) {
+      distanceFromHashtag = hasHashtag
+        ? 0
+        : parentPost.distanceFromHashtag === -1
+          ? -1
+          : parentPost.distanceFromHashtag + 1;
+      distanceFromPlayerWithHashtag =
+        hasHashtag && byPlayer
           ? 0
-          : parentPost.distanceFromHashtag === -1
+          : parentPost.distanceFromPlayerWithHashtag === -1
             ? -1
-            : parentPost.distanceFromHashtag + 1;
-        distanceFromPlayerWithHashtag =
-          hasHashtag && byPlayer
-            ? 0
-            : parentPost.distanceFromPlayerWithHashtag === -1
-              ? -1
-              : parentPost.distanceFromPlayerWithHashtag + 1;
-        rootByPlayerWithHashtag = parentPost.replyParent
-          ? Boolean(parentPost.rootByPlayerWithHashtag)
-          : Boolean(parentPost.hasHashtag && parentPost.byPlayer);
-      }
+            : parentPost.distanceFromPlayerWithHashtag + 1;
+      rootByPlayerWithHashtag = parentPost.replyParent
+        ? Boolean(parentPost.rootByPlayerWithHashtag)
+        : Boolean(parentPost.hasHashtag && parentPost.byPlayer);
     }
 
     if (distanceFromHashtag < 0 && !byPlayer) {

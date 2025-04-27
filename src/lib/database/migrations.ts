@@ -1337,6 +1337,120 @@ migrations['016'] = {
 migrations['017'] = {
   async up(db: Kysely<unknown>) {
     await db.schema
+      .createTable('otp_login')
+      .addColumn('key', 'varchar', (col) => col.primaryKey())
+      .addColumn('code', 'varchar', (col) => col.notNull())
+      .addColumn('did', 'varchar', (col) => col.notNull())
+      .addColumn('expires', 'varchar', (col) => col.notNull())
+      .execute();
+
+    await db.schema
+      .createIndex('idx_otp_login_expires')
+      .on('otp_login')
+      .column('expires')
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.dropIndex('idx_otp_login_expires').execute();
+    await db.schema.dropTable('otp_login').execute();
+  },
+};
+
+migrations['018'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('otp_login')
+      .addColumn('attempts', 'numeric', (col) => col.defaultTo(0).notNull())
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.alterTable('otp_login').dropColumn('attempts').execute();
+  },
+};
+
+migrations['019'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('player')
+      .addColumn('post_count', 'numeric', (col) => col.defaultTo(0).notNull())
+      .execute();
+    await db.schema
+      .alterTable('player')
+      .addColumn('post_count_since_signup', 'numeric', (col) =>
+        col.defaultTo(0).notNull()
+      )
+      .execute();
+    await db.schema
+      .alterTable('player')
+      .addColumn('last_checked_post_count', 'varchar', (col) =>
+        col.defaultTo('1970-01-01T00:00:00.000Z').notNull()
+      )
+      .execute();
+    await db.schema
+      .createIndex('idx_player_last_checked_post_count')
+      .on('player')
+      .column('last_checked_post_count')
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.dropIndex('idx_player_last_checked_post_count').execute();
+
+    await db.schema.alterTable('player').dropColumn('post_count').execute();
+    await db.schema
+      .alterTable('player')
+      .dropColumn('post_count_since_signup')
+      .execute();
+    await db.schema
+      .alterTable('player')
+      .dropColumn('last_checked_post_count')
+      .execute();
+  },
+};
+
+migrations['020'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('settings')
+      .addColumn('feed_hashtags', 'varchar', (col) =>
+        col
+          .defaultTo(
+            '#MWSecretSantaAoNZ, #MWSecretSantaNZ, #MWSecretSanta, #MWSS, #SecretSantaAoNZ, #SecretSantaNZ, #NZSecretSanta'
+          )
+          .notNull()
+      )
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('settings')
+      .dropColumn('feed_hashtags')
+      .execute();
+  },
+};
+
+migrations['021'] = {
+  async up(db: Kysely<unknown>) {
+    await (db as Database)
+      .deleteFrom('message')
+      .where('message_type', '=', 'dm-match-address')
+      .execute();
+
+    await (db as Database)
+      .insertInto('message')
+      .values(
+        initialMessages['dm-match-address'].map((message) => ({
+          message_type: 'dm-match-address',
+          message,
+        }))
+      )
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {},
+};
+
+migrations['022'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
       .createTable('badge')
       .addColumn('id', 'integer', (col) => col.primaryKey())
       .addColumn('title', 'varchar', (col) => col.notNull())

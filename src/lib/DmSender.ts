@@ -63,7 +63,7 @@ const signupComplete1DMQueue: DMQueue = async (db, settings) => {
       .updateTable('player')
       .set({
         next_player_dm: 'signup-complete-2',
-        next_player_dm_after: addHours(new Date(), 2).toISOString(),
+        next_player_dm_after: addHours(new Date(), 18).toISOString(),
       })
       .where('id', '=', player.id)
       .execute();
@@ -111,7 +111,7 @@ const signupComplete2DMQueue: DMQueue = async (db, settings) => {
       .updateTable('player')
       .set({
         next_player_dm: 'signup-complete-3',
-        next_player_dm_after: addHours(new Date(), 2).toISOString(),
+        next_player_dm_after: addHours(new Date(), 18).toISOString(),
       })
       .where('id', '=', player.id)
       .execute();
@@ -170,7 +170,7 @@ const signupComplete3DMQueue: DMQueue = async (db, settings) => {
       .updateTable('player')
       .set({
         next_player_dm: null,
-        next_player_dm_after: addHours(new Date(), 2).toISOString(),
+        next_player_dm_after: addHours(new Date(), 18).toISOString(),
         player_dm_status: 'sent',
       })
       .where('id', '=', player.id)
@@ -396,7 +396,7 @@ const pokeInactiveDMQueue: DMQueue = async (db, settings) => {
       .updateTable('player')
       .set({
         next_player_dm: null,
-        next_player_dm_after: addHours(new Date(), 2).toISOString(),
+        next_player_dm_after: addHours(new Date(), 18).toISOString(),
         player_dm_status: 'sent',
       })
       .where('id', '=', player.id)
@@ -567,13 +567,13 @@ export class DmSender {
   async sendADm() {
     const now = new TZDate(new Date(), 'Pacific/Auckland');
     const earliest = set(now, {
-      hours: 7,
+      hours: 9,
       minutes: 0,
       seconds: 0,
       milliseconds: 0,
     });
     const latest = set(earliest, {
-      hours: 22,
+      hours: 20,
     });
     if (!(isAfter(now, earliest) && isBefore(now, latest))) {
       console.log('skipping dm, outside of time');

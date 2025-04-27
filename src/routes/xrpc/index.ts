@@ -74,28 +74,57 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
 
       let query = db.selectFrom('post').select('uri');
       if (feed === hashtagFeedUri) {
-        query = query.where('hasHashtag', '=', 1);
-        if (settings.feed_player_only) {
-          query = query.where('byPlayer', '=', 1);
-        }
+        query = query.where((eb) =>
+          eb.or([
+            eb('post.author', '=', santaAccountDid).and(
+              'post.replyParent',
+              'is',
+              null
+            ),
+            eb.and([
+              eb('hasHashtag', '=', 1),
+              ...(settings.feed_player_only ? [eb('byPlayer', '=', 1)] : []),
+            ]),
+          ])
+        );
       } else if (feed === hashtagWithRepliesFeedUri) {
         if (settings.feed_player_only) {
-          query = query
-            .where('distanceFromPlayerWithHashtag', '>=', 0)
-            .where(
-              'distanceFromPlayerWithHashtag',
-              '<=',
-              settings.feed_max_distance_from_tag
-            )
-            .where('byPlayer', '=', 1);
+          query = query.where((eb) =>
+            eb.or([
+              eb('post.author', '=', santaAccountDid).and(
+                'post.replyParent',
+                'is',
+                null
+              ),
+              eb.and([
+                eb('distanceFromPlayerWithHashtag', '>=', 0),
+                eb(
+                  'distanceFromPlayerWithHashtag',
+                  '<=',
+                  settings.feed_max_distance_from_tag
+                ),
+                eb('byPlayer', '=', 1),
+              ]),
+            ])
+          );
         } else {
-          query = query
-            .where('distanceFromHashtag', '>=', 0)
-            .where(
-              'distanceFromHashtag',
-              '<=',
-              settings.feed_max_distance_from_tag
-            );
+          query = query.where((eb) =>
+            eb.or([
+              eb('post.author', '=', santaAccountDid).and(
+                'post.replyParent',
+                'is',
+                null
+              ),
+              eb.and([
+                eb('distanceFromHashtag', '>=', 0),
+                eb(
+                  'distanceFromHashtag',
+                  '<=',
+                  settings.feed_max_distance_from_tag
+                ),
+              ]),
+            ])
+          );
         }
       } else if (feed === gifteeFeedUri) {
         const giftees = await queryFullMatch(db)
@@ -124,10 +153,7 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
         throw new BadRequestError(`Unknown feed`);
       }
 
-      query = query.orderBy('indexedAt desc').limit(limit + 1);
-      if (offset) {
-        query.offset(offset);
-      }
+      query = query.orderBy('indexedAt desc').limit(offset + limit + 1);
       const result = await query.execute();
       if (result.length === 0 && feed === gifteeFeedUri) {
         const output: Queries['app.bsky.feed.getFeedSkeleton']['output'] = {
@@ -140,11 +166,13 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
 
         return reply.send(output);
       }
+
       const output: Queries['app.bsky.feed.getFeedSkeleton']['output'] = {
-        feed: result.slice(0, limit).map((row) => ({
+        feed: result.slice(offset, offset + limit).map((row) => ({
           post: row.uri,
         })),
-        cursor: result.length > limit ? String(offset + limit) : undefined,
+        cursor:
+          result.length > offset + limit ? String(offset + limit) : undefined,
       };
 
       return reply.send(output);
