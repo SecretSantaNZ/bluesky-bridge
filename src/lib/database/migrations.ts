@@ -1480,6 +1480,11 @@ migrations['022'] = {
 
     await db.schema
       .alterTable('settings')
+      .addColumn('show_badges', 'int2', (col) => col.notNull().defaultTo(0))
+      .execute();
+
+    await db.schema
+      .alterTable('settings')
       .addColumn('current_game_badge_id', 'integer')
       .execute();
 
@@ -1550,6 +1555,8 @@ migrations['022'] = {
     await db.schema.dropTable('player_badge').execute();
 
     await db.schema.dropTable('badge').execute();
+
+    await db.schema.alterTable('settings').dropColumn('show_badges').execute();
 
     await db.schema
       .alterTable('settings')

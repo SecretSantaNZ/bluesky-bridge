@@ -1,6 +1,7 @@
 <form hx-boost="true" method="post" x-data="<%= JSON.stringify(settings) %>" class="space-y-8 w-full max-w-lg">
   <%- include('../partials/input-checkbox.ejs', {id: 'signups_open', label: 'Signups open', xModel: 'signups_open'}); %>
   <%- include('../partials/input-checkbox.ejs', {id: 'mastodon_players', label: 'Allow mastodon players', xModel: 'mastodon_players'}); %>
+  <%- include('../partials/input-checkbox.ejs', {id: 'show_badges', label: 'Show badges', xModel: 'show_badges'}); %>
   <%- include('../partials/input-text.ejs', {id: 'signups_open_date', label: 'Signups open date', placeholder: '', xModel: 'signups_open_date', input_type: 'date'}); %>
   <%- include('../partials/input-text.ejs', {id: 'signups_close_date', label: 'Signups closed date', placeholder: '', xModel: 'signups_close_date', input_type: 'date'}); %>
   <%- include('../partials/input-text.ejs', {id: 'matches_sent_date', label: 'Matches sent date', placeholder: '', xModel: 'matches_sent_date', input_type: 'date'}); %>

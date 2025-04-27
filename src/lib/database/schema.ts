@@ -199,6 +199,7 @@ export interface Settings {
   current_game_badge_id?: number;
   sent_present_badge_id?: number;
   super_santa_badge_id?: number;
+  show_badges: 0 | 1;
 }
 
 export type Post = {
