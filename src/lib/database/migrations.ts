@@ -1427,3 +1427,23 @@ migrations['020'] = {
       .execute();
   },
 };
+
+migrations['021'] = {
+  async up(db: Kysely<unknown>) {
+    await (db as Database)
+      .deleteFrom('message')
+      .where('message_type', '=', 'dm-match-address')
+      .execute();
+
+    await (db as Database)
+      .insertInto('message')
+      .values(
+        initialMessages['dm-match-address'].map((message) => ({
+          message_type: 'dm-match-address',
+          message,
+        }))
+      )
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {},
+};
