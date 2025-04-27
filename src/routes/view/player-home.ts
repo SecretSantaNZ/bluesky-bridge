@@ -8,6 +8,7 @@ import {
   queryTrackingWithMatch,
   loadNudgeOptions,
 } from '../../lib/database/index.js';
+import type { Settings } from '../../lib/database/schema.js';
 
 export const playerHome: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async function (request, reply) {
@@ -136,21 +137,32 @@ export const playerHome: FastifyPluginAsync = async (app) => {
       this.blueskyBridge.db
         .selectFrom('player_badge')
         .innerJoin('badge', 'badge.id', 'player_badge.badge_id')
-        .select(['badge.title', 'badge.description', 'badge.image_url'])
+        .select([
+          'badge.id',
+          'badge.title',
+          'badge.description',
+          'badge.image_url',
+        ])
         .where('player_badge.player_did', '=', player.did)
         .orderBy('recorded_at asc')
         .execute(),
       this.blueskyBridge.db
         .selectFrom('badge')
         .innerJoin('settings', 'settings.sent_present_badge_id', 'badge.id')
-        .select(['badge.title', 'badge.description', 'badge.image_url'])
+        .select([
+          'badge.id',
+          'badge.title',
+          'badge.description',
+          'badge.image_url',
+        ])
         .executeTakeFirst(),
     ]);
 
+    const settings = reply.locals?.settings as Settings;
     const badges = [
       ...(sentBadge && giftsIveSent.length > 0 ? [sentBadge] : []),
       ...playerBadges,
-    ];
+    ].filter((badge) => badge.id !== settings.current_game_badge_id);
     return reply.view(
       'player/home.ejs',
       {
