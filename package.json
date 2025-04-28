@@ -8,7 +8,7 @@
     "build:server": "rm -rf ./dist && tsc",
     "build:tailwind": "npx tailwindcss -i ./src/input.css -o ./public/style.css",
     "build:client": "npx esbuild --bundle src/public/index.ts --outdir=public --global-name=secretsantanz --minify --sourcemap",
-    "start": "run-p start:tailwind start:server-with-secrets start:client",
+    "start": "run-p start:tailwind start:server start:client",
     "start:server": "nodemon --watch 'src/**' --ext 'ts' --exec 'ts-node-esm src/server.ts'",
     "start:tailwind": "npm run build:tailwind -- --watch",
     "start:client": "npm run build:client -- --watch",
