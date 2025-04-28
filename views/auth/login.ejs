@@ -66,7 +66,7 @@
           class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"
           x-bind:list="accountType === 'bluesky' ? 'handle_suggestions' : ''"
           autocomplete="false"
-          @keypress.debounce="accountType === 'bluesky' ? (actors = JSON.parse(await $fetch('https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=' + encodeURIComponent(term.replace(/^@/, '').trim()))).actors) : undefined"
+          @keypress.debounce="accountType === 'bluesky' ? (actors = JSON.parse(await $fetch('https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=' + encodeURIComponent(term.replace(/^@/, '').trim().toLowerCase()))).actors) : undefined"
         />
       </div>
       <datalist id="handle_suggestions"> 
