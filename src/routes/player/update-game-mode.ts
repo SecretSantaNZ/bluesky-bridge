@@ -7,6 +7,7 @@ import {
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { buildTooManyGifteeMatchesQuery } from '../view/admin/fix-matches.js';
+import { escapeUnicode } from '../../util/escapeUnicode.js';
 
 export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -81,15 +82,17 @@ export const updateGameMode: FastifyPluginAsync = async (rawApp) => {
           : undefined;
         reply.header(
           'HX-Trigger',
-          JSON.stringify({
-            'ss-player-updated': updatedPlayer,
-            ...(tooManyGifteeMatches && {
-              'ss-too-many-giftees-match-updated': {
-                [playerDid]: tooManyGifteeMatches,
-              },
-            }),
-            'ss-close-modal': true,
-          })
+          escapeUnicode(
+            JSON.stringify({
+              'ss-player-updated': updatedPlayer,
+              ...(tooManyGifteeMatches && {
+                'ss-too-many-giftees-match-updated': {
+                  [playerDid]: tooManyGifteeMatches,
+                },
+              }),
+              'ss-close-modal': true,
+            })
+          )
         );
       } else {
         reply.header('HX-Refresh', 'true');

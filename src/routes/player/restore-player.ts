@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { ForbiddenError, NotFoundError } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { escapeUnicode } from '../../util/escapeUnicode.js';
 
 export const restorePlayer: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -34,9 +35,11 @@ export const restorePlayer: FastifyPluginAsync = async (rawApp) => {
         .executeTakeFirst();
       reply.header(
         'HX-Trigger',
-        JSON.stringify({
-          'ss-player-updated': updatedPlayer,
-        })
+        escapeUnicode(
+          JSON.stringify({
+            'ss-player-updated': updatedPlayer,
+          })
+        )
       );
       return reply.code(204).send();
     }

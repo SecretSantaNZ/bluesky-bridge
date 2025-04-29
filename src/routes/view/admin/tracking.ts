@@ -3,6 +3,7 @@ import { queryTrackingWithGifteeAndSanta } from '../../../lib/database/index.js'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import * as dateUtils from '../../../lib/dates.js';
+import { escapeUnicode } from '../../../util/escapeUnicode.js';
 
 export const tracking: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -103,10 +104,12 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
 
       reply.header(
         'HX-Trigger',
-        JSON.stringify({
-          'ss-tracking-updated': updatedTracking,
-          'ss-close-modal': true,
-        })
+        escapeUnicode(
+          JSON.stringify({
+            'ss-tracking-updated': updatedTracking,
+            'ss-close-modal': true,
+          })
+        )
       );
 
       return reply.code(204).send();

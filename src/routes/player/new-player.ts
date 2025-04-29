@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { getBridgedHandle, resolveMastodonHandle } from '../mastodon/index.js';
 import type { InsertObject } from 'kysely';
 import type { DatabaseSchema } from '../../lib/database/schema.js';
+import { escapeUnicode } from '../../util/escapeUnicode.js';
 
 export const newPlayer: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -72,10 +73,12 @@ export const newPlayer: FastifyPluginAsync = async (rawApp) => {
         .executeTakeFirst();
       reply.header(
         'HX-Trigger',
-        JSON.stringify({
-          'ss-player-added': updatedPlayer,
-          'ss-close-modal': true,
-        })
+        escapeUnicode(
+          JSON.stringify({
+            'ss-player-added': updatedPlayer,
+            'ss-close-modal': true,
+          })
+        )
       );
       return reply.code(204).send();
     }

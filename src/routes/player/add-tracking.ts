@@ -3,6 +3,7 @@ import { BadRequestError, InternalServerError } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { queryFullMatch } from '../../lib/database/match.js';
+import { escapeUnicode } from '../../util/escapeUnicode.js';
 
 export const addTracking: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -78,10 +79,12 @@ export const addTracking: FastifyPluginAsync = async (rawApp) => {
             .executeTakeFirstOrThrow();
           reply.header(
             'HX-Trigger',
-            JSON.stringify({
-              'ss-match-updated': match,
-              'ss-close-modal': true,
-            })
+            escapeUnicode(
+              JSON.stringify({
+                'ss-match-updated': match,
+                'ss-close-modal': true,
+              })
+            )
           );
           break;
         }
