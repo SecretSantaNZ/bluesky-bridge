@@ -54,7 +54,7 @@
                     </li>
                   </ul>
                 </div>
-                <div class="hidden" hx-get="/session-keep-alive" hx-trigger="every 1m"></div>
+                <div class="hidden" hx-get="/session-keep-alive" hx-trigger="every 1m" hx-disabled-elt="this"></div>
               <% } else { %>
                 <%- include('../partials/avatar.ejs', {avatar_url: player.avatar_url}) %>
               <% } %>
