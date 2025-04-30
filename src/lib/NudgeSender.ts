@@ -102,7 +102,15 @@ export class NudgeSender {
         getRandomMessage(this.db, 'hint-idea', {}),
       ]);
 
-      const rawMessage = `${nudge.greeting} @${nudge.giftee_handle}. ${messageBody} ${nudge.signoff}${nudgeType === 'hint' ? `\n\nNot sure what to say? How about:\n${hintIdea}?\n\n` : ''} [Sent by 🤖]`;
+      let rawMessage = `${nudge.greeting} @${nudge.giftee_handle}. ${messageBody} ${nudge.signoff}`;
+      if (nudgeType === 'hint') {
+        const nudgeWithHint =
+          rawMessage + `\n\nNot sure what to say? How about:\n${hintIdea}?\n\n`;
+        if (nudgeWithHint.length <= 287) {
+          rawMessage = nudgeWithHint;
+        }
+      }
+      rawMessage += ` [Sent by 🤖]`;
 
       const message = new RichText({
         text: rawMessage,
