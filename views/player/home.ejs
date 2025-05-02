@@ -64,7 +64,7 @@
     })()%>">
       <% badges.forEach((badge) => { %>
         <button type="button" @click="$dispatch('ss-open-modal', {modal: 'badge-detail', modalData: <%= JSON.stringify(badge) %>})" class="block flex-shrink">
-          <img src="<%= badge.image_url %>" alt="<%= badge.title %>" class="object-contain mx-2 max-h-16"/>
+          <img src="<%= badge.image_url %>" alt="<%= badge.title %>" class="object-contain mx-2 max-h-16 drop-shadow-lg"/>
         </button> 
       <% }) %>
     </div>
