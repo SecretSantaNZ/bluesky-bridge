@@ -1718,3 +1718,23 @@ migrations['023'] = {
     `.execute(db);
   },
 };
+
+migrations['024'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('badge')
+      .addColumn('assigned_by_hashtag', 'varchar')
+      .execute();
+    await db.schema
+      .alterTable('badge')
+      .addColumn('assigned_by_elf', 'int2', (col) => col.defaultTo(0).notNull())
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('badge')
+      .dropColumn('assigned_by_hashtag')
+      .execute();
+    await db.schema.alterTable('badge').dropColumn('assigned_by_elf').execute();
+  },
+};

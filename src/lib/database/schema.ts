@@ -254,6 +254,8 @@ export type Badge = {
   title: string;
   description: string;
   image_url: string;
+  assigned_by_hashtag: Generated<string | null>;
+  assigned_by_elf: Generated<0 | 1>;
 };
 
 export type PlayerBadge = {
