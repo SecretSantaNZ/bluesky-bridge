@@ -2,7 +2,17 @@ import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import type { UpdateObject } from 'kysely';
 import { z } from 'zod';
-import type { DatabaseSchema } from '../../../lib/database/schema.js';
+import type { Badge, DatabaseSchema } from '../../../lib/database/schema.js';
+import type { SelectedSettings } from '../../../lib/settings.js';
+
+const assignedForTypeSchema = z.enum([
+  'nothing',
+  'current_game',
+  'sent_present',
+  'super_santa',
+  'by_elf',
+  'posting',
+]);
 
 export const badges: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -31,18 +41,27 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
     {
       schema: {
         params: z.object({
-          badge_id: z.coerce.number(),
+          badge_id: z.union([z.literal('__new__'), z.coerce.number()]),
         }),
       },
     },
     async function (request, reply) {
       const { db } = this.blueskyBridge;
       const [badge, settings] = await Promise.all([
-        db
-          .selectFrom('badge')
-          .selectAll()
-          .where('id', '=', request.params.badge_id)
-          .executeTakeFirstOrThrow(),
+        request.params.badge_id == '__new__'
+          ? {
+              id: 0,
+              title: '',
+              description: '',
+              image_url: '',
+              assigned_by_elf: 0,
+              assigned_by_hashtag: '',
+            }
+          : db
+              .selectFrom('badge')
+              .selectAll()
+              .where('id', '=', request.params.badge_id)
+              .executeTakeFirstOrThrow(),
         db.selectFrom('settings').selectAll().executeTakeFirstOrThrow(),
       ]);
 
@@ -76,31 +95,60 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
   );
 
   app.post(
-    '/badges/:badge_id',
+    '/badges/:badge_id?',
     {
       schema: {
         params: z.object({
-          badge_id: z.coerce.number(),
+          badge_id: z.coerce.number().optional(),
         }),
         body: z.object({
           title: z.string(),
           description: z.string(),
           image_url: z.string(),
-          assigned_for_type: z.enum([
-            'nothing',
-            'current_game',
-            'sent_present',
-            'super_santa',
-            'by_elf',
-            'posting',
-          ]),
+          assigned_for_type: assignedForTypeSchema,
           assigned_by_hashtag: z.string().optional(),
         }),
       },
     },
     async function (request, reply) {
-      const { badge_id } = request.params;
+      let badge_id = request.params.badge_id;
       const { db, settingsChanged } = this.blueskyBridge;
+
+      const assigned_by_hashtag =
+        request.body.assigned_for_type === 'by_elf' ||
+        request.body.assigned_for_type === 'posting'
+          ? request.body.assigned_by_hashtag || null
+          : null;
+
+      if (badge_id) {
+        await db
+          .updateTable('badge')
+          .set({
+            title: request.body.title,
+            description: request.body.description,
+            image_url: request.body.image_url,
+            assigned_by_hashtag,
+            assigned_by_elf:
+              request.body.assigned_for_type === 'by_elf' ? 1 : 0,
+          })
+          .where('id', '=', badge_id)
+          .returningAll()
+          .executeTakeFirst();
+      } else {
+        const badge = await db
+          .insertInto('badge')
+          .values({
+            title: request.body.title,
+            description: request.body.description,
+            image_url: request.body.image_url,
+            assigned_by_hashtag,
+            assigned_by_elf:
+              request.body.assigned_for_type === 'by_elf' ? 1 : 0,
+          })
+          .returningAll()
+          .executeTakeFirstOrThrow();
+        badge_id = badge.id;
+      }
 
       const settings = await db
         .selectFrom('settings')
@@ -117,7 +165,6 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
       if (settings.super_santa_badge_id == badge_id) {
         settingsUpdate.super_santa_badge_id = null;
       }
-      let assigned_by_hashtag: string | null = null;
       switch (request.body.assigned_for_type) {
         case 'current_game':
           settingsUpdate.current_game_badge_id = badge_id;
@@ -128,24 +175,7 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
         case 'super_santa':
           settingsUpdate.super_santa_badge_id = badge_id;
           break;
-        case 'by_elf':
-        case 'posting':
-          assigned_by_hashtag = request.body.assigned_by_hashtag || null;
-          break;
       }
-
-      await db
-        .updateTable('badge')
-        .set({
-          title: request.body.title,
-          description: request.body.description,
-          image_url: request.body.image_url,
-          assigned_by_hashtag,
-          assigned_by_elf: request.body.assigned_for_type === 'by_elf' ? 1 : 0,
-        })
-        .where('id', '=', badge_id)
-        .returningAll()
-        .executeTakeFirst();
       if (Object.keys(settingsUpdate).length > 0) {
         await db
           .updateTable('settings')

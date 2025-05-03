@@ -1,4 +1,4 @@
-<form hx-boost="true" method="post"  x-data="<%= JSON.stringify({...badge, assigned_for_type}) %>" class="space-y-8 w-full max-w-lg">
+<form hx-boost="true" method="post" action="/admin/badges<%= badge.id ? '/' + badge.id : '' %>" x-data="<%= JSON.stringify({...badge, assigned_for_type}) %>" class="space-y-8 w-full max-w-lg">
   <div class="flex justify-center">
     <img x-bind:src="image_url" class="block size-62" />
   </div>
