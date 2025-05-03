@@ -147,6 +147,7 @@ export class FeedSubscription {
     );
     if (player?.booted && !player.admin) {
       console.log(`dropping post from booted player ${player.handle}`);
+      return;
     }
 
     const [parentPost, quotedPost] = await Promise.all([
