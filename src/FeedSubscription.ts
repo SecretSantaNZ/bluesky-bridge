@@ -4,7 +4,7 @@ import WebSocket from 'ws';
 
 import type { Database } from './lib/database/index.js';
 import { addMinutes, isBefore, parseISO, subDays, subHours } from 'date-fns';
-import type { Settings } from './lib/database/schema.js';
+import type { PlayerBadge, Settings } from './lib/database/schema.js';
 import ms from 'ms';
 
 function authorFromPostUri(postUri: string | undefined): string | undefined {
@@ -40,8 +40,16 @@ function boolToDb<T extends Record<string, boolean>>(
   ) as { [K in keyof T]: 0 | 1 };
 }
 
+type AssignableBadge = {
+  id: number;
+  title: string;
+  assigned_by_hashtag: string;
+  assigned_by_elf: 0 | 1;
+};
+
 export class FeedSubscription {
   private gameHashtags: Array<string> = [];
+  private hashtagBadges: Array<AssignableBadge> = [];
   private jetstream: Jetstream | undefined;
   constructor(private readonly db: Database) {
     setInterval(this.purge.bind(this), ms('1h'));
@@ -85,12 +93,30 @@ export class FeedSubscription {
   }
 
   async settingsChanged(settings: Pick<Settings, 'hashtag' | 'feed_hashtags'>) {
+    const hashtagBadges = await this.db
+      .selectFrom('badge')
+      .select(['id', 'title', 'assigned_by_hashtag', 'assigned_by_elf'])
+      .where('assigned_by_hashtag', 'is not', 'null')
+      .where('assigned_by_hashtag', '<>', '')
+      .execute();
+    this.hashtagBadges = hashtagBadges.flatMap((badge) =>
+      badge.assigned_by_hashtag
+        ? {
+            ...badge,
+            assigned_by_hashtag: badge.assigned_by_hashtag
+              .replace(/#/, '')
+              .trim()
+              .toLowerCase(),
+          }
+        : []
+    );
     this.gameHashtags = Array.from(
       new Set(
         settings.feed_hashtags
           .split(',')
           .concat(settings.hashtag)
           .map((tag) => tag.replace(/#/, '').trim().toLowerCase())
+          .concat(this.hashtagBadges.map((badge) => badge.assigned_by_hashtag))
       )
     );
   }
@@ -210,5 +236,38 @@ export class FeedSubscription {
       })
       .onConflict((cb) => cb.doNothing())
       .execute();
+
+    const recorded_at = now.toISOString();
+    const badges = this.hashtagBadges
+      .filter((badge) => hashtags.has(badge.assigned_by_hashtag))
+      .flatMap((badge): Array<PlayerBadge> => {
+        if (!player || !byPlayer) return [];
+        if (player.admin && parentPost?.byPlayer) {
+          console.log(
+            `Elf ${player.handle} assigning badge ${badge.title} to ${parentPost.author}`
+          );
+          return [
+            {
+              player_did: parentPost.author,
+              badge_id: badge.id,
+              recorded_at,
+            },
+          ];
+        }
+        if (!badge.assigned_by_elf) {
+          console.log(`Assigning badge ${badge.title} to ${player.did}`);
+          return [
+            {
+              player_did: player.did,
+              badge_id: badge.id,
+              recorded_at,
+            },
+          ];
+        }
+        return [];
+      });
+    if (badges.length > 0) {
+      await this.db.insertInto('player_badge').values(badges).execute();
+    }
   }
 }
