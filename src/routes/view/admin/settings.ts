@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import type { Settings } from '../../../lib/database/schema.js';
+import type { SelectedSettings } from '../../../lib/settings.js';
 
 const dataSchema = z.object({
   signups_open: z.coerce.boolean().optional(),
@@ -23,7 +23,15 @@ const dataSchema = z.object({
   show_badges: z.coerce.boolean().optional(),
 });
 
-function toData(settings: Omit<Settings, 'id'>): z.infer<typeof dataSchema> {
+function toData(
+  settings: Omit<
+    SelectedSettings,
+    | 'id'
+    | 'current_game_badge_id'
+    | 'sent_present_badge_id'
+    | 'super_santa_badge_id'
+  >
+): z.infer<typeof dataSchema> {
   return {
     ...settings,
     signups_open: Boolean(settings.signups_open),
@@ -63,7 +71,13 @@ export const settings: FastifyPluginAsync = async (rawApp) => {
     },
     async function (request, reply) {
       const { db, settingsChanged } = this.blueskyBridge;
-      const updates: Omit<Settings, 'id'> = {
+      const updates: Omit<
+        SelectedSettings,
+        | 'id'
+        | 'current_game_badge_id'
+        | 'sent_present_badge_id'
+        | 'super_santa_badge_id'
+      > = {
         ...request.body,
         signups_open: request.body.signups_open ? 1 : 0,
         mastodon_players: request.body.mastodon_players ? 1 : 0,

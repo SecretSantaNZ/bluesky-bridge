@@ -16,13 +16,13 @@
             <% } else if (settings.super_santa_badge_id === badge.id) { %>
               <dd class="font-semibold">Super santa</dd>
             <% } else if (badge.assigned_by_hashtag) { %>
-              <dd class="font-semibold"><%= badge.assigned_by_elf ? 'By Elf' : 'Posting' %>: <%= badge.assigned_by_hashtag %></dd>
+              <dd class="font-semibold"><%= badge.assigned_by_elf ? 'By elf' : 'Posting' %>: <%= badge.assigned_by_hashtag %></dd>
             <% } else { %>
               <dd class="italic">Nothing</dd>
             <% } %>
           </dl>
           <div class="grow"></div>
-          <a href="/badges/<%= badge.id %>" class="flex items-center"><span class="inline-block size-6 i-mdi-edit mr-2"></span> Edit</a>
+          <a href="/admin/badges/<%= badge.id %>" class="flex items-center"><span class="inline-block size-6 i-mdi-edit mr-2"></span> Edit</a>
         </div>
       </div>
     </div>

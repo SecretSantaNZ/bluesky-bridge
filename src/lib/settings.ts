@@ -1,20 +1,13 @@
+import type { SelectType } from 'kysely';
 import type { Database } from './database/index.js';
 import type { Settings as DbSettings } from './database/schema.js';
 
-export type Settings = Omit<DbSettings, 'id' | 'signups_open'> & {
-  signups_open: boolean;
+export type SelectedSettings = {
+  [K in keyof DbSettings]: SelectType<DbSettings[K]>;
 };
 
-export const saveSettings = async (db: Database, settings: Settings) => {
-  const body = {
-    ...settings,
-    signups_open: settings.signups_open ? 1 : 0,
-  };
-  await db
-    .insertInto('settings')
-    .values({ ...body, id: 1 })
-    .onConflict((cf) => cf.doUpdateSet(body))
-    .execute();
+export type Settings = Omit<SelectedSettings, 'id' | 'signups_open'> & {
+  signups_open: boolean;
 };
 
 export const loadSettings = async (db: Database): Promise<Settings> => {

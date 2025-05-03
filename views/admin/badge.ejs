@@ -1,0 +1,20 @@
+<form hx-boost="true" method="post"  x-data="<%= JSON.stringify({...badge, assigned_for_type}) %>" class="space-y-8 w-full max-w-lg">
+  <div class="flex justify-center">
+    <img x-bind:src="image_url" class="block size-62" />
+  </div>
+  <%- include('../partials/input-text.ejs', {id: 'title', label: 'Title', placeholder: '', xModel: 'title'}); %>
+  <%- include('../partials/input-text.ejs', {id: 'description', label: 'Description', placeholder: '', xModel: 'description'}); %>
+  <%- include('../partials/input-text.ejs', {id: 'image_url', label: 'Image url', placeholder: '', xModel: 'image_url'}); %>
+  <%- include('../partials/drop-down.ejs', {id: 'assigned_for_type', xModel: 'assigned_for_type', label: 'Assigned for', options: [
+    {id: 'nothing', text: 'Nothing'},
+    {id: 'current_game', text: 'Current game'},
+    {id: 'sent_present', text: 'Sending gift'},
+    {id: 'super_santa', text: 'Super santa'},
+    {id: 'by_elf', text: 'By elf'},
+    {id: 'posting', text: 'Posting'},
+  ]}); %>
+  <%- include('../partials/input-text.ejs', {id: 'assigned_by_hashtag', label: 'Hashtag', placeholder: '#hashtag', xModel: 'assigned_by_hashtag', xShow: 'assigned_for_type === "by_elf" || assigned_for_type === "posting"'}); %>
+  <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+  <%- include('../partials/activity-spinner.ejs') %>
+  <input type="submit" name="save" value="Save" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+</form>

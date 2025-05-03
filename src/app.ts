@@ -29,7 +29,7 @@ import { match } from './routes/match/index.js';
 import { nudge } from './routes/nudge/index.js';
 import { xrpc } from './routes/xrpc/index.js';
 import { mastodon } from './routes/mastodon/index.js';
-import type { Settings } from './lib/database/schema.js';
+import type { SelectedSettings } from './lib/settings.js';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -48,7 +48,15 @@ declare module 'fastify' {
       santaAccountDid: string;
       santaAgent: () => Promise<Agent>;
       robotAgent: () => Promise<Agent>;
-      settingsChanged: (settings: Omit<Settings, 'id'>) => Promise<unknown>;
+      settingsChanged: (
+        settings: Omit<
+          SelectedSettings,
+          | 'id'
+          | 'current_game_badge_id'
+          | 'sent_present_badge_id'
+          | 'super_santa_badge_id'
+        >
+      ) => Promise<unknown>;
       didResolver: DidResolver;
     };
   }

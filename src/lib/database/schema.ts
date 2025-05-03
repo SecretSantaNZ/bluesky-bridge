@@ -196,9 +196,9 @@ export interface Settings {
   send_messages: number;
   feed_player_only: 0 | 1;
   feed_max_distance_from_tag: number;
-  current_game_badge_id?: number;
-  sent_present_badge_id?: number;
-  super_santa_badge_id?: number;
+  current_game_badge_id: Generated<number | null>;
+  sent_present_badge_id: Generated<number | null>;
+  super_santa_badge_id: Generated<number | null>;
   show_badges: 0 | 1;
 }
 

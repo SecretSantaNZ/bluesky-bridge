@@ -8,7 +8,7 @@ import {
   queryTrackingWithMatch,
   loadNudgeOptions,
 } from '../../lib/database/index.js';
-import type { Settings } from '../../lib/database/schema.js';
+import type { SelectedSettings } from '../../lib/settings.js';
 
 export const playerHome: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async function (request, reply) {
@@ -158,7 +158,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
         .executeTakeFirst(),
     ]);
 
-    const settings = reply.locals?.settings as Settings;
+    const settings = reply.locals?.settings as SelectedSettings;
     const badges = [
       ...(sentBadge && giftsIveSent.length > 0 ? [sentBadge] : []),
       ...playerBadges,
