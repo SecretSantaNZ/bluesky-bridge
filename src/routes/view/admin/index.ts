@@ -10,6 +10,7 @@ import { fixMatches } from './fix-matches.js';
 import { draftMatches } from './draft-matches.js';
 import { publishedMatches } from './published-matches.js';
 import { nudges } from './nudges.js';
+import { badges } from './badges.js';
 import { tracking } from './tracking.js';
 import { withoutGifts } from './without-gifts.js';
 import { settings } from './settings.js';
@@ -60,6 +61,7 @@ export const admin: FastifyPluginAsync = async (app) => {
   await app.register(fixMatches);
   await app.register(publishedMatches);
   await app.register(nudges);
+  await app.register(badges);
   await app.register(tracking);
   await app.register(withoutGifts);
   await app.register(settings);

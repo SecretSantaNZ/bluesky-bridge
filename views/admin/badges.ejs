@@ -1,0 +1,30 @@
+<div class="w-full px-12">
+  <% badges.forEach(badge => { %>
+    <div class="flex border-b mb-8 py-2">
+      <img src="<%= badge.image_url %>" class="block size-32 mr-4">
+      <div class="flex flex-col w-full">
+        <p class="font-semibold text-xl"><%= badge.title %></p>
+        <p><%= badge.description %></p>
+        <div class="grow"></div>
+        <div class="flex items-end">
+          <dl class="mt-2">
+            <dt>Assigned for:</dt>
+            <% if (settings.current_game_badge_id === badge.id) { %>
+              <dd class="font-semibold">Current game</dd>
+            <% } else if (settings.sent_present_badge_id === badge.id) { %>
+              <dd class="font-semibold">Sending gift</dd>
+            <% } else if (settings.super_santa_badge_id === badge.id) { %>
+              <dd class="font-semibold">Super santa</dd>
+            <% } else if (badge.assigned_by_hashtag) { %>
+              <dd class="font-semibold"><%= badge.assigned_by_elf ? 'By Elf' : 'Posting' %>: <%= badge.assigned_by_hashtag %></dd>
+            <% } else { %>
+              <dd class="italic">Nothing</dd>
+            <% } %>
+          </dl>
+          <div class="grow"></div>
+          <a href="/badges/<%= badge.id %>" class="flex items-center"><span class="inline-block size-6 i-mdi-edit mr-2"></span> Edit</a>
+        </div>
+      </div>
+    </div>
+  <% }); %>
+</div>
