@@ -2,8 +2,10 @@ import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import type { UpdateObject } from 'kysely';
 import { z } from 'zod';
-import type { Badge, DatabaseSchema } from '../../../lib/database/schema.js';
-import type { SelectedSettings } from '../../../lib/settings.js';
+import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
+import { S3Client } from '@aws-sdk/client-s3';
+import type { DatabaseSchema } from '../../../lib/database/schema.js';
+import { randomUUID } from 'crypto';
 
 const assignedForTypeSchema = z.enum([
   'nothing',
@@ -91,6 +93,42 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
           layout: 'layouts/base-layout.ejs',
         }
       );
+    }
+  );
+
+  app.post(
+    '/badges/presign-upload',
+    {
+      schema: {
+        body: z.object({
+          filename: z.string(),
+          content_type: z.string(),
+        }),
+      },
+    },
+    async (request, reply) => {
+      const client = new S3Client({
+        region: process.env.IMAGE_BUCKET_REGION,
+      });
+      const Bucket = process.env.IMAGE_BUCKET ?? '??IMAGE_BUCKET??';
+      const name = `${request.body.filename.replace(/\.[^.]+$/, '')}-${randomUUID()}`;
+      const Key = `${process.env.IMAGE_KEY_PREFIX}${name}`;
+      const Fields = {
+        'Cache-Control': 'max-age=31536000, immutable',
+        'Content-Type': request.body.content_type,
+      };
+      const { url, fields } = await createPresignedPost(client, {
+        Bucket,
+        Key,
+        Fields,
+        Expires: 300,
+      });
+
+      return reply.send({
+        url,
+        fields,
+        image_url: `https://secretsantanz.imgix.net/${name}?w=386&w386&format=auto`,
+      });
     }
   );
 
