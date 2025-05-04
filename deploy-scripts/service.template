@@ -18,6 +18,9 @@ Environment=SANTA_MASTODON_HANDLE={{ santa_mastodon_handle }}
 Environment=ACTION_USERNAME={{ action_username }}
 Environment=TOKEN_ISSUER={{ inventory_hostname }}
 Environment=PUBLIC_BASE_URL=https://{{ inventory_hostname }}
+Environment=IMAGE_BUCKET={{ image_bucket }}
+Environment=IMAGE_BUCKET_REGION={{ image_bucket_region }}
+Environment=IMAGE_KEY_PREFIX={{ image_key_prefix }}
 Environment=NEW_RELIC_APP_NAME={{ service_name }}
 Environment=NEW_RELIC_LICENSE_KEY={{ new_relic_license_key }}
 Environment=NEW_RELIC_LOG=stdout

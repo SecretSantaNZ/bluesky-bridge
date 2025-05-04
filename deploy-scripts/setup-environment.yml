@@ -23,6 +23,8 @@
           HANDLE_CHANGED_WEBHOOK={{ handle_changed_webhook }}
           FOLLOWING_CHANGED_WEBHOOK={{ following_changed_webhook }}
           OPTED_OUT_WEBHOOK={{ opted_out_webhook }}
+          AWS_ACCESS_KEY_ID={{ app_access_key }}
+          AWS_SECRET_ACCESS_KEY={{ app_secret_access_key }}
         service_credentials_path: /home/{{ service_name }}/{{ service_name }}-creds.cred
       no_log: true
     - name: Set service credentials fact hashs
