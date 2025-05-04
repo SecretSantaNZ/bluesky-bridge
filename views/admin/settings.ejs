@@ -1,4 +1,5 @@
 <form hx-boost="true" method="post" x-data="<%= JSON.stringify(settings) %>" class="space-y-8 w-full max-w-lg">
+  <a href="/admin/badges">Badges</a>
   <%- include('../partials/input-checkbox.ejs', {id: 'signups_open', label: 'Signups open', xModel: 'signups_open'}); %>
   <%- include('../partials/input-checkbox.ejs', {id: 'mastodon_players', label: 'Allow mastodon players', xModel: 'mastodon_players'}); %>
   <%- include('../partials/input-checkbox.ejs', {id: 'show_badges', label: 'Show badges', xModel: 'show_badges'}); %>
