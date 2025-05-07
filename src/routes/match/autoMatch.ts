@@ -132,9 +132,6 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
           const targetRightSanta = nodes[swapWith]?.santa as number;
           const targetRightGiftee = nodes[targetNextIndex]?.giftee as number;
 
-          // g1-s1 g2-s2 g3-s3
-          // s1 != g2 && s2 !== g3
-          // g2 != s3 && g1 !== s3
           invalid =
             // Ensure moving current node to swap to won't make either player
             // their own santa
@@ -151,10 +148,11 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
             forbiddenMatches[currentLeftSanta]?.has(targetLeftGiftee) ||
             forbiddenMatches[targetRightSanta]?.has(currentRightGiftee) ||
             // ensure neither position creates an immediate X is santa for Y and vica versa
-            nodes[targetPreviousIndex]?.giftee === currentRightSanta ||
-            currentLeftGiftee === nodes[targetNextIndex]?.santa ||
-            nodes[previousIndex]?.giftee === targetRightSanta ||
-            targetLeftGiftee === nodes[nextIndex]?.santa;
+            // .A -> BB -> A.
+            (currentLeftSanta === currentRightGiftee &&
+              targetLeftGiftee === targetRightSanta) ||
+            (targetLeftSanta === targetRightGiftee &&
+              currentLeftGiftee === currentRightSanta);
         }
         if (invalid) {
           throw new Error('cannot find valid match after 10 attempts');
