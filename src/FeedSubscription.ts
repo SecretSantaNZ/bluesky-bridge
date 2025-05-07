@@ -158,7 +158,7 @@ export class FeedSubscription {
             .where('uri', '=', replyParent)
             .executeTakeFirst()
         : undefined,
-      !hasHashtag && quoteUri
+      quoteUri
         ? this.db
             .selectFrom('post')
             .selectAll()
@@ -250,6 +250,18 @@ export class FeedSubscription {
           return [
             {
               player_did: parentPost.author,
+              badge_id: badge.id,
+              recorded_at,
+            },
+          ];
+        }
+        if (player.admin && quotedPost?.byPlayer) {
+          console.log(
+            `Elf ${player.handle} assigning badge ${badge.title} to ${quotedPost.author}`
+          );
+          return [
+            {
+              player_did: quotedPost.author,
               badge_id: badge.id,
               recorded_at,
             },
