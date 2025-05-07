@@ -1,0 +1,13 @@
+<form id="upload-form" hx-post="<%= url %>" hx-trigger="htmx:load" enctype="multipart/form-data"
+  x-on:htmx:before-swap.camel.prevent="
+    if (!$event.detail.isError) {
+      image_url = <%= JSON.stringify(image_url) %>;
+    }">
+  <% Object.entries(fields).forEach(([name, value]) => { %>
+    <input type="hidden" name="<%= name %>" value="<%= value %>" />
+  <% }) %>
+  <input id="file-upload" type="file" name="file" x-on:change="
+    file = $event.target.files[0] || null;
+    preview_url = file == null ? '' : URL.createObjectURL(file);
+  "/>
+</form>

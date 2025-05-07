@@ -124,7 +124,7 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
         Expires: 300,
       });
 
-      return reply.send({
+      return reply.view('admin/upload-form.ejs', {
         url,
         fields,
         image_url: `https://secretsantanz.imgix.net/${name}?w=386&w386&format=auto`,

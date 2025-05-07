@@ -10,6 +10,8 @@
     <script src="/public/index.js"></script>
     <meta name="htmx-config" content='{"selfRequestsOnly":false}'>
     <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/idiomorph@0.7.3" integrity="sha384-JcorokHTL/m+D6ZHe2+yFVQopVwZ+91GxAPDyEZ6/A/OEPGEx1+MeNSe2OGvoRS9" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/idiomorph@0.7.3/dist/idiomorph-ext.min.js" integrity="sha384-szktAZju9fwY15dZ6D2FKFN4eZoltuXiHStNDJWK9+FARrxJtquql828JzikODob" crossorigin="anonymous"></script>
     <script defer src="https://cdn.jsdelivr.net/gh/hankhank10/alpine-fetch@main/alpine-fetch.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/persist@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -17,6 +19,7 @@
   <body
     class="scheme-light dark:scheme-dark bg-slate-300 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
     hx-swap="outerHTML"
+    hx-ext="morph"
     hx-disabled-elt=".htmx-request input, .htmx-request select, .htmx-request form"
     @keyup.escape="$dispatch('ss-close-modal')"
     x-data="{userMenuOpen: false, isMobileWidth: window.ssIsMobileWidth}"
