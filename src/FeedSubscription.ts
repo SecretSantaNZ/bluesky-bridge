@@ -280,7 +280,11 @@ export class FeedSubscription {
         return [];
       });
     if (badges.length > 0) {
-      await this.db.insertInto('player_badge').values(badges).execute();
+      await this.db
+        .insertInto('player_badge')
+        .values(badges)
+        .onConflict((cb) => cb.doNothing())
+        .execute();
     }
   }
 }
