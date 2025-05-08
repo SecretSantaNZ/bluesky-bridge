@@ -2,5 +2,5 @@
   <h1>Tracking from @<span x-text="modalData.santa_handle"></span> to @<span x-text="modalData.giftee_handle"></span></h1>
   <%- include('../partials/activity-spinner.ejs') %>
   <div id="match-tracking" class="htmx-request:hidden"></div>
-  <%- include('../player/add-tracking.ejs', { mode: 'add' }) %>
+  <%- include('../player/add-tracking.ejs', { mode: 'add', adminMode: true }) %>
 </div>

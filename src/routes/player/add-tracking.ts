@@ -4,6 +4,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { queryFullMatch } from '../../lib/database/match.js';
 import { escapeUnicode } from '../../util/escapeUnicode.js';
+import { renderPlayerHome } from '../view/player-home.js';
 
 export const addTracking: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -36,7 +37,7 @@ export const addTracking: FastifyPluginAsync = async (rawApp) => {
         throw new InternalServerError(`Player not found ${did}`);
       }
       const admin = request.tokenData?.admin;
-      const [match] = await Promise.all([
+      const [match, settings, { cnt: countTracking }] = await Promise.all([
         admin
           ? undefined
           : db
@@ -45,12 +46,24 @@ export const addTracking: FastifyPluginAsync = async (rawApp) => {
               .where('santa', '=', player.id)
               .where('id', '=', match_id)
               .executeTakeFirstOrThrow(),
+        db.selectFrom('settings').selectAll().executeTakeFirstOrThrow(),
+        db
+          .selectFrom('tracking')
+          .select(({ fn }) => [fn.countAll<number>().as('cnt')])
+          .innerJoin('match', 'match.id', 'tracking.match')
+          .where('match.santa', '=', player.id)
+          .executeTakeFirstOrThrow(),
         db
           .selectFrom('carrier')
           .selectAll()
           .where('id', '=', carrier)
           .executeTakeFirstOrThrow(),
       ]);
+      const trackingBadge = await db
+        .selectFrom('badge')
+        .selectAll()
+        .where('id', '=', settings.sent_present_badge_id)
+        .executeTakeFirst();
       if (!admin) {
         if (match == null || match.tracking_count >= 5) {
           throw new BadRequestError(`Already 5 tracking for ${match_id}`);
@@ -77,23 +90,39 @@ export const addTracking: FastifyPluginAsync = async (rawApp) => {
           const match = await queryFullMatch(db)
             .where('match.id', '=', match_id)
             .executeTakeFirstOrThrow();
+          return reply
+            .header(
+              'HX-Trigger',
+              escapeUnicode(
+                JSON.stringify({
+                  'ss-match-updated': match,
+                  'ss-close-modal': true,
+                })
+              )
+            )
+            .code(204)
+            .send();
+        }
+        default:
           reply.header(
             'HX-Trigger',
             escapeUnicode(
-              JSON.stringify({
-                'ss-match-updated': match,
-                'ss-close-modal': true,
-              })
+              JSON.stringify(
+                countTracking > 0
+                  ? {
+                      'ss-close-modal': true,
+                    }
+                  : {
+                      'ss-open-modal': {
+                        modal: 'badge-detail',
+                        modalData: trackingBadge,
+                      },
+                    }
+              )
             )
           );
-          break;
-        }
-        default:
-          reply.header('HX-Refresh', 'true');
-          break;
+          return renderPlayerHome(this.blueskyBridge, request, reply);
       }
-
-      return reply.code(204).send();
     }
   );
 };

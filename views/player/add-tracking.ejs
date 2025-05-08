@@ -1,4 +1,12 @@
-<form hx-post="<%= mode === 'add' ? '/player/add-tracking' : '/admin/tracking/update' %>" hx-swap="none" x-data="<%= JSON.stringify({shipped_date: formatDateIso(new Date())}) %>" id="add-tracking">
+<form hx-post="<%= mode === 'add' ? '/player/add-tracking' : '/admin/tracking/update' %>"
+  x-data="<%= JSON.stringify({shipped_date: formatDateIso(new Date())}) %>" id="add-tracking"
+  <% if (locals.adminMode) { %>
+    hx-swap="none"
+  <% } else { %>
+    hx-target="#player-home"
+    hx-select="#player-home"
+  <% } %>
+  >
   <div class="space-y-8">
     <% if (mode === 'add') { %>
       <h1>Add tracking for @<span x-text="modalData.giftee_handle"></span></h1>

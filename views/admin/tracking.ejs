@@ -108,7 +108,7 @@
       <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
       </div>
       <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/add-tracking.ejs', xShow: "showModal === 'edit-tracking'", mode: 'edit' }) %>
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/add-tracking.ejs', xShow: "showModal === 'edit-tracking'", mode: 'edit', adminMode: true }) %>
         <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/player-notes.ejs', xShow: "showModal === 'player-notes'", adminMode: true  }) %>
       </div>
     </div>
