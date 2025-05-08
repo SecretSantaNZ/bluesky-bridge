@@ -22,7 +22,6 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
         ...dateUtils,
         pageData,
         carriers,
-        oneColumn: true,
       },
       {
         layout: 'layouts/base-layout.ejs',

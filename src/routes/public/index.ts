@@ -43,9 +43,7 @@ export const publicContent: FastifyPluginAsync = async (app) => {
   app.get('/faq', async function (request, reply) {
     return reply.view(
       'public/faq.ejs',
-      {
-        oneColumn: true,
-      },
+      {},
       {
         layout: 'layouts/base-layout.ejs',
       }
@@ -55,9 +53,7 @@ export const publicContent: FastifyPluginAsync = async (app) => {
   app.get('/rules', async function (request, reply) {
     return reply.view(
       'public/rules.ejs',
-      {
-        oneColumn: true,
-      },
+      {},
       {
         layout: 'layouts/base-layout.ejs',
       }

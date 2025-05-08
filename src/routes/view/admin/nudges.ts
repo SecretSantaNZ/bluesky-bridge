@@ -34,7 +34,6 @@ export const nudges: FastifyPluginAsync = async (app) => {
       'admin/nudges.ejs',
       {
         pageData,
-        oneColumn: true,
       },
       {
         layout: 'layouts/base-layout.ejs',

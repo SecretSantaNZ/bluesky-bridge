@@ -56,7 +56,6 @@ export const draftMatches: FastifyPluginAsync = async (app) => {
       'admin/draft-matches.ejs',
       {
         pageData,
-        oneColumn: true,
       },
       {
         layout: 'layouts/base-layout.ejs',

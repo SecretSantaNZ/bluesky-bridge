@@ -61,7 +61,6 @@ export const withoutGifts: FastifyPluginAsync = async (rawApp) => {
         'admin/without-gifts.ejs',
         {
           pageData,
-          oneColumn: true,
         },
         {
           layout: 'layouts/base-layout.ejs',

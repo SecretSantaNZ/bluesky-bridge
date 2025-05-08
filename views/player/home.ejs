@@ -1,3 +1,4 @@
+<div class="flex-grow p-4 justify-items-center grid gap-8 lg:grid-cols-2 xl:grid-cols-3">
 <% if (player.player_type === 'bluesky') { %>
   <% if (!player.following_santa) { %>
     <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
@@ -76,6 +77,7 @@
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/presents-for-me.ejs' }) %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/presents-ive-sent.ejs' }) %>
 <%- include('../layouts/card.ejs', { bodyTemplate: 'player/nudges-ive-sent.ejs' }) %>
+</div>
 <div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
   <template x-teleport="body">
     <div x-show="showModal">

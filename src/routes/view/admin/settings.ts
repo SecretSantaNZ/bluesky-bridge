@@ -54,7 +54,6 @@ export const settings: FastifyPluginAsync = async (rawApp) => {
       'admin/settings.ejs',
       {
         settings: toData(settings),
-        oneColumn: true,
       },
       {
         layout: 'layouts/base-layout.ejs',
@@ -92,7 +91,6 @@ export const settings: FastifyPluginAsync = async (rawApp) => {
         'admin/settings.ejs',
         {
           settings: toData(updates),
-          oneColumn: true,
         },
         {
           layout: 'layouts/base-layout.ejs',

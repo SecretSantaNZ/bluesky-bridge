@@ -24,7 +24,6 @@ export const managePlayers: FastifyPluginAsync = async (rawApp) => {
         {
           ...dateUtils,
           players,
-          oneColumn: true,
           initialFilter: request.query.handle ?? '',
           replaceUrl: request.routeOptions.url,
         },

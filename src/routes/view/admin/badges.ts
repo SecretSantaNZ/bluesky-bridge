@@ -30,7 +30,6 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
       {
         badges,
         settings,
-        oneColumn: true,
       },
       {
         layout: 'layouts/base-layout.ejs',
@@ -87,7 +86,6 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
           badge,
           assigned_for_type,
           settings,
-          oneColumn: true,
         },
         {
           layout: 'layouts/base-layout.ejs',

@@ -26,7 +26,6 @@ export const publishedMatches: FastifyPluginAsync = async (app) => {
         ...nudgeOptions,
         carriers,
         pageData,
-        oneColumn: true,
       },
       {
         layout: 'layouts/base-layout.ejs',

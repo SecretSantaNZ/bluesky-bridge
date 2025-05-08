@@ -193,7 +193,6 @@ export const fixMatches: FastifyPluginAsync = async (rawApp) => {
         'admin/fix-matches.ejs',
         {
           pageData,
-          oneColumn: true,
         },
         {
           layout: 'layouts/base-layout.ejs',
