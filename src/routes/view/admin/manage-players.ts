@@ -9,16 +9,31 @@ export const managePlayers: FastifyPluginAsync = async (rawApp) => {
     '/manage-players',
     {
       schema: {
-        querystring: z.object({ handle: z.string() }).partial(),
+        querystring: z
+          .object({ handle: z.string(), player_did: z.string() })
+          .partial(),
       },
     },
     async function (request, reply) {
       const { db } = this.blueskyBridge;
-      const players = await db
+      const baseQuery = db
         .selectFrom('player')
-        .selectAll()
-        .orderBy('id asc')
-        .execute();
+        .selectAll('player')
+        .select((eb) =>
+          eb
+            .selectFrom('player_badge')
+            .select(({ fn }) => fn.countAll<number>().as('badge_count'))
+            .whereRef('player_badge.player_did', '=', 'player.did')
+            .as('badge_count')
+        )
+        .orderBy('id asc');
+      if (request.query.player_did && request.headers['hx-request']) {
+        const player = await baseQuery
+          .where('player.did', '=', request.query.player_did)
+          .executeTakeFirstOrThrow();
+        return reply.send(player);
+      }
+      const players = await baseQuery.execute();
       return reply.view(
         'admin/manage-players.ejs',
         {

@@ -1,0 +1,35 @@
+<div class="w-full" id="player-badges">
+  <h1 class="mb-4">@<%= player_display_handle %>'s Badges</h1>
+  <% playerBadges.forEach(badge => { %>
+    <div class="flex mb-4 py-2 items-center">
+      <img src="<%= badge.image_url %>" class="block size-16 mr-4">
+      <p class="font-semibold text-xl"><%= badge.title %></p>
+      <div class="grow"></div>
+      <%- include('../partials/activity-spinner.ejs') %>
+      <button type="submit" hx-delete="/admin/player-badges" hx-target="#player-badges" hx-select="#player-badges"
+        hx-vals="<%= JSON.stringify({player_did, badge_id: badge.id, csrfToken}) %>"
+        hx-indicator="closest div"
+      >
+        <div class="i-mdi-trash-can-outline size-12"></div>
+      </button>
+  </div>
+  <% }); %>
+  <form hx-post="/admin/player-badges" class="flex mb-4" hx-target="#player-badges" hx-select="#player-badges">
+    <select name="badge_id">
+      <% badges.forEach(badge => { %>
+        <option value="<%= badge.id %>"><%= badge.title %></option>
+      <% }); %>
+    </select>
+    <input type="hidden" name="player_did" value="<%= player_did %>"/>
+    <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+    <div class="grow"></div>
+    <%- include('../partials/activity-spinner.ejs') %>
+    <button type="submit"">
+      <div class="i-mdi-add size-12"></div>
+    </button>
+  </form>
+  <a hx-get="/admin/manage-players?player_did=<%= player_did %>" hx-target="this" @htmx:before-swap.camel.prevent="
+    $dispatch('ss-player-updated', JSON.parse($event.detail.serverResponse));
+    $refs.modal.close();
+  ">Close</a>
+</div>

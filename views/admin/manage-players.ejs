@@ -7,7 +7,6 @@
       showSignupIncomplete: true,
       sortBy: 'weighted',
     }, function(filters) {
-      console.log(filters);
       const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
       return players.filter(player =>
         !player.deactivated && (player.signup_complete ? filters.showSignupComplete : filters.showSignupIncomplete) && (!cleanHandleFilter || player.handle.toLowerCase().includes(cleanHandleFilter))
@@ -67,16 +66,17 @@
   <div class="w-full mb-2">
     <input type="text" x-model="activePlayersPager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
   </div>
-  <div class="grid-cols-6 space-x-4 hidden sm:grid">
+  <div class="grid-cols-7 space-x-4 hidden sm:grid">
     <div class="flex justify-center"><b>Player</b></div>
     <div class="flex justify-center"><b>Following santa</b></div>
     <div class="flex justify-center"><b>Has address</b></div>
     <div class="flex justify-center"><b>Game mode</b></div>
     <div class="flex justify-center"><b>DMs sent</b></div>
+    <div class="flex justify-center"><b>Badges</b></div>
     <div class="flex justify-center"><b>Remove player</b></div>
   </div>
   <template x-for="player in activePlayersPager.pageData">
-    <div class="grid sm:grid-cols-6 space-x-4 border-b py-2" x-init="htmx && htmx.process($el)">
+    <div class="grid sm:grid-cols-7 space-x-4 border-b py-2" x-init="htmx && htmx.process($el)">
       <%- include('./fragments/player-link.ejs', { showPostCount: true }) %>
       <form hx-post="/player/refresh-following" class="flex items-center sm:justify-center">
         <%- include('../partials/activity-spinner.ejs') %>
@@ -132,6 +132,12 @@
         <input type="hidden" name="player_did" x-bind:value="player.did"/>
         <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
       </form>
+      <div class="flex items-center sm:justify-center">
+        <a hx-get="/admin/player-badges" x-bind:hx-vals="JSON.stringify({player_did: player.did})" class="flex pl-4 items-center"
+          hx-target="#modal-dialogue-content" hx-select="#player-badges" hx-swap="innerHtml" hx-indicator="#modal-dialogue"
+          @htmx:before-send.camel="$refs.modal.showModal()"
+        ><div x-text="player.badge_count" class="text-4xl"></div><div class="font-semibold ml-3 sm:hidden">Badges</div></a>
+      </div>
       <form hx-post="/player/boot-player" class="flex items-center sm:justify-center">
         <button x-show="`remove-${player.did}` !== showConfirm" @click.prevent.stop="showConfirm = `remove-${player.did}`">
           <div class="flex sm:justify-center items-center ">
@@ -206,3 +212,12 @@
     </div>
   </template>
 </div>
+<dialog id="modal-dialogue" x-ref="modal" class="bg-slate-300 dark:bg-slate-800 backdrop:bg-slate-700 backdrop:opacity-80 max-w-xl min-w-80 w-full border-solid border rounded-xl border-slate-500 p-8 drop-shadow-lg ">
+  <div class="w-full flex flex-col min-h-32">
+    <div id="modal-dialogue-content" class="htmx-request:hidden">
+    </div>
+    <div class="grow flex justify-center items-center">
+      <%- include('../partials/activity-spinner.ejs') %>
+    </div>
+  </div>
+</dialog>
