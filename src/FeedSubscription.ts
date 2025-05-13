@@ -116,7 +116,6 @@ export class FeedSubscription {
           .split(',')
           .concat(settings.hashtag)
           .map((tag) => tag.replace(/#/, '').trim().toLowerCase())
-          .concat(this.hashtagBadges.map((badge) => badge.assigned_by_hashtag))
       )
     );
   }
