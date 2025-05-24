@@ -4,6 +4,7 @@
     handle: '',
     showWithPresentUpdates: true,
     showContacted: true,
+    showSuper: true,
     showResolved: false,
     showHasGift: false,
   }, function(filters) {
@@ -12,6 +13,7 @@
       (!cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter))
       && (filters.showWithPresentUpdates || match.nudge_present_update_count === 0)
       && (filters.showContacted || !match.contacted)
+      && (filters.showSuper || !match.super_santa_match)
       && (filters.showResolved || !match.followup_action)
       && (filters.showHasGift || (match.tracking_count === 0 || match.tracking_missing_count > 0))
     );
@@ -34,6 +36,10 @@
     <div>
       <input type="checkbox" id="show-contacted" name="show-contacted" x-model="pager.filters.showContacted" />
       <label for="show-contacted">Contacted</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-super" name="show-super" x-model="pager.filters.showSuper" />
+      <label for="show-super">Super-santas</label>
     </div>
     <div>
       <input type="checkbox" id="show-resolved" name="show-resolved" x-model="pager.filters.showResolved" />
