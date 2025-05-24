@@ -99,20 +99,29 @@
     </div>
   </template>
   
-  <div class="mt-12">
-    <h1>Players available to Santa</h1>
-    <template x-for="player in playersWhoCanHaveMoreGifees.slice(0, 15)">
-      <div class="mb-2 flex">
-        <%- include('./fragments/player-link.ejs') %>
-        <div class="ml-2" x-text="`(${player.giftee_count} / ${player.max_giftees})`"></div>
-      </div>
-    </template>
-    <div x-show="playersWhoCanHaveMoreGifees.length > 15">... and <span x-text="playersWhoCanHaveMoreGifees.length - 15"></span> more</div>
-    <datalist id="players-available-to-santa"> 
-      <template x-for="player in playersWhoCanHaveMoreGifees">
-        <option x-bind:value="player.handle"></option>
+  <div class="mt-12 grid sm:grid-cols-3 space-y-12">
+    <div class="sm:col-span-2">
+      <h1>Players available to Santa</h1>
+      <template x-for="player in playersWhoCanHaveMoreGifees.slice(0, 15)">
+        <div class="mb-2 flex">
+          <%- include('./fragments/player-link.ejs') %>
+          <div class="ml-2" x-text="`(${player.giftee_count} / ${player.max_giftees})`"></div>
+        </div>
       </template>
-    </datalist>
+      <div x-show="playersWhoCanHaveMoreGifees.length > 15">... and <span x-text="playersWhoCanHaveMoreGifees.length - 15"></span> more</div>
+      <datalist id="players-available-to-santa"> 
+        <template x-for="player in playersWhoCanHaveMoreGifees">
+          <option x-bind:value="player.handle"></option>
+        </template>
+      </datalist>
+    </div>
+    <div class="flex items-start justify-center">
+      <form hx-post="/admin/without-gifts/poke" class="flex items-center">
+        <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Poke <%= toMessageCount %> inactive Santas</button>
+        <%- include('../partials/activity-spinner.ejs') %>
+        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+      </form>
+    </div>
   </div>
 </div>
 <div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
