@@ -41,12 +41,6 @@ export const withoutGifts: FastifyPluginAsync = async (rawApp) => {
           .execute(),
         queryFullMatch(db)
           .where('match.match_status', '=', 'locked')
-          .where((eb) =>
-            eb.or([
-              eb('match.tracking_count', '=', 0),
-              eb('match.tracking_missing_count', '>', 0),
-            ])
-          )
           .orderBy('match.id asc')
           .execute(),
       ]);

@@ -5,6 +5,7 @@
     showWithPresentUpdates: true,
     showContacted: true,
     showResolved: false,
+    showHasGift: false,
   }, function(filters) {
     const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
     return matches.filter((match) => 
@@ -12,6 +13,7 @@
       && (filters.showWithPresentUpdates || match.nudge_present_update_count === 0)
       && (filters.showContacted || !match.contacted)
       && (filters.showResolved || !match.followup_action)
+      && (filters.showHasGift || (match.tracking_count === 0 || match.tracking_missing_count > 0))
     );
   })"
   @ss-reload-data.window="Object.assign($data, JSON.parse(await $fetch(window.location.pathname + '?data=true')));"
@@ -36,6 +38,10 @@
     <div>
       <input type="checkbox" id="show-resolved" name="show-resolved" x-model="pager.filters.showResolved" />
       <label for="show-resolved">Resolved</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-has-gift" name="show-has-gift" x-model="pager.filters.showHasGift" />
+      <label for="show-has-gift">Has gift</label>
     </div>
   </div>
   <div class="w-full mb-2">
