@@ -85,6 +85,7 @@
             input.dispatchEvent(new CustomEvent('ss-address-changed', {detail: {address: place.formatted_address}}))
           });
         }
+        window.initMap && window.initMap();
       }
     </script>
     <script async

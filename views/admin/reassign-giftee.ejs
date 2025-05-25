@@ -1,4 +1,57 @@
-<form hx-post="/match/reassign-giftee">
+<script>
+  async function initMap() {
+    const { Map } = await google.maps.importLibrary("maps");
+    const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker")
+
+    const map = new Map(document.getElementById('reassign-map'), {
+      mapId: 'reassign-map',
+    });
+    <% pageData.playersWhoCanHaveMoreGifees.forEach((santa) => { if (santa.address_location) { %>{
+      const santaMarker = new AdvancedMarkerElement({
+        map,
+        position: <%- santa.address_location %>,
+        title: <%- JSON.stringify(santa.handle) %>,
+      });
+      santaMarker.addEventListener('click', () => {
+        window.dispatchEvent(new CustomEvent('ss-santa-selected', <%- JSON.stringify({ detail: { santa_handle: santa.handle } }) %>));
+      })
+    }<% } }); %>
+
+    const gifteePin = new PinElement({
+      background: '#0000FF',
+      glyphColor: '#6666FF'
+    });
+    const gifteeMarker = new AdvancedMarkerElement({
+      map,
+      content: gifteePin.element,
+    });
+
+    window.ssMaps = {
+      ...window.ssMaps,
+      reassignMap: {
+        map,
+        gifteeMarker,
+      }
+    }
+  }
+</script>
+<form hx-post="/match/reassign-giftee"
+    @ss-open-modal.window="
+      if ($event.detail.modal === 'reassign-giftee') {
+        const {map, gifteeMarker} = window.ssMaps.reassignMap;
+        gifteeMarker.title = modalData.giftee_handle;
+        if (modalData.giftee_address_location) {
+          const gifteeLocation = JSON.parse(modalData.giftee_address_location);
+          gifteeMarker.position = gifteeLocation;
+          map.setCenter(gifteeLocation);
+          map.setZoom(10);
+        } else {
+          gifteeMarker.position = null;
+        }
+      }
+    "
+    @ss-santa-selected.window="modalData.santa_handle = $event.detail.santa_handle"
+  >
   <div class="space-y-8">
     <h1>Reassign giftee for @<span x-text="modalData.giftee_handle"></span></h1>
     <div>
@@ -14,4 +67,7 @@
   <% } %>
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
   <input type="hidden" name="match_id" x-bind:value="modalData.match_id"/>
+  <div class="flex justify-center mt-12">
+    <div class="gme-map size-96" id="reassign-map"></div>
+  </div>
 </form>

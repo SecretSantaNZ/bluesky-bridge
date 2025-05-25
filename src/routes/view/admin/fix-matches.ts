@@ -150,6 +150,7 @@ export const fixMatches: FastifyPluginAsync = async (rawApp) => {
           .select([
             'handle',
             'did',
+            'address_location',
             'avatar_url',
             'note_count',
             'giftee_count',

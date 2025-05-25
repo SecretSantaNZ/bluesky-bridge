@@ -47,6 +47,7 @@ export const withoutGifts: FastifyPluginAsync = async (rawApp) => {
             .select([
               'handle',
               'did',
+              'address_location',
               'avatar_url',
               'note_count',
               'giftee_count',
