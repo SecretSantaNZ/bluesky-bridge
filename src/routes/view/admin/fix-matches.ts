@@ -12,6 +12,7 @@ export function buildTooManyGifteeMatchesQuery(db: Database) {
     .select([
       'santa.did',
       'santa.handle',
+      'santa.address_location as santa_address_location',
       'santa.game_mode',
       'santa.max_giftees',
       'santa.did as santa_did',
@@ -21,6 +22,7 @@ export function buildTooManyGifteeMatchesQuery(db: Database) {
       'santa.note_count as santa_note_count',
       'santa.booted as santa_booted',
       'giftee.did as giftee_did',
+      'giftee.address_location as giftee_address_location',
       'giftee.handle as giftee_handle',
       'giftee.deactivated as giftee_deactivated',
       'giftee.avatar_url as giftee_avatar_url',
