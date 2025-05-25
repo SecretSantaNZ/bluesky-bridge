@@ -51,6 +51,7 @@
       }
     "
     @ss-santa-selected.window="modalData.santa_handle = $event.detail.santa_handle"
+    x-effect="document.getElementById('reassign_giftee_santa_handle').setCustomValidity(document.getElementById('players-available-to-santa').querySelector('[value=&quot;'+modalData.santa_handle+'&quot;]') === null ? 'Handle not found' : '')"
   >
   <div class="space-y-8">
     <h1>Reassign giftee for @<span x-text="modalData.giftee_handle"></span></h1>

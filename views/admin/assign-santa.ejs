@@ -1,4 +1,6 @@
-<form hx-post="/player/assign-santa" id="assign-santa" hx-swap="none">
+<form hx-post="/player/assign-santa" id="assign-santa" hx-swap="none"
+  x-effect="document.getElementById('assign_santa_santa_handle').setCustomValidity(document.getElementById('players-available-to-santa').querySelector('[value=&quot;'+modalData.santa_handle+'&quot;]') === null ? 'Handle not found' : '')"
+>
   <div class="space-y-8">
     <h1>Assign giftee for @<span x-text="modalData.handle"></span></h1>
     <div>
