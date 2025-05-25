@@ -3,6 +3,7 @@ import { BadRequestError, NotFoundError } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { escapeUnicode } from '../../util/escapeUnicode.js';
+import { getLocation } from '../../lib/googlePlaces.js';
 
 export const updateAddress: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -27,8 +28,10 @@ export const updateAddress: FastifyPluginAsync = async (rawApp) => {
       if (!request.tokenData?.admin && player.locked_giftee_for_count) {
         throw new BadRequestError('Address has been sent');
       }
+      const location = await getLocation(player.handle, request.body.address);
       await playerService.patchPlayer(playerDid, {
         ...request.body,
+        address_location: location ? JSON.stringify(location) : null,
         address_review_required:
           address == null ? undefined : !address.match(/new zealand|aotearoa/i),
       });

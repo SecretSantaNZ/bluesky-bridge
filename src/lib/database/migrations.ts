@@ -12,6 +12,7 @@ import {
   initialNudgeSignoffs,
 } from './initialMessages.js';
 import type { Database } from './index.js';
+import { getLocation } from '../googlePlaces.js';
 
 const migrations: Record<string, Migration> = {};
 
@@ -1736,5 +1737,39 @@ migrations['024'] = {
       .dropColumn('assigned_by_hashtag')
       .execute();
     await db.schema.alterTable('badge').dropColumn('assigned_by_elf').execute();
+  },
+};
+
+migrations['025'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('player')
+      .addColumn('address_location', 'varchar')
+      .execute();
+
+    const players = await (db as Database)
+      .selectFrom('player')
+      .select(['id', 'handle', 'address'])
+      .where('address', 'is not', null)
+      .execute();
+    for (const player of players) {
+      const location = await getLocation(
+        player.handle,
+        player.address as string
+      );
+      await (db as Database)
+        .updateTable('player')
+        .set({
+          address_location: location ? JSON.stringify(location) : null,
+        })
+        .where('id', '=', player.id)
+        .execute();
+    }
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('player')
+      .dropColumn('address_location')
+      .execute();
   },
 };

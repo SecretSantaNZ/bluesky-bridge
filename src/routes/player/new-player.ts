@@ -6,6 +6,7 @@ import { getBridgedHandle, resolveMastodonHandle } from '../mastodon/index.js';
 import type { InsertObject } from 'kysely';
 import type { DatabaseSchema } from '../../lib/database/schema.js';
 import { escapeUnicode } from '../../util/escapeUnicode.js';
+import { getLocation } from '../../lib/googlePlaces.js';
 
 export const newPlayer: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -54,9 +55,13 @@ export const newPlayer: FastifyPluginAsync = async (rawApp) => {
         handle,
       });
       const playerDid = resolveHandleResult.data.did;
+      const location = request.body.address
+        ? await getLocation(handle, request.body.address)
+        : null;
       await playerService.createPlayer(playerDid, request.body.player_type, {
         ...additionalAttributes,
         address: request.body.address || null,
+        address_location: location ? JSON.stringify(location) : null,
         delivery_instructions: request.body.delivery_instructions || null,
       });
       // Don't integrate this into the above create because the signup complete

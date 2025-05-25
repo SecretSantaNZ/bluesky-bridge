@@ -69,6 +69,7 @@ export interface Player {
   santa_following_uri: string | null;
   address: string | null;
   address_review_required: string | null;
+  address_location: Generated<string | null>;
   delivery_instructions: string | null;
   game_mode: null | 'Regular' | 'Super Santa' | 'Santa Only' | 'Giftee Only';
   max_giftees: number;
