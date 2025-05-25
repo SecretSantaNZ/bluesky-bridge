@@ -1,14 +1,17 @@
 import { v1 as places } from '@googlemaps/places';
 
-const placesClient = new places.PlacesClient({
-  apiKey: process.env.SERVER_GOOGLE_API_KEY,
-});
+let placesClient: places.PlacesClient | undefined = undefined;
 
 export async function getLocation(
   handle: string,
   address: string
 ): Promise<{ lat: number; lng: number } | null> {
   console.log(`Geocoding: ${handle}`);
+  if (placesClient == null) {
+    placesClient = new places.PlacesClient({
+      apiKey: process.env.SERVER_GOOGLE_API_KEY,
+    });
+  }
   const result = await placesClient.searchText(
     {
       regionCode: 'nz',
