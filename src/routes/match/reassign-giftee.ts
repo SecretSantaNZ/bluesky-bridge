@@ -12,6 +12,7 @@ export const reassignGiftee: FastifyPluginAsync = async (rawApp) => {
           match_id: z.coerce.number(),
           santa_handle: z.string(),
           super_santa_match: z.enum(['true', 'false']).optional(),
+          force: z.enum(['true', 'false']).optional(),
         }),
       },
     },
@@ -23,7 +24,30 @@ export const reassignGiftee: FastifyPluginAsync = async (rawApp) => {
         .selectAll()
         .where('deactivated', '=', 0)
         .where('handle', '=', request.body.santa_handle)
-        .executeTakeFirstOrThrow();
+        .executeTakeFirst();
+
+      if (player == null) {
+        reply.header(
+          'HX-Trigger',
+          JSON.stringify({
+            'ss-reassign-error': 'santa-not-found',
+          })
+        );
+        return reply.code(204).send();
+      }
+
+      if (
+        player.giftee_count_status != 'can_have_more' &&
+        request.body.force !== 'true'
+      ) {
+        reply.header(
+          'HX-Trigger',
+          JSON.stringify({
+            'ss-reassign-error': 'too-many-giftees',
+          })
+        );
+        return reply.code(204).send();
+      }
 
       const oldMatch = await db
         .updateTable('match')

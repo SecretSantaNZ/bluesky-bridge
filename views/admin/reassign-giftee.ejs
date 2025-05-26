@@ -51,7 +51,7 @@
       }
     "
     @ss-santa-selected.window="modalData.santa_handle = $event.detail.santa_handle"
-    x-effect="document.getElementById('reassign_giftee_santa_handle').setCustomValidity(document.getElementById('players-available-to-santa').querySelector('[value=&quot;'+modalData.santa_handle+'&quot;]') === null ? 'Handle not found' : '')"
+    @ss-reassign-error.window="modalData.reassignError = $event.detail.value"
   >
   <div class="space-y-8">
     <h1>Reassign giftee for @<span x-text="modalData.giftee_handle"></span></h1>
@@ -59,12 +59,23 @@
       <%- include('../partials/input-text.ejs', {id: 'reassign_giftee_santa_handle', name: 'santa_handle', label: 'Santa', placeholder: 'coolplayer.bsky.social', xModel: 'modalData.santa_handle', attributes: {
         list: 'players-available-to-santa',
         autocomplete: 'false',
+        'x-effect': 'modalData.reassignError = modalData.santa_handle ? null : null',
       }}); %>
+      <div x-show="modalData.reassignError === 'santa-not-found'" x-text="'Cannot find player ' + modalData.santa_handle + ' to assign.'" class="text-red-600"></div>
     </div>
+    <% if (locals.super_santa_match) { %>
+      <div x-show="modalData.reassignError === 'too-many-giftees'" class="text-orange-600 text-lg">
+        <p><span x-text="modalData.santa_handle"></span> can't have more giftees.</p>
+        <p>Save again to assign anyway.</p>
+      </div>
+    <% } else { %>
+      <div x-show="modalData.reassignError === 'too-many-giftees'" x-text="modalData.santa_handle + '  can\'t have more giftees.'" class="text-red-600"></div>
+    <% } %>
     <%- include('../partials/input-submit-with-activity.ejs', { xBindDisabled: 'false' }); %>
   </div>
   <% if (locals.super_santa_match) { %>
     <input type="hidden" name="super_santa_match" value="<%= super_santa_match %>"/>
+    <input type="hidden" name="force" x-bind:value="modalData.reassignError === 'too-many-giftees' ? 'true' : 'false'"/>
   <% } %>
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
   <input type="hidden" name="match_id" x-bind:value="modalData.match_id"/>
