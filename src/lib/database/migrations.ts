@@ -1773,3 +1773,94 @@ migrations['025'] = {
       .execute();
   },
 };
+
+migrations['026'] = {
+  async up(db: Kysely<unknown>) {
+    await sql`drop trigger match_on_insert`.execute(db);
+    await sql`
+      create trigger match_on_insert after insert on match for each row when new.deactivated is null and new.super_santa_match <> 1 begin
+        update player set giftee_for_count = giftee_for_count + 1 where id = new.giftee;
+        update player set locked_giftee_for_count = locked_giftee_for_count + 1 where id = new.giftee and new.match_status = 'locked';
+        update player set giftee_count = giftee_count + 1 where id = new.santa;
+      end;
+    `.execute(db);
+
+    await sql`drop trigger match_on_deactivated`.execute(db);
+    await sql`
+      create trigger match_on_deactivated after update of deactivated on match for each row when old.deactivated is null and new.deactivated is not null and new.super_santa_match <> 1 begin
+        update player set giftee_for_count = giftee_for_count - 1 where id = old.giftee;
+        update player set locked_giftee_for_count = locked_giftee_for_count - 1 where id = old.giftee and old.match_status = 'locked';
+        update player set giftee_count = giftee_count - 1 where id = old.santa;
+      end;
+    `.execute(db);
+
+    await sql`drop trigger match_on_reactivated`.execute(db);
+    await sql`
+      create trigger match_on_reactivated after update of deactivated on match for each row when old.deactivated is not null and new.deactivated is null and new.super_santa_match <> 1 begin
+        update player set giftee_for_count = giftee_for_count + 1 where id = new.giftee;
+        update player set locked_giftee_for_count = locked_giftee_for_count + 1 where id = new.giftee and new.match_status = 'locked';
+        update player set giftee_count = giftee_count + 1 where id = new.santa;
+      end;
+    `.execute(db);
+
+    await sql`drop trigger match_on_delete`.execute(db);
+    await sql`
+      create trigger match_on_delete after delete on match for each row when old.deactivated is null and old.super_santa_match <> 1 begin
+        update player set giftee_for_count = giftee_for_count - 1 where id = old.giftee;
+        update player set locked_giftee_for_count = locked_giftee_for_count - 1 where id = old.giftee and old.match_status = 'locked';
+        update player set giftee_count = giftee_count - 1 where id = old.santa;
+      end;
+    `.execute(db);
+
+    await sql`
+      update player set
+        giftee_for_count = (select count(*) from match where match.giftee = player.id and match.deactivated is null and match.super_santa_match <> 1),
+        locked_giftee_for_count = (select count(*) from match where match.giftee = player.id and match.match_status = 'locked' and match.deactivated is null and match.super_santa_match <> 1),
+        giftee_count = (select count(*) from match where match.santa = player.id and match.deactivated is null and match.super_santa_match <> 1)
+    `.execute(db);
+  },
+  async down(db: Kysely<unknown>) {
+    await sql`drop trigger match_on_insert`.execute(db);
+    await sql`
+      create trigger match_on_insert after insert on match for each row when new.deactivated is null begin
+        update player set giftee_for_count = giftee_for_count + 1 where id = new.giftee;
+        update player set locked_giftee_for_count = locked_giftee_for_count + 1 where id = new.giftee and new.match_status = 'locked';
+        update player set giftee_count = giftee_count + 1 where id = new.santa;
+      end;
+    `.execute(db);
+
+    await sql`drop trigger match_on_deactivated`.execute(db);
+    await sql`
+      create trigger match_on_deactivated after update of deactivated on match for each row when old.deactivated is null and new.deactivated is not null begin
+        update player set giftee_for_count = giftee_for_count - 1 where id = old.giftee;
+        update player set locked_giftee_for_count = locked_giftee_for_count - 1 where id = old.giftee and old.match_status = 'locked';
+        update player set giftee_count = giftee_count - 1 where id = old.santa;
+      end;
+    `.execute(db);
+
+    await sql`drop trigger match_on_reactivated`.execute(db);
+    await sql`
+      create trigger match_on_reactivated after update of deactivated on match for each row when old.deactivated is not null and new.deactivated is null begin
+        update player set giftee_for_count = giftee_for_count + 1 where id = new.giftee;
+        update player set locked_giftee_for_count = locked_giftee_for_count + 1 where id = new.giftee and new.match_status = 'locked';
+        update player set giftee_count = giftee_count + 1 where id = new.santa;
+      end;
+    `.execute(db);
+
+    await sql`drop trigger match_on_delete`.execute(db);
+    await sql`
+      create trigger match_on_delete after delete on match for each row when old.deactivated is null begin
+        update player set giftee_for_count = giftee_for_count - 1 where id = old.giftee;
+        update player set locked_giftee_for_count = locked_giftee_for_count - 1 where id = old.giftee and old.match_status = 'locked';
+        update player set giftee_count = giftee_count - 1 where id = old.santa;
+      end;
+    `.execute(db);
+
+    await sql`
+      update player set
+        giftee_for_count = (select count(*) from match where match.giftee = player.id and match.deactivated is null),
+        locked_giftee_for_count = (select count(*) from match where match.giftee = player.id and match.match_status = 'locked' and match.deactivated is null),
+        giftee_count = (select count(*) from match where match.santa = player.id and match.deactivated is null)
+    `.execute(db);
+  },
+};
