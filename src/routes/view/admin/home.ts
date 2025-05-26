@@ -51,6 +51,7 @@ export const adminHome: FastifyPluginAsync = async (app) => {
       buildMultipleGifteeMatchesQuery(db)
         .clearSelect()
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .where('santa.giftee_count_no_super', '>', 1)
         .executeTakeFirstOrThrow(),
       db
         .selectFrom('player')

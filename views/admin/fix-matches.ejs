@@ -37,7 +37,7 @@
           <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
           <div class="flex sm:justify-center items-center text-lg">
             <div class="italic sm:hidden mr-2">Status:</div>
-            <div x-text="match.match_status"></div>
+            <div x-text="match.match_status + (match.super_santa_match ? ' (SUPER)' : '')"></div>
           </div>
           <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center">
             <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">
@@ -73,7 +73,7 @@
           <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
           <div class="flex sm:justify-center items-center text-lg">
             <div class="italic sm:hidden mr-2">Status:</div>
-            <div x-text="match.match_status"></div>
+            <div x-text="match.match_status + (match.super_santa_match ? ' (SUPER)' : '')"></div>
           </div>
           <div class="flex flex-col sm:justify-center items-start sm:items-center">
             <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: match})" class="rounded-sm underline">Change game mode</button>
@@ -116,7 +116,7 @@
           <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
           <div class="flex sm:justify-center items-center text-lg">
             <div class="italic sm:hidden mr-2">Status:</div>
-            <div x-text="match.match_status"></div>
+            <div x-text="match.match_status + (match.super_santa_match ? ' (SUPER)' : '')"></div>
           </div>
           <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center">
             <button x-show="`multi-giftee-match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `multi-giftee-match-${match.match_id}`">
@@ -152,7 +152,7 @@
           <%- include('./fragments/match-player.ejs', {description: 'Santa', side: 'santa'}) %>
           <div class="flex sm:justify-center items-center text-lg">
             <div class="italic sm:hidden mr-2">Status:</div>
-            <div x-text="match.match_status"></div>
+            <div x-text="match.match_status + (match.super_santa_match ? ' (SUPER)' : '')"></div>
           </div>
           <form hx-post="/match/deactivate-match" class="flex items-center sm:justify-center">
             <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">

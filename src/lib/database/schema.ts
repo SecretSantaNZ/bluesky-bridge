@@ -76,6 +76,7 @@ export interface Player {
   giftee_for_count: Generated<number>;
   locked_giftee_for_count: Generated<number>;
   giftee_count: Generated<number>;
+  giftee_count_no_super: Generated<number>;
   giftee_count_status: Generated<'can_have_more' | 'full' | 'too_many'>;
   opted_out: string | null;
   booted: string | null;

@@ -30,6 +30,7 @@ export function buildTooManyGifteeMatchesQuery(db: Database) {
       'giftee.booted as giftee_booted',
       'match.id as match_id',
       'match.match_status',
+      'match.super_santa_match',
     ])
     .where('santa.giftee_count_status', '=', 'too_many')
     .where('match.deactivated', 'is', null)
@@ -57,6 +58,7 @@ export function buildBrokenMatchesQuery(db: Database) {
       'giftee.booted as giftee_booted',
       'match.id as match_id',
       'match.match_status',
+      'match.super_santa_match',
     ])
     .where('match.invalid_player', '=', 1)
     .where('match.deactivated', 'is', null)
@@ -87,6 +89,7 @@ export function buildTooManySantasMatchesQuery(db: Database) {
       'giftee.booted as giftee_booted',
       'match.id as match_id',
       'match.match_status',
+      'match.super_santa_match',
     ])
     .where('giftee.giftee_for_count', '>', 1)
     .where('match.deactivated', 'is', null)
@@ -118,6 +121,7 @@ export function buildMultipleGifteeMatchesQuery(db: Database) {
       'giftee.booted as giftee_booted',
       'match.id as match_id',
       'match.match_status',
+      'match.super_santa_match',
     ])
     .where('santa.giftee_count', '>', 1)
     .where('match.deactivated', 'is', null)
