@@ -106,6 +106,7 @@ export const withoutGifts: FastifyPluginAsync = async (rawApp) => {
         .updateTable('player')
         .set({
           next_player_dm: 'poke-inactive',
+          player_dm_status: 'queued',
         })
         .where((eb) =>
           eb(
