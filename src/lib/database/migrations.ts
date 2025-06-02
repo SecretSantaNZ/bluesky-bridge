@@ -1972,3 +1972,26 @@ migrations['027'] = {
     `.execute(db);
   },
 };
+
+migrations['028'] = {
+  async up(db: Kysely<unknown>) {
+    await sql`drop trigger match_on_insert`.execute(db);
+    await sql`
+      create trigger match_on_insert after insert on match for each row when new.deactivated is null begin
+        update player set giftee_for_count = giftee_for_count + 1 where id = new.giftee and new.super_santa_match <> 1;
+        update player set locked_giftee_for_count = locked_giftee_for_count + 1 where id = new.giftee and new.match_status = 'locked' and new.super_santa_match <> 1;
+        update player set giftee_count = giftee_count + 1 where id = new.santa;
+        update player set giftee_count_no_super = giftee_count_no_super + 1 where id = new.santa and new.super_santa_match <> 1;
+      end;
+    `.execute(db);
+
+    await sql`
+      update player set
+        giftee_for_count = (select count(*) from match where match.giftee = player.id and match.deactivated is null and match.super_santa_match <> 1),
+        locked_giftee_for_count = (select count(*) from match where match.giftee = player.id and match.match_status = 'locked' and match.deactivated is null and match.super_santa_match <> 1),
+        giftee_count = (select count(*) from match where match.santa = player.id and match.deactivated is null),
+        giftee_count_no_super = (select count(*) from match where match.santa = player.id and match.deactivated is null and match.super_santa_match <> 1)
+    `.execute(db);
+  },
+  async down() {},
+};
