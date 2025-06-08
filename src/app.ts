@@ -15,7 +15,6 @@ import ejs from 'ejs';
 
 import type { TokenManager } from './lib/TokenManager.js';
 
-import { action } from './routes/action/index.js';
 import { view } from './routes/view/index.js';
 import { publicContent } from './routes/public/index.js';
 import { player } from './routes/player/index.js';
@@ -102,7 +101,6 @@ export const build = async (
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
 
-  await app.register(action, { prefix: '/action' });
   await app.register(player, { prefix: '/player' });
   await app.register(match, { prefix: '/match' });
   await app.register(nudge, { prefix: '/nudge' });
