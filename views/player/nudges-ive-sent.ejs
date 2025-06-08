@@ -2,8 +2,8 @@
   @click="isMobileWidth && (cardExpanded = !cardExpanded)"
   class="flex -ml-4 lg:ml-0 items-start"
 >
-  <div x-show="isMobileWidth" x-bind:class="'size-10 flex-shrink-0 flex-grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
-  <div class="flex-grow flex-shrink">
+  <div x-show="isMobileWidth" x-bind:class="'size-10 shrink-0 grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
+  <div class="grow shrink">
     <h1>Nudges I've sent</h1>
     <% if (sentNudges.length === 0) { %>
       <p>If you nudge your giftee the sent nudges will show up here.</p>
@@ -12,7 +12,7 @@
     <% } %>
     <p class="text-sm">(Send nudges under &quot;My giftee&quot;)</p>
   </div>
-  <div class="size-10 flex-shrink-0 flex-grow-0 i-mdi-message-bubble"></div>
+  <div class="size-10 shrink-0 grow-0 i-mdi-message-bubble"></div>
 </div>
 <div x-show="!isMobileWidth || cardExpanded">
 <% if (sentNudges.length === 0) { %>

@@ -16,7 +16,7 @@
         <input type="hidden" name="filename" x-bind:value="file && file.name"/>
         <input type="hidden" name="content_type" x-bind:value="file && file.type"/>
         <%- include('../partials/activity-spinner.ejs') %>
-        <input type="submit" name="upload" value="Upload" class="htmx-request:hidden rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+        <input type="submit" name="upload" value="Upload" class="htmx-request:hidden rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
       </form>
       <img x-show="preview_url" x-bind:src="preview_url" class="block size-62" />
     </div>
@@ -36,6 +36,6 @@
     <%- include('../partials/input-text.ejs', {id: 'assigned_by_hashtag', label: 'Hashtag', placeholder: '#hashtag', xModel: 'assigned_by_hashtag', xShow: 'assigned_for_type === "by_elf" || assigned_for_type === "posting"'}); %>
     <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
     <%- include('../partials/activity-spinner.ejs') %>
-    <input type="submit" name="save" value="Save" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+    <input type="submit" name="save" value="Save" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
   </form>
 </div>

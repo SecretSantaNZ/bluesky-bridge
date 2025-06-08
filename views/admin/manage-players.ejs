@@ -31,7 +31,7 @@
     @ss-player-added.window="players.push(event.detail)"
   >
   <div class="flex items-center mb-2">
-    <div class="flex space-x-8 items-center flex-col sm:flex-row flex-grow">
+    <div class="flex space-x-8 items-center flex-col sm:flex-row grow">
       <h1>Active players</h1>
       <div>
         <select x-model="activePlayersPager.pageSelect">
@@ -48,7 +48,7 @@
         <input type="checkbox" id="show-signup-incomplete" name="show-signup-incomplete" x-model="activePlayersPager.filters.showSignupIncomplete" />
         <label for="show-signup-incomplete">Signup incomplete</label>
       </div>
-      <div class="flex-grow"></div>
+      <div class="grow"></div>
       <div>
         <label for="sort-active-players">Sort:</label>
         <select id="sort-active-players" x-model="activePlayersPager.filters.sortBy">
@@ -146,7 +146,7 @@
           </div>
         </button>
         <%- include('../partials/activity-spinner.ejs') %>
-        <input x-show="`remove-${player.did}` === showConfirm" type="submit" name="save" value="Remove player" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+        <input x-show="`remove-${player.did}` === showConfirm" type="submit" name="save" value="Remove player" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
         <button x-show="`remove-${player.did}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
           <div class="i-mdi-close size-12 text-gray-400"></div>
         </button>
@@ -188,7 +188,7 @@
           </div>
         </button>
         <%- include('../partials/activity-spinner.ejs') %>
-        <input x-show="`restore-${player.did}` === showConfirm" type="submit" name="save" value="Restore player" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-green-600 hover:bg-green-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+        <input x-show="`restore-${player.did}` === showConfirm" type="submit" name="save" value="Restore player" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-green-600 hover:bg-green-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
         <button x-show="`restore-${player.did}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
           <div class="i-mdi-close size-12 text-gray-400"></div>
         </button>

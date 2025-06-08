@@ -4,13 +4,13 @@
 >
   <div
     x-show="isMobileWidth"
-    x-bind:class="'size-10 flex-shrink-0 flex-grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"
+    x-bind:class="'size-10 shrink-0 grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"
   ></div>
-  <div class="flex-grow flex-shrink">
+  <div class="grow shrink">
     <h1>Key information</h1>
     <p>Don't forget these important rules and dates!</p>
   </div>
-  <div class="size-10 flex-shrink-0 flex-grow-0 i-mdi-information"></div>
+  <div class="size-10 shrink-0 grow-0 i-mdi-information"></div>
 </div>
 <div x-show="!isMobileWidth || cardExpanded" class="space-y-8 mt-8">
   <div><a href="/rules">The rules</a></div>

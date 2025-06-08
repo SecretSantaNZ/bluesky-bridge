@@ -33,8 +33,8 @@
     </div>
   <% } %>
   <div class="flex space-x-8" x-show="mode === 'choose'">
-    <button type="button" @click.prevent="mode = 'signup'" class="flex-grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none">Sign up</button>
-    <button type="button" @click.prevent="mode = 'login'" class="flex-grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none">Login</button>
+    <button type="button" @click.prevent="mode = 'signup'" class="grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden">Sign up</button>
+    <button type="button" @click.prevent="mode = 'login'" class="grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden">Login</button>
   </div>
   <div class="space-y-8" x-show="mode !== 'choose'">
     <h1 x-text="mode === 'login' ? 'Login' : 'Sign up'"></h1>
@@ -56,14 +56,14 @@
     </div>
     <div x-data="{term: <%= JSON.stringify(locals.handle ? locals.handle: '') %>, actors: []}">
       <div class="group">
-        <label for="handle" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300 scheme-light dark:scheme-dark">Handle</label>
+        <label for="handle" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300 scheme-light dark:scheme-dark">Handle</label>
         <input
           x-model="term"
           type="text"
           id="handle"
           name="handle"
           x-bind:placeholder="accountType === 'bluesky' ? 'coolplayer.bsky.social' : 'coolplayer@secretsanta.nz'"
-          class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"
+          class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"
           x-bind:list="accountType === 'bluesky' ? 'handle_suggestions' : ''"
           autocomplete="false"
           @keypress.debounce="accountType === 'bluesky' ? (actors = JSON.parse(await $fetch('https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=' + encodeURIComponent(term.replace(/^@/, '').trim().toLowerCase()))).actors) : undefined"
@@ -85,10 +85,10 @@
     <input type="hidden" name="mode" x-bind:value="mode"/>
     <div class="flex justify-center items-center">
       <button type="button" x-show="signupsOpen" @click.prevent="mode = 'choose'" class="text-gray-400">Back</button>
-      <div class="flex-grow"></div>
+      <div class="grow"></div>
       <%- include('../partials/activity-spinner.ejs') %>
       <div x-bind:class="(signupsOpen ? 'w-48' : 'w-full') + ' flex flex-col justify-center space-y-2'">
-        <input type="submit" name="login" x-bind:value="mode === 'login' ? 'Login' : 'Sign up'" class="w-full rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+        <input type="submit" name="login" x-bind:value="mode === 'login' ? 'Login' : 'Sign up'" class="w-full rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
         <button type="submit" name="otpLogin" value="true" x-show="mode === 'login' && accountType === 'bluesky'" class="w-full text-gray-400">Login with DM Code</button>
       </div>
     </div>

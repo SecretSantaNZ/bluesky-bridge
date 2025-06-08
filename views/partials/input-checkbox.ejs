@@ -1,4 +1,4 @@
-<div class="group p-2 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full has-[:focus]:ring ring-sky-500 outline-none disabled:opacity-50">
+<div class="group p-2 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full has-focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50">
   <input x-model="<%= locals.xModel %>" type="checkbox" id="<%= id %>" name="<%= locals.name || id %>"/>
-  <label for="<%= id %>" class="text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300 scheme-light dark:scheme-dark"><%= label %></label>
+  <label for="<%= id %>" class="text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300 scheme-light dark:scheme-dark"><%= label %></label>
 </div>

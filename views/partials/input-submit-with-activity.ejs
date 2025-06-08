@@ -1,6 +1,6 @@
 <div class="flex items-center">
   <% if (!locals.hideClose) { %><button @click.prevent="$dispatch('ss-close-modal')" class="text-gray-400">Close</button><% } %>
-  <div class="flex-grow"></div>
+  <div class="grow"></div>
   <%- include('./activity-spinner.ejs') %>
-  <input type="submit" name="save" value="<%= locals.label != null ? locals.label : 'Save' %>" x-bind:disabled="<%= locals.xBindDisabled %>" class="rounded-lg w-lg px-8 py-2 bg-bsky disabled:dark:bg-gray-600 disabled:bg-gray-400 hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+  <input type="submit" name="save" value="<%= locals.label != null ? locals.label : 'Save' %>" x-bind:disabled="<%= locals.xBindDisabled %>" class="rounded-lg w-lg px-8 py-2 bg-bsky dark:disabled:bg-gray-600 disabled:bg-gray-400 hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
 </div>

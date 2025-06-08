@@ -75,7 +75,7 @@
           </div>
         </button>
         <%- include('../partials/activity-spinner.ejs') %>
-        <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+        <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
         <button x-show="`match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
           <div class="i-mdi-close size-10 text-gray-400"></div>
         </button>

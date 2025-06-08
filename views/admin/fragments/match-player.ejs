@@ -1,6 +1,6 @@
 <div class="flex sm:justify-center items-center text-lg">
   <div class="italic sm:hidden mr-2"><%= description %>:</div>
-  <div class="size-10 block flex-shrink-0 rounded-full overflow-hidden">
+  <div class="size-10 block shrink-0 rounded-full overflow-hidden">
     <template x-if="<%= locals.row_prop || 'match' %>.<%= side %>_avatar_url">
       <img
         x-bind:src="<%= locals.row_prop || 'match' %>.<%= side %>_avatar_url"

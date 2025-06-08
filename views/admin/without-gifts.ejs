@@ -78,7 +78,7 @@
         <div>
           <div x-text="match.contacted && secretsantanz.formatDatetime(match.contacted)"></div>
           <%- include('../partials/activity-spinner.ejs') %>
-          <button type="submit" class="flex items-center rounded-sm"><div class="i-mdi-message-bubble mr-1 size-5"></div><div>Mark contacted</div></button>
+          <button type="submit" class="flex items-center rounded-xs"><div class="i-mdi-message-bubble mr-1 size-5"></div><div>Mark contacted</div></button>
           <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
           <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
         </div>
@@ -87,10 +87,10 @@
         <div class="italic lg:hidden mr-2">Action:</div>
         <div x-show="match.followup_action" x-text="match.followup_action"></div>
         <div x-show="!match.followup_action">
-          <button @click="$dispatch('ss-open-modal', {modal: 'reassign-giftee', modalData: {...match}})" class="flex items-center rounded-sm"><div class="i-mdi-rotate-3d-variant mr-1 size-5"></div><div>Assign super santa</div></button>
+          <button @click="$dispatch('ss-open-modal', {modal: 'reassign-giftee', modalData: {...match}})" class="flex items-center rounded-xs"><div class="i-mdi-rotate-3d-variant mr-1 size-5"></div><div>Assign super santa</div></button>
           <form hx-post="/match/mark-sorted">
             <%- include('../partials/activity-spinner.ejs') %>
-            <button type="submit" class="htmx-request:hidden flex items-center rounded-sm"><div class="i-mdi-tick mr-1 size-5"></div><div>Mark sorted</div></button>
+            <button type="submit" class="htmx-request:hidden flex items-center rounded-xs"><div class="i-mdi-tick mr-1 size-5"></div><div>Mark sorted</div></button>
             <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
             <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
           </form>

@@ -19,11 +19,11 @@
   <%- include('../partials/input-text.ejs', {id: 'feed_max_distance_from_tag', label: 'Feed - Max distance from tag', placeholder: '', xModel: 'feed_max_distance_from_tag', input_type: 'number'}); %>
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
   <%- include('../partials/activity-spinner.ejs') %>
-  <input type="submit" name="save" value="Save" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+  <input type="submit" name="save" value="Save" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
 </form>
 <form hx-post="/admin/settings/reset-game" hx-swap="none" class="space-y-8 w-full max-w-lg mt-16" hx-confirm="Are you really sure? This will delete all players, matches, presents, EVERYTHING!">
   <h1>Danger!! Danger!! Danger!!</h1>
   <%- include('../partials/activity-spinner.ejs') %>
-  <input type="submit" name="reset-game" value="Reset all data" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+  <input type="submit" name="reset-game" value="Reset all data" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
 </form>

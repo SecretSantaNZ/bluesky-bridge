@@ -15,8 +15,8 @@
       ])
     ]}); %>
     <div class="group" x-show="modalData.game_mode === 'Super Santa' || modalData.game_mode === 'Santa Only'">
-      <label for="max_giftees" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 group-focus-within:dark:text-blue-300">How many giftees would you buy for?</label>
-      <input x-model="modalData.max_giftees" type="number" id="max_giftees" name="max_giftees" x-bind:min="modalData.game_mode === 'Super Santa' ? 2 : modalData.game_mode === 'Santa Only' ? 1 : 0" max="5" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring ring-sky-500 outline-none disabled:opacity-50"/>
+      <label for="max_giftees" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300">How many giftees would you buy for?</label>
+      <input x-model="modalData.max_giftees" type="number" id="max_giftees" name="max_giftees" x-bind:min="modalData.game_mode === 'Super Santa' ? 2 : modalData.game_mode === 'Santa Only' ? 1 : 0" max="5" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"/>
     </div>
     <%- include('../partials/error.ejs', { elementId: 'update-game-mode-error' }) %>
     <%- include('../partials/input-submit-with-activity.ejs', {xBindDisabled: false}); %>

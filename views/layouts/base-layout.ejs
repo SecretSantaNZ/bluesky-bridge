@@ -35,8 +35,8 @@
             <div><a href="/admin" class="font-semibold">Elf tools</a></div>
             <div><a href="/admin/settings" class="font-semibold">Game setup</a></div>
           <% } %>
-          <div class="flex-grow"></div>
-          <div class="flex-grow-0 flex-shrink-0">
+          <div class="grow"></div>
+          <div class="grow-0 shrink-0">
             <a href="#" id="shielded-logo">
               <img alt="shielded" src="https://shielded.co.nz/img/custom-logo.png" height="40" width="40">
             </a>
@@ -47,14 +47,14 @@
             </script>
             <div class="relative text-slate-800 dark:text-slate-200" x-data x-cloak>
               <% if (!player.booted || player.admin) { %>
-                <button @click.stop.prevent="userMenuOpen = !userMenuOpen" class="rounded-full flex-shrink-0">
+                <button @click.stop.prevent="userMenuOpen = !userMenuOpen" class="rounded-full shrink-0">
                   <%- include('../partials/avatar.ejs', {avatar_url: player.avatar_url}) %>
                   <span class="sr-only">Open menu</span>
                 </button>
                 <div x-show="userMenuOpen" class="absolute top-10 right-0 min-w-48  border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
                   <ul>
                     <li>
-                      <button hx-post="/player/logout?csrfToken=<%= csrfToken %>" class="p-2 w-full text-left flex-shrink-0">Logout</button>
+                      <button hx-post="/player/logout?csrfToken=<%= csrfToken %>" class="p-2 w-full text-left shrink-0">Logout</button>
                     </li>
                   </ul>
                 </div>
@@ -66,7 +66,7 @@
           <% } %>
         </div>
       </div>
-      <div class="flex-grow p-4 justify-items-center" x-data x-cloak>
+      <div class="grow p-4 justify-items-center" x-data x-cloak>
           <%- body %>
       </div>
     </div>

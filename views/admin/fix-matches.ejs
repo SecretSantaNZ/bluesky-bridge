@@ -47,7 +47,7 @@
               </div>
             </button>
             <%- include('../partials/activity-spinner.ejs') %>
-            <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+            <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
             <button x-show="`match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
               <div class="i-mdi-close size-10 text-gray-400"></div>
             </button>
@@ -76,8 +76,8 @@
             <div x-text="match.match_status + (match.super_santa_match ? ' (SUPER)' : '')"></div>
           </div>
           <div class="flex flex-col sm:justify-center items-start sm:items-center">
-            <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: match})" class="rounded-sm underline">Change game mode</button>
-            <button @click="$dispatch('ss-open-modal', {modal: 'reassign-giftee', modalData: match})" class="rounded-sm underline">Reassign giftee</button>
+            <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: match})" class="rounded-xs underline">Change game mode</button>
+            <button @click="$dispatch('ss-open-modal', {modal: 'reassign-giftee', modalData: match})" class="rounded-xs underline">Reassign giftee</button>
           </div>
         </div>
       </template>
@@ -94,7 +94,7 @@
         <div class="grid sm:grid-cols-2 sm:space-x-4 border-b py-2">
           <%- include('./fragments/player-link.ejs') %>
           <div class="flex flex-col justify-center items-center">
-            <button @click="$dispatch('ss-open-modal', {modal: 'assign-santa', modalData: player})" class="rounded-sm underline">Assign santa</button>
+            <button @click="$dispatch('ss-open-modal', {modal: 'assign-santa', modalData: player})" class="rounded-xs underline">Assign santa</button>
           </div>
         </div>
       </template>
@@ -126,7 +126,7 @@
               </div>
             </button>
             <%- include('../partials/activity-spinner.ejs') %>
-            <input x-show="`multi-giftee-match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+            <input x-show="`multi-giftee-match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
             <button x-show="`multi-giftee-match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
               <div class="i-mdi-close size-10 text-gray-400"></div>
             </button>
@@ -162,7 +162,7 @@
               </div>
             </button>
             <%- include('../partials/activity-spinner.ejs') %>
-            <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring ring-sky-500 outline-none" />
+            <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
             <button x-show="`match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
               <div class="i-mdi-close size-10 text-gray-400"></div>
             </button>

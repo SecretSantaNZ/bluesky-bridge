@@ -1,9 +1,9 @@
-<div class="flex-grow p-4 justify-items-center grid gap-8 lg:grid-cols-2 xl:grid-cols-3" id="player-home">
+<div class="grow p-4 justify-items-center grid gap-8 lg:grid-cols-2 xl:grid-cols-3" id="player-home">
 <% if (player.player_type === 'bluesky') { %>
   <% if (!player.following_santa) { %>
     <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
-      <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
-      <div class="flex-shrink flex-grow">
+      <div class="shrink-0 grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="shrink grow">
         <h1>You must follow @secretsanta.nz</h1>
         <p>You need to follow <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> to complete your registration.</p>
       </div>
@@ -11,8 +11,8 @@
   <% } %>
   <% if (player.player_dm_status.startsWith('error:')) { %>
     <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
-      <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
-      <div class="flex-shrink flex-grow">
+      <div class="shrink-0 grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="shrink grow">
         <h1>@secretsanta.nz could not DM you</h1>
         <p>Make sure you <a href="/faq#how-do-i-enable-dms">enable DMs from people you follow</a>.</p>
         <button class="mt-4" hx-trigger="click" hx-post="/player/retry-dm" hx-vals="<%= JSON.stringify({csrfToken}) %>"><div class="flex items-center"><div class="i-mdi-email-refresh-outline mr-2 size-6"></div>Retry...</div></button>
@@ -22,8 +22,8 @@
 <% } else if (player.player_type === 'mastodon') { %>
   <% if (!player.following_santa) { %>
     <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
-      <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
-      <div class="flex-shrink flex-grow">
+      <div class="shrink-0 grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="shrink grow">
         <h1>You must follow @secretsanta.nz@bsky.brid.gy</h1>
         <p>You need to follow <a href="https://<%= player.mastodon_host %>/@secretsanta.nz@bsky.brid.gy" target="_blank">@secretsanta.nz@bsky.brid.gy</a> to complete your registration.</p>
       </div>
@@ -31,8 +31,8 @@
   <% } %>
   <% if (!player.mastodon_following_santa) { %>
     <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
-      <div class="flex-shrink-0 flex-grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
-      <div class="flex-shrink flex-grow">
+      <div class="shrink-0 grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="shrink grow">
         <h1>You must follow @<%= santaMastodonHandle %></h1>
         <p>You need to follow <a href="https://<%= player.mastodon_host %>/@<%= santaMastodonUsername %><%= player.mastodon_host === santaMastodonHost ? '' : '@' + santaMastodonHost %>" target="_blank">@<%= santaMastodonHandle %></a> to complete your registration.</p>
       </div>
@@ -42,10 +42,10 @@
 <% if (settings.show_badges && badges.length > 0) { %>
   <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
     <div class="flex">
-      <div class="flex-grow flex-shrink">
+      <div class="grow shrink">
         <h1>My badges</h1>
       </div>
-      <div class="size-10 flex-shrink-0 flex-grow-0 i-mdi-star"></div>
+      <div class="size-10 shrink-0 grow-0 i-mdi-star"></div>
     </div>
     <div class="grid justify-items-center <%= (function() {
       switch (badges.length) {
@@ -64,7 +64,7 @@
       }
     })()%>">
       <% badges.forEach((badge) => { %>
-        <button type="button" @click="$dispatch('ss-open-modal', {modal: 'badge-detail', modalData: <%= JSON.stringify(badge) %>})" class="block flex-shrink">
+        <button type="button" @click="$dispatch('ss-open-modal', {modal: 'badge-detail', modalData: <%= JSON.stringify(badge) %>})" class="block shrink">
           <img src="<%= badge.image_url %>" alt="<%= badge.title %>" class="object-contain mx-2 max-h-16 drop-shadow-lg"/>
         </button> 
       <% }) %>

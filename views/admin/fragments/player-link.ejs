@@ -1,5 +1,5 @@
 <div x-data="{expandPostCount: false}" x-bind:class="'flex justify-center ' + (expandPostCount ? 'items-start' : 'items-center')">
-  <div class="size-10 block flex-shrink-0 rounded-full overflow-hidden">
+  <div class="size-10 block shrink-0 rounded-full overflow-hidden">
     <template x-if="player.avatar_url">
       <img x-bind:src="player.avatar_url" alt="" />
     </template>
