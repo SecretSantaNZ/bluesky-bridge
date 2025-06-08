@@ -219,7 +219,7 @@ export async function finishLogin(
     if (request.headers['hx-request']) {
       return reply.header('HX-Refresh', 'true').code(204).send();
     }
-    return reply.redirect(303, returnUrl ?? '/');
+    return reply.redirect(returnUrl ?? '/', 303);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     newrelic.noticeError(e, {

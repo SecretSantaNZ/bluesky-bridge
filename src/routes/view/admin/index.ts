@@ -22,7 +22,7 @@ export const admin: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async function (request, reply) {
     if (!request.tokenData?.admin) {
       if (request.method === 'GET') {
-        return reply.redirect(303, '/');
+        return reply.redirect('/', 303);
       }
       throw new ForbiddenError();
     }
