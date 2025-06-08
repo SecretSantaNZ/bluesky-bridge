@@ -1,6 +1,7 @@
 export function escapeUnicode(str: string): string {
   return [...str]
     .map((c) =>
+      // eslint-disable-next-line no-control-regex
       /^[\x00-\x7F]$/.test(c)
         ? c
         : c

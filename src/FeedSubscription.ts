@@ -210,7 +210,7 @@ export class FeedSubscription {
         );
         return;
       }
-    } catch (e) {
+    } catch {
       console.warn(
         `Ignoring unparsable create date ${event.commit.record.createdAt} on post by ${author}, using ${now.toISOString()} instead`
       );
