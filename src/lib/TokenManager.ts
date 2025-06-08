@@ -4,7 +4,7 @@ import jwt, {
   type JwtPayload,
   type VerifyOptions,
 } from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { UnauthorizedError } from 'http-errors-enhanced';
 import ms from 'ms';
 import { randomBytes } from 'crypto';
@@ -60,7 +60,7 @@ export class TokenManager<D extends Record<string, unknown>> {
 
     if (keysInInterval.length == 0) {
       const key: JwtMacKey = {
-        kid: uuidv4(),
+        kid: randomUUID(),
         audience: this.audience,
         key_bytes: randomBytes(32),
         created_at: formatISO(new Date()),
@@ -87,7 +87,7 @@ export class TokenManager<D extends Record<string, unknown>> {
       issuer: this.issuer,
       algorithm: 'HS256',
       expiresIn: this.expiresIn,
-      jwtid: uuidv4(),
+      jwtid: randomUUID(),
       keyid: this.signingKeyId,
     });
   }

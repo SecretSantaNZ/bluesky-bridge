@@ -30,7 +30,6 @@
     "@types/newrelic": "^9.14.8",
     "@types/node": "^20.19.0",
     "@types/node-fetch": "^2.6.12",
-    "@types/uuid": "^9.0.8",
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
@@ -78,7 +77,6 @@
     "newrelic": "^12.21.0",
     "node-fetch": "^2.7.0",
     "plur": "^5.1.0",
-    "uuid": "^9.0.1",
     "wretch": "^2.11.0",
     "ws": "^8.18.2",
     "zod": "^3.25.56"
