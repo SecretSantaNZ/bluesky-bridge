@@ -29,7 +29,7 @@ export class TokenManager<D extends Record<string, unknown>> {
     private db: Database,
     private issuer: string,
     private audience: string,
-    private expiresIn: string
+    private expiresIn: ms.StringValue
   ) {
     const expiresInMs = ms(expiresIn);
     this.expiresInSeconds = expiresInMs / 1000;

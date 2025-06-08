@@ -2,7 +2,8 @@
   "extends": "@total-typescript/tsconfig/tsc/no-dom/app",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "esModuleInterop": true
   },
   "include": ["src/**.ts"],
   "exclude": ["tailwind.config.js"]

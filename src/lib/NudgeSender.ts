@@ -43,7 +43,7 @@ export class NudgeSender {
     if (shouldStart) {
       this.intervalId = setInterval(
         this.sendANudge.bind(this),
-        ms(settings.nudge_rate)
+        ms(settings.nudge_rate as ms.StringValue)
       );
     }
   }

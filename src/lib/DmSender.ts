@@ -468,7 +468,7 @@ export class DmSender {
     if (shouldStart) {
       this.intervalId = setInterval(
         this.sendADm.bind(this),
-        ms(settings.dm_rate)
+        ms(settings.dm_rate as ms.StringValue)
       );
     }
   }

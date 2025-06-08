@@ -26,7 +26,7 @@
     "@types/ejs": "^3.1.5",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/memoizee": "^0.4.12",
-    "@types/ms": "^0.7.34",
+    "@types/ms": "^2.1.0",
     "@types/newrelic": "^9.14.8",
     "@types/node": "^20.19.0",
     "@types/node-fetch": "^2.6.12",
