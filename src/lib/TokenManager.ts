@@ -52,7 +52,7 @@ export class TokenManager<D extends Record<string, unknown>> {
       .selectFrom('jwt_mac_key')
       .selectAll()
       .where('audience', '=', this.audience)
-      .orderBy('created_at asc')
+      .orderBy('created_at', 'asc')
       .execute();
 
     const countAfter = formatISO(subSeconds(new Date(), this.expiresInSeconds));

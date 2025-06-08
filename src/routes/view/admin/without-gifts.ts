@@ -57,14 +57,15 @@ export const withoutGifts: FastifyPluginAsync = async (rawApp) => {
             .where('giftee_count_status', '=', 'can_have_more')
             .where('signup_complete', '=', 1)
             .orderBy(
-              sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end) asc`
+              sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end)`,
+              'asc'
             )
             .orderBy('giftee_count')
             .orderBy(sql`random()`)
             .execute(),
           queryFullMatch(db)
             .where('match.match_status', '=', 'locked')
-            .orderBy('match.id asc')
+            .orderBy('match.id', 'asc')
             .execute(),
           db
             .selectFrom('match')

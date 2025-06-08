@@ -18,7 +18,7 @@ export const matchTracking: FastifyPluginAsync = async (rawApp) => {
     async function (request, reply) {
       const tracking = await queryTracking(this.blueskyBridge.db)
         .where('tracking.match', '=', request.query.match_id)
-        .orderBy('shipped_date asc')
+        .orderBy('shipped_date', 'asc')
         .execute();
 
       return reply.view('admin/fragments/match-tracking.ejs', {

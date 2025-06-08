@@ -22,7 +22,7 @@ export const playerNotes: FastifyPluginAsync = async (rawApp) => {
         .innerJoin('player', 'player.did', 'note.player_did')
         .select(['note.id', 'note.text', 'note.author', 'note.created_at'])
         .where('player.did', '=', request.query.player_did)
-        .orderBy('note.created_at desc')
+        .orderBy('note.created_at', 'desc')
         .execute();
 
       return reply.view('admin/fragments/player-notes.ejs', {

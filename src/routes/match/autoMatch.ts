@@ -80,7 +80,8 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
           ])
         )
         .orderBy(
-          sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end) asc`
+          sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end`,
+          'asc'
         )
         .orderBy('giftee_count')
         .orderBy(sql`random()`)

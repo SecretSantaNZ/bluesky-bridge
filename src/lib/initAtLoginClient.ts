@@ -30,7 +30,7 @@ export function buildStore<D extends Value>(
     },
     async get(key: string): Promise<D | undefined> {
       const record = await database
-        .selectFrom(table)
+        .selectFrom(table as 'at_oauth_state')
         .selectAll()
         .where('key', '=', key)
         .executeTakeFirst();
@@ -38,7 +38,7 @@ export function buildStore<D extends Value>(
     },
     async del(key: string): Promise<void> {
       await database
-        .deleteFrom(table)
+        .deleteFrom(table as 'at_oauth_state')
         .where('key', '=', key)
         .executeTakeFirstOrThrow();
     },

@@ -34,8 +34,8 @@ export function buildTooManyGifteeMatchesQuery(db: Database) {
     ])
     .where('santa.giftee_count_status', '=', 'too_many')
     .where('match.deactivated', 'is', null)
-    .orderBy('santa.id asc')
-    .orderBy('match.id asc');
+    .orderBy('santa.id', 'asc')
+    .orderBy('match.id', 'asc');
 }
 
 export function buildBrokenMatchesQuery(db: Database) {
@@ -62,7 +62,7 @@ export function buildBrokenMatchesQuery(db: Database) {
     ])
     .where('match.invalid_player', '=', 1)
     .where('match.deactivated', 'is', null)
-    .orderBy('match.id asc');
+    .orderBy('match.id', 'asc');
 }
 
 export function buildTooManySantasMatchesQuery(db: Database) {
@@ -93,8 +93,8 @@ export function buildTooManySantasMatchesQuery(db: Database) {
     ])
     .where('giftee.giftee_for_count', '>', 1)
     .where('match.deactivated', 'is', null)
-    .orderBy('giftee.id asc')
-    .orderBy('match.id asc');
+    .orderBy('giftee.id', 'asc')
+    .orderBy('match.id', 'asc');
 }
 
 export function buildMultipleGifteeMatchesQuery(db: Database) {
@@ -125,8 +125,8 @@ export function buildMultipleGifteeMatchesQuery(db: Database) {
     ])
     .where('santa.giftee_count', '>', 1)
     .where('match.deactivated', 'is', null)
-    .orderBy('santa.id asc')
-    .orderBy('match.id asc');
+    .orderBy('santa.id', 'asc')
+    .orderBy('match.id', 'asc');
 }
 
 export const fixMatches: FastifyPluginAsync = async (rawApp) => {
@@ -166,7 +166,8 @@ export const fixMatches: FastifyPluginAsync = async (rawApp) => {
           .where('giftee_count_status', '=', 'can_have_more')
           .where('signup_complete', '=', 1)
           .orderBy(
-            sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end) asc`
+            sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end)`,
+            'asc'
           )
           .orderBy('giftee_count')
           .orderBy(sql`random()`)

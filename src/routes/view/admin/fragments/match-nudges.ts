@@ -24,7 +24,7 @@ export const matchNudges: FastifyPluginAsync = async (rawApp) => {
           'nudge.id as nudge_id',
         ])
         .where('match', '=', request.query.match_id)
-        .orderBy('nudge.id desc')
+        .orderBy('nudge.id', 'desc')
         .execute();
 
       return reply.view('admin/fragments/match-nudges.ejs', {

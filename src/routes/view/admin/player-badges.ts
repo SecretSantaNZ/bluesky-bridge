@@ -29,12 +29,12 @@ export const renderPlayerBadges = async (
         'badge.image_url',
       ])
       .where('player_badge.player_did', '=', player_did)
-      .orderBy('recorded_at asc')
+      .orderBy('recorded_at', 'asc')
       .execute(),
     db
       .selectFrom('badge')
       .select(['badge.id', 'badge.title'])
-      .orderBy('badge.id desc')
+      .orderBy('badge.id', 'desc')
       .execute(),
   ]);
   if (player == null) {

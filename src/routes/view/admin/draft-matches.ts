@@ -27,7 +27,7 @@ export const draftMatches: FastifyPluginAsync = async (app) => {
         .executeTakeFirstOrThrow(),
       queryFullMatch(db)
         .where('match.match_status', '=', 'draft')
-        .orderBy('match.id asc')
+        .orderBy('match.id', 'asc')
         .execute(),
       buildBrokenMatchesQuery(db)
         .clearSelect()

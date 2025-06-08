@@ -153,7 +153,7 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
         throw new BadRequestError(`Unknown feed`);
       }
 
-      query = query.orderBy('indexedAt desc').limit(offset + limit + 1);
+      query = query.orderBy('indexedAt', 'desc').limit(offset + limit + 1);
       const result = await query.execute();
       if (result.length === 0 && feed === gifteeFeedUri) {
         const output: Queries['app.bsky.feed.getFeedSkeleton']['output'] = {

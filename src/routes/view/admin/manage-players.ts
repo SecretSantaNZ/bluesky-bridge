@@ -26,7 +26,7 @@ export const managePlayers: FastifyPluginAsync = async (rawApp) => {
             .whereRef('player_badge.player_did', '=', 'player.did')
             .as('badge_count')
         )
-        .orderBy('id asc');
+        .orderBy('id', 'asc');
       if (request.query.player_did && request.headers['hx-request']) {
         const player = await baseQuery
           .where('player.did', '=', request.query.player_did)

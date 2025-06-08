@@ -5,7 +5,7 @@ export async function loadNudgeOptions(db: Database) {
     db
       .selectFrom('nudge_type')
       .selectAll()
-      .orderBy('order_index asc')
+      .orderBy('order_index', 'asc')
       .execute(),
     db
       .selectFrom('nudge_type_greeting')
@@ -15,7 +15,7 @@ export async function loadNudgeOptions(db: Database) {
         'nudge_type_greeting.greeting'
       )
       .selectAll()
-      .orderBy('nudge_greeting.id asc')
+      .orderBy('nudge_greeting.id', 'asc')
       .execute(),
     db
       .selectFrom('nudge_type_signoff')
@@ -25,7 +25,7 @@ export async function loadNudgeOptions(db: Database) {
         'nudge_type_signoff.signoff'
       )
       .selectAll()
-      .orderBy('nudge_signoff.id asc')
+      .orderBy('nudge_signoff.id', 'asc')
       .execute(),
   ]);
 

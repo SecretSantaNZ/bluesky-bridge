@@ -80,14 +80,14 @@ export const renderPlayerHome = async (
       .where('match.deactivated', 'is', null)
       .where('match.match_status', '<>', 'draft')
       .execute(),
-    db.selectFrom('carrier').selectAll().orderBy('id asc').execute(),
+    db.selectFrom('carrier').selectAll().orderBy('id', 'asc').execute(),
     queryTrackingWithMatch(db)
       .where('match.giftee', '=', player.id)
-      .orderBy('shipped_date asc')
+      .orderBy('shipped_date', 'asc')
       .execute(),
     queryTrackingWithGiftee(db)
       .where('match.santa', '=', player.id)
-      .orderBy('shipped_date asc')
+      .orderBy('shipped_date', 'asc')
       .execute(),
     db
       .selectFrom('nudge')
@@ -101,7 +101,7 @@ export const renderPlayerHome = async (
         'nudge.post_url',
       ])
       .where('match.santa', '=', player.id)
-      .orderBy('nudge.created_at asc')
+      .orderBy('nudge.created_at', 'asc')
       .execute(),
     loadNudgeOptions(db),
     db
@@ -114,7 +114,7 @@ export const renderPlayerHome = async (
         'badge.image_url',
       ])
       .where('player_badge.player_did', '=', player.did)
-      .orderBy('recorded_at asc')
+      .orderBy('recorded_at', 'asc')
       .execute(),
     db
       .selectFrom('badge')

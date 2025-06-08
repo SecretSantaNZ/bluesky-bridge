@@ -10,8 +10,10 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
   app.get('/tracking', async function (request, reply) {
     const { db } = this.blueskyBridge;
     const [tracking, carriers] = await Promise.all([
-      queryTrackingWithGifteeAndSanta(db).orderBy('tracking.id desc').execute(),
-      db.selectFrom('carrier').selectAll().orderBy('id asc').execute(),
+      queryTrackingWithGifteeAndSanta(db)
+        .orderBy('tracking.id', 'desc')
+        .execute(),
+      db.selectFrom('carrier').selectAll().orderBy('id', 'asc').execute(),
     ]);
     const pageData = {
       tracking,

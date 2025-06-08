@@ -11,9 +11,9 @@ export const publishedMatches: FastifyPluginAsync = async (app) => {
     const [publishedMatches, carriers, nudgeOptions] = await Promise.all([
       queryFullMatch(db)
         .where('match.match_status', '<>', 'draft')
-        .orderBy('match.id asc')
+        .orderBy('match.id', 'asc')
         .execute(),
-      db.selectFrom('carrier').selectAll().orderBy('id asc').execute(),
+      db.selectFrom('carrier').selectAll().orderBy('id', 'asc').execute(),
       loadNudgeOptions(this.blueskyBridge.db),
     ]);
     const pageData = {

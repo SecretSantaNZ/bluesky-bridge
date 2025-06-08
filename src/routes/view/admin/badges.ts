@@ -22,7 +22,7 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
   app.get('/badges', async function (request, reply) {
     const { db } = this.blueskyBridge;
     const [badges, settings] = await Promise.all([
-      db.selectFrom('badge').selectAll().orderBy('id desc').execute(),
+      db.selectFrom('badge').selectAll().orderBy('id', 'desc').execute(),
       db.selectFrom('settings').selectAll().executeTakeFirstOrThrow(),
     ]);
     return reply.view(

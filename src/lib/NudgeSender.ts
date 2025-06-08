@@ -86,7 +86,7 @@ export class NudgeSender {
             'nudge_signoff.text as signoff',
           ])
           .where('nudge.nudge_status', '=', 'queued')
-          .orderBy('nudge.id asc')
+          .orderBy('nudge.id', 'asc')
           .limit(1)
           .executeTakeFirst(),
         loadSettings(this.db),

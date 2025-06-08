@@ -45,7 +45,7 @@ const signupComplete1DMQueue: DMQueue = async (db, settings) => {
     .where('player.signup_complete', '=', 1)
     .where('player.next_player_dm', '=', 'signup-complete-1')
     .where('player.player_dm_status', '=', 'queued')
-    .orderBy('player.id asc')
+    .orderBy('player.id', 'asc')
     .executeTakeFirst();
 
   if (player == null) return undefined;
@@ -96,7 +96,7 @@ const signupComplete2DMQueue: DMQueue = async (db, settings) => {
     .where('player.next_player_dm', '=', 'signup-complete-2')
     .where('player.next_player_dm_after', '<=', new Date().toISOString())
     .where('player.player_dm_status', '=', 'queued')
-    .orderBy('player.id asc')
+    .orderBy('player.id', 'asc')
     .executeTakeFirst();
 
   if (player == null) return undefined;
@@ -152,7 +152,7 @@ const signupComplete3DMQueue: DMQueue = async (db, settings) => {
     .where('player.next_player_dm', '=', 'signup-complete-3')
     .where('player.next_player_dm_after', '<=', new Date().toISOString())
     .where('player.player_dm_status', '=', 'queued')
-    .orderBy('player.id asc')
+    .orderBy('player.id', 'asc')
     .executeTakeFirst();
 
   if (player == null) return undefined;
@@ -213,7 +213,7 @@ const matchHandleDMQueue: DMQueue = async (db, settings) => {
     .where('match.match_status', '=', 'shared')
     .where('match.dm_handle_status', '=', 'queued')
     .where('santa.following_santa_uri', 'is not', null)
-    .orderBy('match.id asc')
+    .orderBy('match.id', 'asc')
     .executeTakeFirst();
 
   if (match == null) return undefined;
@@ -270,7 +270,7 @@ const matchAddressDMQueue: DMQueue = async (db, settings) => {
     .where('match.match_status', '=', 'locked')
     .where('match.dm_address_status', '=', 'queued')
     .where('santa.following_santa_uri', 'is not', null)
-    .orderBy('match.id asc')
+    .orderBy('match.id', 'asc')
     .executeTakeFirst();
 
   if (match == null) return undefined;
@@ -331,7 +331,7 @@ const trackingDMQueue: DMQueue = async (db, settings) => {
     .where('tracking.deactivated', 'is', null)
     .where('tracking.tracking_status', '=', 'queued')
     .where('giftee.following_santa_uri', 'is not', null)
-    .orderBy('match.id asc')
+    .orderBy('match.id', 'asc')
     .executeTakeFirst();
 
   if (tracking == null) return undefined;
@@ -384,7 +384,7 @@ const pokeInactiveDMQueue: DMQueue = async (db, settings) => {
     .where('player.next_player_dm', '=', 'poke-inactive')
     .where('player.next_player_dm_after', '<=', new Date().toISOString())
     .where('player.player_dm_status', '=', 'queued')
-    .orderBy('player.id asc')
+    .orderBy('player.id', 'asc')
     .executeTakeFirst();
 
   if (player == null) return undefined;

@@ -305,7 +305,7 @@ export class PlayerService {
       .where('player_type', '=', 'mastodon')
       .where('mastodon_following_santa', '=', 0)
       .where('deactivated', 'is', null)
-      .orderBy('mastodon_follow_last_checked asc')
+      .orderBy('mastodon_follow_last_checked', 'asc')
       .limit(25)
       .execute();
 
@@ -337,7 +337,7 @@ export class PlayerService {
       .selectFrom('player')
       .select('did')
       .where('last_checked_post_count', '<=', checkPlayersBefore)
-      .orderBy('last_checked_post_count asc')
+      .orderBy('last_checked_post_count', 'asc')
       .limit(25)
       .execute();
     const playersToCheck = playersToCheckResult
@@ -537,7 +537,13 @@ export class PlayerService {
       >
     >
   ): Promise<SelectedPlayer | undefined> {
-    const { address_review_required, opted_out, ...rest } = updates;
+    const {
+      address_review_required,
+      opted_out,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      deactivated: _deactivated,
+      ...rest
+    } = updates;
 
     const now = new Date().toISOString();
     const dbPlayer = await this.db
