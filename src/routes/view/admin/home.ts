@@ -5,10 +5,13 @@ import {
   buildTooManyGifteeMatchesQuery,
   buildTooManySantasMatchesQuery,
 } from './fix-matches.js';
+import { buildHasntPostedQuery } from './hasnt-posted.js';
+import { loadSettings } from '../../../lib/settings.js';
 
 export const adminHome: FastifyPluginAsync = async (app) => {
   app.get('/', async function (request, reply) {
     const { db } = this.blueskyBridge;
+    const settings = await loadSettings(db);
     const [
       { signupCompleteCount },
       { registeredPlayersCount },
@@ -25,6 +28,7 @@ export const adminHome: FastifyPluginAsync = async (app) => {
       { cnt: sentTrackingCount },
       { cnt: trackingCount },
       { cnt: presentsToFollowUpCount },
+      { cnt: playersHaventPostedOnOpeningDay },
     ] = await Promise.all([
       db
         .selectFrom('player')
@@ -111,6 +115,10 @@ export const adminHome: FastifyPluginAsync = async (app) => {
           ])
         )
         .executeTakeFirstOrThrow(),
+      buildHasntPostedQuery(db, settings.opening_date)
+        .clearSelect()
+        .select(({ fn }) => fn.countAll<number>().as('cnt'))
+        .executeTakeFirstOrThrow(),
     ]);
     return reply.view(
       'admin/home.ejs',
@@ -128,6 +136,7 @@ export const adminHome: FastifyPluginAsync = async (app) => {
         sentTrackingCount,
         trackingCount,
         presentsToFollowUpCount,
+        playersHaventPostedOnOpeningDay,
       },
       {
         layout: 'layouts/base-layout.ejs',

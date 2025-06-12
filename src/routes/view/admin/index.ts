@@ -14,6 +14,7 @@ import { badges } from './badges.js';
 import { playerBadges } from './player-badges.js';
 import { tracking } from './tracking.js';
 import { withoutGifts } from './without-gifts.js';
+import { hasntPosted } from './hasnt-posted.js';
 import { settings } from './settings.js';
 import { fragments } from './fragments/index.js';
 import { retryDm } from './retry-dm.js';
@@ -66,6 +67,7 @@ export const admin: FastifyPluginAsync = async (app) => {
   await app.register(playerBadges);
   await app.register(tracking);
   await app.register(withoutGifts);
+  await app.register(hasntPosted);
   await app.register(settings);
   await app.register(retryDm);
   await app.register(fragments, { prefix: '/fragments' });

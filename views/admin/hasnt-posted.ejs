@@ -1,0 +1,45 @@
+<div class="w-full px-12"
+  x-data="<%= JSON.stringify({...pageData, showConfirm: ''}) %>"
+  x-init="pager = secretsantanz.buildPager({
+    handle: '',
+  }, function(filters) {
+    const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
+    return matches.filter((match) => 
+      (!cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter))
+    );
+  })"
+>
+  <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
+    <h1>People who haven't posted on opening day</h1>
+    <div>
+      <select x-model="pager.pageSelect">
+        <template x-for="{key, display} of pager.pages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
+  </div>
+  <div class="w-full mb-2">
+    <input type="text" x-model="pager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
+  <div class="grid-cols-4 sm:space-x-4 hidden sm:grid">
+    <div class="flex justify-center"><b>Santa</b></div>
+    <div class="flex justify-center"><b>Giftee</b></div>
+    <div class="flex justify-center"><b>Last Posted</b></div>
+    <div class="flex justify-center"><b>Last Hashtagged</b></div>
+  </div>
+  <template x-for="match in pager.pageData">
+    <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2">
+      <%- include('./fragments/match-player.ejs', {description: 'Santa', side: 'santa'}) %>
+      <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Last Posted:</div>
+        <div x-text="match.lastPosted ? secretsantanz.formatDatetime(match.lastPosted) : ''"></div>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Last Hashtagged:</div>
+        <div x-text="match.lastHashtagged ? secretsantanz.formatDatetime(match.lastHashtagged) : ''"></div>
+      </div>
+    </div>
+  </template>
+</div>
