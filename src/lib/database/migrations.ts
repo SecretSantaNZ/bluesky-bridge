@@ -1995,3 +1995,29 @@ migrations['028'] = {
   },
   async down() {},
 };
+
+migrations['029'] = {
+  async up(db: Kysely<unknown>) {
+    await (db as Database)
+      .deleteFrom('message')
+      .where('message_type', 'like', 'dm-signup-complete-%')
+      .execute();
+
+    for (const [message_type, messages] of Object.entries(
+      initialMessages
+    ).filter(([message_type]) =>
+      message_type.startsWith('dm-signup-complete-')
+    )) {
+      await (db as Database)
+        .insertInto('message')
+        .values(
+          messages.map((message) => ({
+            message_type,
+            message,
+          }))
+        )
+        .execute();
+    }
+  },
+  async down() {},
+};

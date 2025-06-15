@@ -4,8 +4,16 @@ import { RichText, type Agent } from '@atproto/api';
 import type { Database } from './database/index.js';
 import { loadSettings, type Settings as TidySettings } from './settings.js';
 import { getRandomMessage } from '../util/getRandomMessage.js';
-import { TZDate } from '@date-fns/tz';
-import { set, isAfter, isBefore, addHours } from 'date-fns';
+import { tz, TZDate } from '@date-fns/tz';
+import {
+  set,
+  isAfter,
+  isBefore,
+  addHours,
+  subDays,
+  parseISO,
+  formatISO,
+} from 'date-fns';
 import type { Settings } from './database/schema.js';
 import { formatDate } from '../lib/dates.js';
 import { safeFetchWrap } from '@atproto-labs/fetch-node';
@@ -165,6 +173,73 @@ const signupComplete3DMQueue: DMQueue = async (db, settings) => {
     elf_list: settings.elf_list,
   });
 
+  const markSent = async () => {
+    const intervalDate = addHours(new Date(), 18);
+    const beforeMatchDay = subDays(
+      parseISO(settings.matches_sent_date + 'T00:00:00.000', {
+        in: tz('Pacific/Auckland'),
+      }),
+      1
+    );
+    const nextDmDate = isAfter(intervalDate, beforeMatchDay)
+      ? intervalDate
+      : beforeMatchDay;
+    await db
+      .updateTable('player')
+      .set({
+        next_player_dm: 'signup-complete-4',
+        next_player_dm_after: formatISO(nextDmDate, { in: tz('UTC') }),
+      })
+      .where('id', '=', player.id)
+      .execute();
+  };
+
+  const markError = async (errorText: string) =>
+    db
+      .updateTable('player')
+      .set({ player_dm_status: `error: ${errorText}` })
+      .where('id', '=', player.id)
+      .execute();
+
+  return {
+    dmType: 'signup-complete-3',
+    recipientDid: player.did,
+    recipientHandle: player.handle,
+    playerType: player.player_type,
+    recipientMastodonHandle: player.mastodon_account,
+    recordId: player.id,
+    rawMessage,
+    markSent,
+    markError,
+  };
+};
+
+const signupComplete4DMQueue: DMQueue = async (db, settings) => {
+  const player = await db
+    .selectFrom('player')
+    .select([
+      'id',
+      'handle',
+      'did',
+      'player_type',
+      'mastodon_account',
+      'delivery_instructions',
+      'address',
+    ])
+    .where('player.signup_complete', '=', 1)
+    .where('player.next_player_dm', '=', 'signup-complete-4')
+    .where('player.next_player_dm_after', '<=', new Date().toISOString())
+    .where('player.player_dm_status', '=', 'queued')
+    .orderBy('player.id', 'asc')
+    .executeTakeFirst();
+
+  if (player == null) return undefined;
+
+  const rawMessage = await getRandomMessage(db, 'dm-signup-complete-4', {
+    hashtag: settings.hashtag,
+    elf_list: settings.elf_list,
+  });
+
   const markSent = async () =>
     db
       .updateTable('player')
@@ -184,7 +259,7 @@ const signupComplete3DMQueue: DMQueue = async (db, settings) => {
       .execute();
 
   return {
-    dmType: 'signup-complete-3',
+    dmType: 'signup-complete-4',
     recipientDid: player.did,
     recipientHandle: player.handle,
     playerType: player.player_type,
@@ -426,6 +501,7 @@ const dmQueues = [
   signupComplete1DMQueue,
   signupComplete2DMQueue,
   signupComplete3DMQueue,
+  signupComplete4DMQueue,
   matchHandleDMQueue,
   matchAddressDMQueue,
   trackingDMQueue,

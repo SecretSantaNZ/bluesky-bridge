@@ -87,6 +87,7 @@ export interface Player {
     | 'signup-complete-1'
     | 'signup-complete-2'
     | 'signup-complete-3'
+    | 'signup-complete-4'
     | 'poke-inactive'
   >;
   next_player_dm_after: Generated<string | null>;

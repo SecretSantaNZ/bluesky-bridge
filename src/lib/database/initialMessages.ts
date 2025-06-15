@@ -3,10 +3,13 @@ export const initialMessages = {
     "I've only checked the list once so far, but you're all signed up and ready to play $hashtag$\n\nRemember the key dates:\n* $matches_sent_date$: All matches will be announced\n* $send_by_date$: Last day for posting\n* $opening_date$: Opening Day!\n\nIf you need help, remember my elves $elf_list$ are standing by to spring into christmas action!\n\nOr me, I can help too",
   ],
   'dm-signup-complete-2': [
-    "If you haven't already, why not post some hints on with the $hashtag$ hashtag, get your Santa off to a flying start.\n\nIf you need help, remember my elves $elf_list$ are standing by to spring into christmas action!\n\nOr me, I can help too",
+    "Now that you're signed up, check out the $hashtag$ hashtag to introduce yourself and get to know the other players taking part in secret santa.",
   ],
   'dm-signup-complete-3': [
     "One last thing. Here's the address we'll be sending to your Santa.\n\n--------\n \n$giftee_instructions$$giftee_address$\n--------\n\nPlease double check it, particularly if you have a unit number.\n\nYou can update your address at https://secretsanta.nz.\n\nIf you need help, remember my elves $elf_list$ are standing by to spring into christmas action!\n\nOr me, I can help too",
+  ],
+  'dm-signup-complete-4': [
+    "If you haven't already, why not post some hints on with the $hashtag$ hashtag, get your Santa off to a flying start.\n\nIf you need help, remember my elves $elf_list$ are standing by to spring into christmas action!\n\nOr me, I can help too",
   ],
   'dm-match-handle': [
     "Your Giftee for Secret Santa is $giftee_handle$. If this is an utterly unsuitable match, please reply to this message ASAP.\n\nWe'll be sending out addresses in a few days, so if you haven't updated yours in the Santa App (My Details), today is the day!\n\nNudging your Giftee via the App becomes available after we send you their address.\n\nHappy sleuthing!!",
