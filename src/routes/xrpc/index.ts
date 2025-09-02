@@ -2,7 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import type { InferOutput, ResourceUri, Did } from '@atcute/lexicons';
 import type { XRPCQueries } from '@atcute/lexicons/ambient';
-import '@atcute/bluesky/lexicons';
+import '@atcute/bluesky';
 import { BadRequestError, UnauthorizedError } from 'http-errors-enhanced';
 import { verifyJwt } from '@atproto/xrpc-server';
 import { queryFullMatch } from '../../lib/database/index.js';
