@@ -6,6 +6,7 @@ import {
   type IdentityEvent,
   type JetstreamOptions,
 } from '@skyware/jetstream';
+import { isBlob } from '@atcute/lexicons/interfaces';
 
 import WebSocket from 'ws';
 
@@ -109,7 +110,7 @@ export class FirehoseSubscription {
       | CommitUpdateEvent<'app.bsky.actor.profile'>
   ) {
     let avatar_url: string = '';
-    if (event.commit.record.avatar != null) {
+    if (isBlob(event.commit.record.avatar)) {
       avatar_url = `https://cdn.bsky.app/img/avatar/plain/${event.did}/${event.commit.record.avatar.ref.$link}@jpeg`;
     }
     await this.playerService.patchPlayer(event.did, { avatar_url });

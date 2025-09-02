@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import type { Queries } from '@atcute/client/lexicons';
+import type { InferOutput, ResourceUri, Did } from '@atcute/lexicons';
+import type { XRPCQueries } from '@atcute/lexicons/ambient';
 import '@atcute/bluesky/lexicons';
 import { BadRequestError, UnauthorizedError } from 'http-errors-enhanced';
 import { verifyJwt } from '@atproto/xrpc-server';
@@ -13,11 +14,11 @@ const NO_POSTS_BY_GIFTEE =
 
 export const xrpc: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
-  const serviceDid: `did:${string}` = `did:web:${process.env.TOKEN_ISSUER}`;
+  const serviceDid: Did = `did:web:${process.env.TOKEN_ISSUER}`;
   const santaAccountDid = rawApp.blueskyBridge.santaAccountDid;
-  const gifteeFeedUri = `at://${santaAccountDid}/app.bsky.feed.generator/3lgklut3vkw6t`;
-  const hashtagFeedUri = `at://${santaAccountDid}/app.bsky.feed.generator/3lgmzql3sv6vk`;
-  const hashtagWithRepliesFeedUri = `at://${santaAccountDid}/app.bsky.feed.generator/3lgmzr7qohmva`;
+  const gifteeFeedUri: ResourceUri = `at://${santaAccountDid}/app.bsky.feed.generator/3lgklut3vkw6t`;
+  const hashtagFeedUri: ResourceUri = `at://${santaAccountDid}/app.bsky.feed.generator/3lgmzql3sv6vk`;
+  const hashtagWithRepliesFeedUri: ResourceUri = `at://${santaAccountDid}/app.bsky.feed.generator/3lgmzr7qohmva`;
   app.get('/.well-known/did.json', function (_, reply) {
     return reply.send({
       '@context': ['https://www.w3.org/ns/did/v1'],
@@ -33,7 +34,9 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
   });
 
   app.get('/xrpc/app.bsky.feed.describeFeedGenerator', function (_, reply) {
-    const output: Queries['app.bsky.feed.describeFeedGenerator']['output'] = {
+    const output: InferOutput<
+      XRPCQueries['app.bsky.feed.describeFeedGenerator']['output']['schema']
+    > = {
       did: serviceDid,
       feeds: [
         { uri: gifteeFeedUri },
@@ -134,7 +137,9 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
           .select('giftee.did as giftee_did')
           .execute();
         if (giftees.length === 0) {
-          const output: Queries['app.bsky.feed.getFeedSkeleton']['output'] = {
+          const output: InferOutput<
+            XRPCQueries['app.bsky.feed.getFeedSkeleton']['output']['schema']
+          > = {
             feed: [
               {
                 post: NO_GIFTEE_POST,
@@ -156,7 +161,9 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
       query = query.orderBy('indexedAt', 'desc').limit(offset + limit + 1);
       const result = await query.execute();
       if (result.length === 0 && feed === gifteeFeedUri) {
-        const output: Queries['app.bsky.feed.getFeedSkeleton']['output'] = {
+        const output: InferOutput<
+          XRPCQueries['app.bsky.feed.getFeedSkeleton']['output']['schema']
+        > = {
           feed: [
             {
               post: NO_POSTS_BY_GIFTEE,
@@ -167,9 +174,11 @@ export const xrpc: FastifyPluginAsync = async (rawApp) => {
         return reply.send(output);
       }
 
-      const output: Queries['app.bsky.feed.getFeedSkeleton']['output'] = {
+      const output: InferOutput<
+        XRPCQueries['app.bsky.feed.getFeedSkeleton']['output']['schema']
+      > = {
         feed: result.slice(offset, offset + limit).map((row) => ({
-          post: row.uri,
+          post: row.uri as ResourceUri,
         })),
         cursor:
           result.length > offset + limit ? String(offset + limit) : undefined,
