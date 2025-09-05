@@ -8,7 +8,7 @@
       <button @click.prevent="$dispatch('ss-close-modal')" class="text-gray-400">Close</button>
       <div class="grow"></div>
       <%- include('../partials/activity-spinner.ejs') %>
-      <input type="submit" name="save" value="Opt out" class="rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+      <input type="submit" name="save" value="Opt out" class="rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
     </div>
   </div>
   <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>

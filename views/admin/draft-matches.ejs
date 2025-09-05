@@ -38,24 +38,24 @@
           <input type="number" id="max_post_count_threshold" name="max_post_count_threshold" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"/>
         </div>
       </div>
-      <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Auto-match <span x-text="countNeedsSantaAssigned"></span> players</button>
+      <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 border-bsky h-full">Auto-match <span x-text="countNeedsSantaAssigned"></span> players</button>
       <%- include('../partials/activity-spinner.ejs') %>
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
     </form>
     <form x-show="draftMatches.length > 0" hx-post="/match/delete-drafts" class="flex items-center justify-center" hx-confirm="Are you sure?">
-      <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 bg-red-600 hover:bg-red-400 h-full">Delete <span x-text="draftMatches.length"></span> matches</button>
+      <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 bg-red-600 hover:bg-red-400 h-full">Delete <span x-text="draftMatches.length"></span> matches</button>
       <%- include('../partials/activity-spinner.ejs') %>
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
     </form>
     <form x-show="validDraftMatchesCount > 0" hx-post="/match/publish" class="flex items-center justify-center">
-      <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Publish <span x-text="validDraftMatchesCount"></span> matches</button>
+      <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 border-bsky h-full">Publish <span x-text="validDraftMatchesCount"></span> matches</button>
       <%- include('../partials/activity-spinner.ejs') %>
       <input type="hidden" name="current_status" value="draft"/>
       <input type="hidden" name="target_status" value="shared"/>
       <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
     </form>
     <form x-show="validDraftMatchesCount > 0" hx-post="/match/publish" class="flex items-center justify-center">
-      <button type="submit" class="htmx-request:hidden w-lg px-8 py-2 border-4 border-bsky h-full">Publish <span x-text="validDraftMatchesCount"></span> matches<br/>(with address)</button>
+      <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 border-bsky h-full">Publish <span x-text="validDraftMatchesCount"></span> matches<br/>(with address)</button>
       <%- include('../partials/activity-spinner.ejs') %>
       <input type="hidden" name="current_status" value="draft"/>
       <input type="hidden" name="target_status" value="locked"/>
@@ -92,7 +92,7 @@
           </div>
         </button>
         <%- include('../partials/activity-spinner.ejs') %>
-        <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg w-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+        <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
         <button x-show="`match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
           <div class="i-mdi-close size-10 text-gray-400"></div>
         </button>
