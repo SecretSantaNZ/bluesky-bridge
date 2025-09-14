@@ -1,10 +1,10 @@
+{% extends "../layouts/card.njk" %}
+{% block cardBody %}
 <form hx-post="/start-login" id="login" hx-swap="none" x-data="{
-    ...<%= JSON.stringify({
-      signupsOpen: Boolean(settings.signups_open),
-      defaultMode: locals.mode || null,
-    }) %>,
+    signupsOpen: {{ settings.signups_open | default("false") }},
+    defaultMode: {{ mode | default('null') }},
     localMode: null,
-    accountType: <%- settings.mastodon_players ? "$persist('bluesky')" : "'bluesky'" %>,
+    accountType: {{ "$persist('bluesky')" if settings.mastodon_players else "'bluesky'" }},
     get mode() {
       if (!this.signupsOpen) return 'login';
       if (this.localMode != null) return this.localMode;
@@ -17,10 +17,10 @@
   }"
     @submit="newrelic.addPageAction('login_started', {mode, handle: handle.value, accountType})"
   >
-  <input type="hidden" name="requestId" value="<%= requestId %>"/>
-  <input type="hidden" name="returnToken" value="<%= returnToken %>"/>
+  <input type="hidden" name="requestId" value="{{ requestId }}"/>
+  <input type="hidden" name="returnToken" value="{{ returnToken }}"/>
   <input type="hidden" name="accountType" x-bind:value="accountType"/>
-  <% if (settings.mastodon_players) { %>
+  {% if settings.mastodon_players %}
     <div class="flex -mt-8 -mx-8 mb-8">
       <button type="button" x-bind:class="(accountType === 'bluesky' ? '' : 'border-b ') + 'w-1/2 rounded-none border-slate-500 border-r p-4 flex items-center justify-center focus:ring-0'" @click="accountType = 'bluesky'">
         <img src="/public/bluesky.svg" class="size-8 block pr-2"/>
@@ -31,7 +31,7 @@
         <div x-bind:class="accountType === 'mastodon' ? 'font-semibold' : ''">Mastodon</div>
       </button>
     </div>
-  <% } %>
+  {% endif %}
   <div class="flex space-x-8" x-show="mode === 'choose'">
     <button type="button" @click.prevent="mode = 'signup'" class="grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden">Sign up</button>
     <button type="button" @click.prevent="mode = 'login'" class="grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden">Login</button>
@@ -54,7 +54,7 @@
         </ol>
       </div>
     </div>
-    <div x-data="{term: <%= JSON.stringify(locals.handle ? locals.handle: '') %>, actors: []}">
+    <div x-data="{term: {{ handle | default("") | dump }}, actors: []}">
       <div class="group">
         <label for="handle" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300 scheme-light dark:scheme-dark">Handle</label>
         <input
@@ -81,12 +81,13 @@
         You will be sent to your Mastodon instance to login with your Mastodon account.
       </div>
     </div>
-    <%- include('../partials/error.ejs', { elementId: 'login-error' }) %>
+    {% set elementId = "login-error" %}
+    {% include "../partials/error.njk" %}
     <input type="hidden" name="mode" x-bind:value="mode"/>
     <div class="flex justify-center items-center">
       <button type="button" x-show="signupsOpen" @click.prevent="mode = 'choose'" class="text-gray-400">Back</button>
       <div class="grow"></div>
-      <%- include('../partials/activity-spinner.ejs') %>
+      {% include "../partials/activity-spinner.njk" %}
       <div x-bind:class="(signupsOpen ? 'w-48' : 'w-full') + ' flex flex-col justify-center space-y-2'">
         <input type="submit" name="login" x-bind:value="mode === 'login' ? 'Login' : 'Sign up'" class="w-full rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
         <button type="submit" name="otpLogin" value="true" x-show="mode === 'login' && accountType === 'bluesky'" class="w-full text-gray-400">Login with DM Code</button>
@@ -94,3 +95,4 @@
     </div>
   </div>
 </form>
+{% endblock %}

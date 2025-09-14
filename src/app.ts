@@ -12,6 +12,7 @@ import fastifyView from '@fastify/view';
 import fastifyCookie from '@fastify/cookie';
 import fastifyStatic from '@fastify/static';
 import ejs from 'ejs';
+import nunjucks from 'nunjucks';
 
 import type { TokenManager } from './lib/TokenManager.js';
 
@@ -89,6 +90,20 @@ export const build = async (
     root: path.join(process.cwd(), 'views'),
     defaultContext: {
       newrelic,
+    },
+  });
+  await app.register(fastifyView, {
+    engine: {
+      nunjucks,
+    },
+    root: path.join(process.cwd(), 'views'),
+    defaultContext: {
+      newrelic,
+    },
+    viewExt: 'njk',
+    propertyName: 'nunjucks',
+    options: {
+      noCache: process.env.NODE_ENV !== 'production',
     },
   });
 

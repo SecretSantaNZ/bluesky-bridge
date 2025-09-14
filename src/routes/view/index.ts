@@ -34,17 +34,12 @@ export async function returnLoginView(
     settings,
     ...reply.locals,
   };
-  return reply.view(
-    'auth/login-card.ejs',
-    {
-      requestId,
-      returnToken,
-      replaceUrl: returnUrl,
-    },
-    {
-      layout: 'layouts/base-layout.ejs',
-    }
-  );
+  // @ts-expect-error nunjucks is not defined
+  return reply.nunjucks('auth/login', {
+    requestId,
+    returnToken,
+    replaceUrl: returnUrl,
+  });
 }
 
 export const view: FastifyPluginAsync = async (app) => {
