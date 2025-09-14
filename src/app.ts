@@ -69,6 +69,7 @@ declare module 'fastify' {
   }
   export interface FastifyReply {
     locals?: Record<string, unknown>;
+    nunjucks: FastifyReply['view'];
   }
 }
 

@@ -34,7 +34,6 @@ export async function returnLoginView(
     settings,
     ...reply.locals,
   };
-  // @ts-expect-error nunjucks is not defined
   return reply.nunjucks('auth/login', {
     requestId,
     returnToken,

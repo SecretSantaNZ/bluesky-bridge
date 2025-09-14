@@ -1,6 +1,8 @@
+{% from  "../partials/error.njk" import errorPanel %}
+{% from "../partials/activity-spinner.njk" import activitySpinner %}
 <form hx-post="/finish-otp-login" id="login" hx-swap-oob="outerHTML" hx-swap="none">
-<input type="hidden" name="otpKey" value="<%= key %>"/>
-<input type="hidden" name="returnToken" value="<%= returnToken %>"/>
+<input type="hidden" name="otpKey" value="{{ key }}"/>
+<input type="hidden" name="returnToken" value="{{ returnToken }}"/>
 <div class="space-y-8">
   <h1>Login</h1>
   <div>
@@ -19,11 +21,11 @@
       autocomplete="false"
     />
   </div>
-  <%- include('../partials/error.ejs', { elementId: 'login-error' }) %>
+  {{ errorPanel(errorMessage, 'login-error') }}
   <div class="flex justify-center items-center">
     <button type="button" class="text-gray-400" @click.prevent="window.location.reload()">Back</button>
     <div class="grow"></div>
-    <%- include('../partials/activity-spinner.ejs') %>
+    {{ activitySpinner() }}
     <input type="submit" name="login" value="Login" class="w-48 rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
   </div>
 </div>
