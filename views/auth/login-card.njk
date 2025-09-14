@@ -1,8 +1,10 @@
 {% extends "../layouts/card.njk" %}
+{% from  "../partials/error.njk" import errorPanel %}
+{% from "../partials/activity-spinner.njk" import activitySpinner %}
 {% block cardBody %}
 <form hx-post="/start-login" id="login" hx-swap="none" x-data="{
     signupsOpen: {{ settings.signups_open | default("false") }},
-    defaultMode: {{ mode | default('null') }},
+    defaultMode: {{ mode | default(null) | dump }},
     localMode: null,
     accountType: {{ "$persist('bluesky')" if settings.mastodon_players else "'bluesky'" }},
     get mode() {
@@ -81,13 +83,12 @@
         You will be sent to your Mastodon instance to login with your Mastodon account.
       </div>
     </div>
-    {% set elementId = "login-error" %}
-    {% include "../partials/error.njk" %}
+    {{ errorPanel(errorMessage, "login-error") }}
     <input type="hidden" name="mode" x-bind:value="mode"/>
     <div class="flex justify-center items-center">
       <button type="button" x-show="signupsOpen" @click.prevent="mode = 'choose'" class="text-gray-400">Back</button>
       <div class="grow"></div>
-      {% include "../partials/activity-spinner.njk" %}
+      {{ activitySpinner() }}
       <div x-bind:class="(signupsOpen ? 'w-48' : 'w-full') + ' flex flex-col justify-center space-y-2'">
         <input type="submit" name="login" x-bind:value="mode === 'login' ? 'Login' : 'Sign up'" class="w-full rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
         <button type="submit" name="otpLogin" value="true" x-show="mode === 'login' && accountType === 'bluesky'" class="w-full text-gray-400">Login with DM Code</button>

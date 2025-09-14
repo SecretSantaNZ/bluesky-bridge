@@ -27,6 +27,7 @@
     @ss-is-mobile-width-changed.window="isMobileWidth = event.detail"
     {% if replaceUrl %}x-init="window.history.replaceState(null, '', {{ replaceUrl | dump }})"{% endif %}
   >
+    {% from '../partials/avatar.njk' import avatar %}
     <div class="flex flex-col">
       <div class="sticky top-0 bg-bsky text-white drop-shadow-lg mb-8 z-50">
         <div class="flex items-center p-4 gap-4">
@@ -46,10 +47,9 @@
               newrelic.setUserId({{ player.handle | dump | safe }});
             </script>
             <div class="relative text-slate-800 dark:text-slate-200" x-data x-cloak>
-              {% set avatar_url = player.avatar_url %}
               {% if player.admin or not player.booted %}
                 <button @click.stop.prevent="userMenuOpen = !userMenuOpen" class="rounded-full shrink-0">
-                  {% include '../partials/avatar.njk' %}
+                  {{ avatar(player.avatar_url) }}
                   <span class="sr-only">Open menu</span>
                 </button>
                 <div x-show="userMenuOpen" class="absolute top-10 right-0 min-w-48  border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
@@ -61,7 +61,7 @@
                 </div>
                 <div class="hidden" hx-get="/session-keep-alive" hx-trigger="every 1m" hx-disabled-elt="this"></div>
               {% else %}
-                {% include '../partials/avatar.njk' %}
+                {{ avatar(player.avatar_url) }}
               {% endif %}
             </div>
           {% endif %}
