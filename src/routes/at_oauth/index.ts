@@ -27,6 +27,7 @@ async function startAtOauth(
   mode: string,
   otpLogin: boolean
 ) {
+  let returnUrl = '/';
   try {
     const client = blueskyBridge.atOauthClient;
     let handle = rawHandle
@@ -39,10 +40,9 @@ async function startAtOauth(
     }
     const fullPerms = blueskyBridge.fullScopeHandles.has(handle.toLowerCase());
 
-    const {
-      subject: requestId,
-      data: { returnUrl },
-    } = await blueskyBridge.returnTokenManager.validateToken(returnToken);
+    const { subject: requestId, data } =
+      await blueskyBridge.returnTokenManager.validateToken(returnToken);
+    returnUrl = data.returnUrl;
 
     if (otpLogin) {
       const resolveResult = await unauthenticatedAgent.resolveHandle({
@@ -108,9 +108,11 @@ async function startAtOauth(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     request.log.error(e);
-    return reply.view('partials/error.ejs', {
-      elementId: 'login-error',
+
+    return returnLoginView(blueskyBridge, reply, returnUrl, {
       errorMessage: 'message' in e ? e.message : 'Unknown error',
+      mode,
+      handle: rawHandle,
     });
   }
 }
@@ -326,9 +328,10 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       ...request.body,
     });
     request.log.error({ url: request.url, error, body: request.body });
-    return reply.view('partials/error.ejs', {
+    return returnLoginView(app.blueskyBridge, reply, request.url, {
       errorMessage: error.message || 'Unknown Error',
-      elementId: 'login-error',
+      mode: (request.body as Record<string, string>).mode,
+      handle: (request.body as Record<string, string>).handle,
     });
   });
 
