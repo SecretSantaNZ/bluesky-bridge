@@ -1,18 +1,19 @@
+{% extends "../layouts/base-layout.njk" %}
+{% block body %}
 <div
   class="max-w-3xl w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex flex-col space-y-16"
 >
   <h1>Frequently asked questions</h1>
-  <%- include('../partials/what-is-secret-santa.ejs', {}) %>
+  {% include '../partials/what-is-secret-santa.njk' %}
   <div class="space-y-2">
     <h2>Who is running Secret Santa NZ?</h2>
     <p>Secret Santa NZ is run by <a href="https://bsky.app/profile/foxylustygrover.bsky.social" target="_blank">@foxylustygrover.bsky.social</a> and her crack team of elves and a yule fairy:</p>
     <div class="pl-6">
       <ul class="list-disc space-y-2">
-        <% settings.elf_list.split(/,|and/).forEach(elfRaw => {
-          const elf = elfRaw.trim().substring(1);
-        %>
-          <li><a href="https://bsky.app/profile/<%= elf %>" target="_blank">@<%= elf %></a></li>
-        <% }) %>
+        {% for elfRaw in settings.elf_list.split(r/,|and/) %}
+          {% set elf = elfRaw.trim().substring(1) %}
+          <li><a href="https://bsky.app/profile/{{ elf }}" target="_blank">@{{ elf }}</a></li>
+        {% endfor %}
       </ul>
     </div>
     <p>The secretsanta.nz app is created and maintained by <a href="https://bsky.app/profile/orthanc.nz" target="_blank">@orthanc.nz</a> with words and editing by <a href="https://bsky.app/profile/witchnwords.bsky.social" target="_blank">@witchnwords.bsky.social</a>. With a lot of inspiration from the Twitter Secret Santa app created by <a href="https://twitter.com/inabeek" target="_blank">@inabeek</a> and encouragement and support from <a href="https://mastodon.philtanner.com/@Phil_Tanner" target="_blank">@Phil_Tanner@mastodon.philtanner.com</a></p>
@@ -61,28 +62,28 @@
     <h2>What are the important dates?</h2>
     <div class="pl-6">
       <ul class="list-disc space-y-2">
-        <li><b><%= formatDate(settings.signups_open_date) %></b>: sign ups start!</li>
-        <li><b><%= formatDate(settings.signups_close_date) %></b>: Last day for signing up.</li>
-        <li><b><%= formatDate(settings.signups_close_date) %></b>: Also the last day to opt-out
+        <li><b>{{ formatDate(settings.signups_open_date) }}</b>: sign ups start!</li>
+        <li><b>{{ formatDate(settings.signups_close_date) }}</b>: Last day for signing up.</li>
+        <li><b>{{ formatDate(settings.signups_close_date) }}</b>: Also the last day to opt-out
           without causing the Elves overtime! We get that life throws forks sometimes. If you can,
           please let us know if you cannot play any longer.</li>
         <li>
-          <b><%= formatDate(settings.matches_sent_date) %></b>: All matches will be announced. You'll get a DM
+          <b>{{ formatDate(settings.matches_sent_date) }}</b>: All matches will be announced. You'll get a DM
           when you're matched, or login to the App to find your Giftee's details!
         </li>
         <li>
-          <b><%= formatDate(settings.matches_sent_date) %></b> to <b><%= formatDate(settings.send_by_date) %></b>:
+          <b>{{ formatDate(settings.matches_sent_date) }}</b> to <b>{{ formatDate(settings.send_by_date) }}</b>:
           Sleuthing and shopping time! Post hints for your Secret Santa and find out about your Giftee's
           favourite things. Send your gift!
         </li>
-        <li><b><%= formatDate(settings.send_by_date) %></b>: Last day for posting your presents.</li>
+        <li><b>{{ formatDate(settings.send_by_date) }}</b>: Last day for posting your presents.</li>
         <li>
-          <b><%= formatDate(settings.opening_date) %></b>: Opening Day! Giftees: open your gifts and post photos and
+          <b>{{ formatDate(settings.opening_date) }}</b>: Opening Day! Giftees: open your gifts and post photos and
           videos to tell your Secret Santa how much joy they brought you. Use the
           hashtag <a
-          href="https://bsky.app/hashtag/<%= settings.hashtag.substring(1) %>"
+          href="https://bsky.app/hashtag/{{ settings.hashtag.slice(1) }}"
           target="_blank"
-          ><%= settings.hashtag %></a
+          >{{ settings.hashtag }}</a
         >.
         </li>
       </ul>
@@ -91,18 +92,18 @@
   <div class="space-y-2">
     <h2>What's the hashtag this time around?</h2>
     <p><a
-      href="https://bsky.app/hashtag/<%= settings.hashtag.substring(1) %>"
+      href="https://bsky.app/hashtag/{{ settings.hashtag.substring(1) }}"
       target="_blank"
-      ><%= settings.hashtag %></a
+      >{{ settings.hashtag }}</a
     ></p>
   </div>
   <div class="space-y-2">
     <h2>Who do I talk to with questions?</h2>
     <p>First, see if the answers are on this page, check the hashtag
       <a
-      href="https://bsky.app/hashtag/<%= settings.hashtag.substring(1) %>"
+      href="https://bsky.app/hashtag/{{ settings.hashtag.substring(1) }}"
       target="_blank"
-      ><%= settings.hashtag %></a
+      >{{ settings.hashtag }}</a
     > or posts by Santa and the Elves
       <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a>.
       Couldn't find an answer? Please, send us a DM and we will get back to you ASAP.</p>
@@ -110,8 +111,8 @@
   <div class="space-y-2">
     <h2>I signed up but can no longer play, how do I remove myself?</h2>
     <p>If you need to opt-out, head over to About me and click the Opt out button. If you do this before
-      <%= formatDate(settings.signups_close_date) %> then you don't need to do anything else. If it's after
-      <%= formatDate(settings.signups_close_date) %>, the Elves really appreciate a heads-up via DM to
+      {{ formatDate(settings.signups_close_date) }} then you don't need to do anything else. If it's after
+      {{ formatDate(settings.signups_close_date) }}, the Elves really appreciate a heads-up via DM to
       <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> so that we can
       make sure your original Giftee gets a new Santa. We understand that life happens so please do not
       hesitate to contact us as soon as you know circumstances have changed.</p>
@@ -219,3 +220,4 @@
       <a href="https://bsky.app/profile/orthanc.nz" target="_blank">@orthanc.nz</a> for details.</p>
   </div>
 </div>
+{% endblock %}

@@ -41,13 +41,7 @@ export const publicContent: FastifyPluginAsync = async (app) => {
   });
 
   app.get('/faq', async function (request, reply) {
-    return reply.view(
-      'public/faq.ejs',
-      {},
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+    return reply.nunjucks('public/faq', {});
   });
 
   app.get('/rules', async function (request, reply) {
