@@ -190,13 +190,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
     }
     const hasAddress = Boolean(player.address && player.address.trim());
     if (!hasAddress) {
-      return reply.view(
-        'player/address-card.ejs',
-        { hideClose: true },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
+      return reply.nunjucks('player/address-page', { hideClose: true });
     }
     if (!player.game_mode) {
       return reply.view(

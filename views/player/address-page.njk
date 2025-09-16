@@ -1,3 +1,6 @@
+{% extends "layouts/base-layout.njk" %}
+{% block body %}
 <div class="w-full flex justify-center" x-data="<%= JSON.stringify({modalData: {address: player.address, delivery_instructions: player.delivery_instructions }})%>">
-  <%- include('../layouts/card.ejs', { bodyTemplate: 'player/address.ejs' }) %>
+  {% include "./address.njk" %}
 </div>
+{% endblock %}
