@@ -27,7 +27,7 @@ export const nudge: FastifyPluginAsync = async (rawApp) => {
   app.setErrorHandler(async function (error, request, reply) {
     request.log.error(error);
     const triggerId = request.headers['hx-trigger'];
-    return reply.view('partials/error.ejs', {
+    return reply.nunjucks('fragments/error', {
       errorMessage: error.message || 'Unknown Error',
       elementId: triggerId ? triggerId + '-error' : undefined,
     });
