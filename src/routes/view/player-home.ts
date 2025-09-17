@@ -193,13 +193,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
       return reply.nunjucks('player/address-required');
     }
     if (!player.game_mode) {
-      return reply.view(
-        'player/game-mode-card.ejs',
-        { hideClose: true },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
+      return reply.nunjucks('player/game-mode-required');
     }
   });
 

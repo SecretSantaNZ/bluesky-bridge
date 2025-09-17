@@ -1,6 +1,6 @@
 {% extends "common/page-layout.njk" %}
 {% block body %}
-<div class="w-full flex justify-center" x-data="<%= JSON.stringify({modalData: {address: player.address, delivery_instructions: player.delivery_instructions }})%>">
+<div class="w-full flex justify-center" x-data="{{ {modalData: {address: player.address, delivery_instructions: player.delivery_instructions } } | dump }}">
   {% set hideClose=true %}
   {% include "./partials/address-card.njk" %}
 </div>

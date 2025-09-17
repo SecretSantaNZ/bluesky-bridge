@@ -1,0 +1,7 @@
+{% extends "common/page-layout.njk" %}
+{% block body %}
+<div class="w-full flex justify-center" x-data="{{ {modalData: {game_mode: player.game_mode or 'Regular', max_giftees: 2 } } | dump }}">
+  {% set hideClose=true %}
+  {% include "./partials/game-mode-card.njk" %}
+</div>
+{% endblock %}

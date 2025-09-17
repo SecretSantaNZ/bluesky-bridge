@@ -1,0 +1,34 @@
+{% extends "common/card-layout.njk" %}
+{% from "common/form-fields.njk" import dropdown, inputSubmitWithActivity %}
+{% from  "common/error.njk" import errorPanel %}
+{% block cardBody %}
+<form hx-post="/player/update-game-mode{{ '?returnTooManyMatches=true' if returnTooManyMatches }}" hx-swap="none" id="update-game-mode">
+  <div class="space-y-8">
+    {% if adminMode %}
+      <h1 x-text="'Game mode for @' + modalData.handle"></h1>
+    {% else %}
+      <h1>How do you want to play?</h1>
+      <p>As a regular player, you send one and receive one gift. As a Super Santa, you send multiple and receive one gift.</p>
+    {% endif %}
+    {% set gameModeOptions = [
+      {id: 'Regular', text: 'Regular'},
+      {id: 'Super Santa', text: 'Super Santa'}
+    ] %}
+    {% if adminMode %}
+      {% set gameModeOptions = gameModeOptions.concat(
+        {id: 'Santa Only', text: 'Santa Only'},
+        {id: 'Giftee Only', text: 'Giftee Only'}
+      ) %}
+    {% endif %}
+    {{ dropdown(id='game_mode', label='Game mode', xModel='modalData.game_mode', options=gameModeOptions) }}
+    <div class="group" x-show="modalData.game_mode === 'Super Santa' || modalData.game_mode === 'Santa Only'">
+      <label for="max_giftees" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300">How many giftees would you buy for?</label>
+      <input x-model="modalData.max_giftees" type="number" id="max_giftees" name="max_giftees" x-bind:min="modalData.game_mode === 'Super Santa' ? 2 : modalData.game_mode === 'Santa Only' ? 1 : 0" max="5" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"/>
+    </div>
+    {{ errorPanel(errorMessage, 'update-game-mode-error') }}
+    {{ inputSubmitWithActivity(hideClose=hideClose) }}
+  </div>
+  <input type="hidden" name="player_did" x-bind:value="modalData.did"/>
+  <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+</form>
+{% endblock %}
