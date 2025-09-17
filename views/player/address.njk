@@ -1,5 +1,5 @@
 {% extends "common/card-layout.njk" %}
-{% from "macros/inputs.njk" import inputText, inputSubmitWithActivity %}
+{% from "common/form-fields.njk" import inputText, inputSubmitWithActivity %}
 {% from  "partials/error.njk" import errorPanel %}
 {% block cardBody %}
 <form hx-post="/player/update-address" hx-swap="none" id="update-address" @ss-address-changed="modalData.address = $event.detail.address;">
