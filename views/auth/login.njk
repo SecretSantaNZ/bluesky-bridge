@@ -7,11 +7,6 @@
     <img class="rounded-xl" src="https://secretsantanz.imgix.net/elves-banner-2881b545-9291-4120-8d23-161cd6d0d2dd?w=576&h144&auto=format" alt="" width="576px" height="144px">
   </div>
   {% include "./partials/login-card.njk" %}
-  {% set showMoreLinks = true %}
-  {% set cardBody %}
-    {% include "../partials/what-is-secret-santa.njk" %}
-  {% endset %}
-  {% set cardBody = cardBody | safe %}
-  {% include "common/card-layout.njk" %}
+  {% include "public/partials/what-is-secret-santa-card.njk" %}
 </div>
 {% endblock %}
