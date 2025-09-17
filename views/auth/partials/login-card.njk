@@ -1,5 +1,5 @@
 {% extends "common/card-layout.njk" %}
-{% from  "partials/error.njk" import errorPanel %}
+{% from  "common/error.njk" import errorPanel %}
 {% from "common/form-fields.njk" import activitySpinner %}
 {% block cardBody %}
 <form hx-post="/start-login" id="login" hx-swap="none" x-data="{
