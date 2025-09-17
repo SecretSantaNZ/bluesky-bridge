@@ -190,7 +190,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
     }
     const hasAddress = Boolean(player.address && player.address.trim());
     if (!hasAddress) {
-      return reply.nunjucks('player/address-page', { hideClose: true });
+      return reply.nunjucks('player/address-required');
     }
     if (!player.game_mode) {
       return reply.view(
