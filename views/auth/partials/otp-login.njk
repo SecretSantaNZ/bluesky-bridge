@@ -1,5 +1,5 @@
-{% from  "../partials/error.njk" import errorPanel %}
-{% from "../partials/activity-spinner.njk" import activitySpinner %}
+{% from  "partials/error.njk" import errorPanel %}
+{% from "partials/activity-spinner.njk" import activitySpinner %}
 <form hx-post="/finish-otp-login" id="login" hx-swap-oob="outerHTML" hx-swap="none">
 <input type="hidden" name="otpKey" value="{{ key }}"/>
 <input type="hidden" name="returnToken" value="{{ returnToken }}"/>

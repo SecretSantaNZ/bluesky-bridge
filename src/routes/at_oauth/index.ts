@@ -84,7 +84,7 @@ async function startAtOauth(
         markError: (errorText) => Promise.reject(new Error(errorText)),
       });
 
-      return reply.nunjucks('auth/otp-login', {
+      return reply.nunjucks('auth/partials/otp-login', {
         key,
         returnToken,
       });
