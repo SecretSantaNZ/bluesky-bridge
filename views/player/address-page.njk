@@ -1,4 +1,4 @@
-{% extends "layouts/base-layout.njk" %}
+{% extends "common/page-layout.njk" %}
 {% block body %}
 <div class="w-full flex justify-center" x-data="<%= JSON.stringify({modalData: {address: player.address, delivery_instructions: player.delivery_instructions }})%>">
   {% include "./address.njk" %}
