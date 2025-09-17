@@ -1,3 +1,4 @@
+{% from './avatar.njk' import avatar %}
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -27,7 +28,6 @@
     @ss-is-mobile-width-changed.window="isMobileWidth = event.detail"
     {% if replaceUrl %}x-init="window.history.replaceState(null, '', {{ replaceUrl | dump }})"{% endif %}
   >
-    {% from '../partials/avatar.njk' import avatar %}
     <div class="flex flex-col">
       <div class="sticky top-0 bg-bsky text-white drop-shadow-lg mb-8 z-50">
         <div class="flex items-center p-4 gap-4">
