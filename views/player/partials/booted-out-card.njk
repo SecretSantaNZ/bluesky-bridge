@@ -1,5 +1,8 @@
+{% extends "common/card-layout.njk" %}
+{% block cardBody %}
 <div class="space-y-8">
-  <h1>@<%= player_display_handle %> was deactivated</h1>
+  <h1>@{{ player_display_handle }} was deactivated</h1>
   <p>You have been removed from the game.</p>
   <p>If you believe this was a mistake, DM <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a></p>
 </div>
+{% endblock %}

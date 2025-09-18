@@ -171,22 +171,10 @@ export const playerHome: FastifyPluginAsync = async (app) => {
       if (!player.admin) {
         reply.clearCookie('session');
       }
-      return reply.view(
-        'player/booted-out-card.ejs',
-        { hideClose: true },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
+      return reply.nunjucks('player/booted-out');
     }
     if (player.opted_out) {
-      return reply.view(
-        'player/opted-out-card.ejs',
-        { hideClose: true },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
+      return reply.nunjucks('player/opted-out');
     }
     const hasAddress = Boolean(player.address && player.address.trim());
     if (!hasAddress) {

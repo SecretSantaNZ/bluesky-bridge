@@ -181,10 +181,9 @@ export async function finishLogin(
         }
       );
     } else if (player.booted && !admin) {
-      return reply.view(
-        'player/booted-out-card.ejs',
+      return reply.nunjucks(
+        'player/booted-out',
         {
-          hideClose: true,
           replaceUrl: '/',
           player,
           player_display_handle:
