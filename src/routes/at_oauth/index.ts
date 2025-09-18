@@ -165,21 +165,15 @@ export async function finishLogin(
         'at://',
         ''
       );
-      return reply.view(
-        'player/signups-closed-card.ejs',
-        {
-          replaceUrl: '/',
-          player: undefined,
-          player_handle,
-          player_display_handle:
-            player_type === 'mastodon'
-              ? attributes.mastodon_account
-              : player_handle,
-        },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
+      return reply.nunjucks('player/signups-closed', {
+        replaceUrl: '/',
+        player: undefined,
+        player_handle,
+        player_display_handle:
+          player_type === 'mastodon'
+            ? attributes.mastodon_account
+            : player_handle,
+      });
     } else if (player.booted && !admin) {
       return reply.nunjucks(
         'player/booted-out',
