@@ -1,6 +1,16 @@
 {% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
 {% block body %}
 <div class="w-full flex justify-center">
-  {% include "./partials/signups-closed-card.njk" %}
+  {% call card() %}
+    <div class="space-y-8">
+      <h1>Signups are closed</h1>
+      <p>
+        Sorry @{{ player_display_handle }}, the game has begun an signups are now
+        closed.
+      </p>
+      <p>It's okay though, there's always next year.</p>
+    </div>
+  {% endcall %}
 </div>
 {% endblock %}

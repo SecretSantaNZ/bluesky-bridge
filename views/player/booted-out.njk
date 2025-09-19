@@ -1,6 +1,13 @@
 {% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
 {% block body %}
 <div class="w-full flex justify-center">
-  {% include "./partials/booted-out-card.njk" %}
+  {% call card() %}
+    <div class="space-y-8">
+      <h1>@{{ player_display_handle }} was deactivated</h1>
+      <p>You have been removed from the game.</p>
+      <p>If you believe this was a mistake, DM <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a></p>
+    </div>
+  {% endcall %}
 </div>
 {% endblock %}

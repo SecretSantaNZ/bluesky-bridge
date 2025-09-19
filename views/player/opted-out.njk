@@ -1,6 +1,24 @@
 {% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% from "common/form-fields.njk" import inputSubmitWithActivity %}
+{% from "common/error.njk" import errorPanel %}
 {% block body %}
 <div class="w-full flex justify-center">
-  {% include "./partials/opted-out-card.njk" %}
+  {% call card() %}
+    <form hx-post="/player/opt-in" hx-swap="none" id="opt-in">
+      <div class="space-y-8">
+        <h1>@{{ player_display_handle  }} opted out</h1>
+        {% if settings.signups_open %}
+          <p>You opted out of the game, but it's okay, if it was a mistake you can opt back in to play.</p>
+          {{ errorPanel(errorMessage, 'opt-in-error') }}
+          {{ inputSubmitWithActivity(label='Opt back in', hideClose=true) }}
+        {% else %}
+          <p>You opted out of the game.</p>
+          <p>DM <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> if you want to play after all.</p>
+        {% endif %}
+      </div>
+      <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+    <form>
+  {% endcall %}
 </div>
 {% endblock %}
