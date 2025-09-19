@@ -1,6 +1,4 @@
-{% extends "common/card-layout.njk" %}
 {% from 'common/avatar.njk' import avatar %}
-{% block cardBody %}
 <div
   @click="isMobileWidth && (cardExpanded = !cardExpanded)"
   class="flex -ml-4 lg:ml-0 items-start"
@@ -41,4 +39,3 @@
     <p class="mt-8 italic">Your Giftee isn't assigned yet, check back soon.</p>
   {% endfor %}
 </div>
-{% endblock %}

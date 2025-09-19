@@ -1,6 +1,4 @@
-{% extends "common/card-layout.njk" %}
 {% from "common/tracking.njk" import tracking %}
-{% block cardBody %}
 <div
   @click="isMobileWidth && (cardExpanded = !cardExpanded)"
   class="flex -ml-4 lg:ml-0 items-start"
@@ -21,4 +19,3 @@
     {{ tracking(receivedTracking, csrfToken, show_tracking_actions=true) }}
   {% endfor %}
 </div>
-{% endblock %}

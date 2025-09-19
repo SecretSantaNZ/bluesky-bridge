@@ -1,7 +1,5 @@
-{% extends "common/card-layout.njk" %}
 {% from "common/form-fields.njk" import dropdown, inputSubmitWithActivity %}
-{% from  "common/error.njk" import errorPanel %}
-{% block cardBody %}
+{% from "common/error.njk" import errorPanel %}
 <form hx-post="/player/update-game-mode{{ '?returnTooManyMatches=true' if returnTooManyMatches }}" hx-swap="none" id="update-game-mode">
   <div class="space-y-8">
     {% if adminMode %}
@@ -31,4 +29,3 @@
   <input type="hidden" name="player_did" x-bind:value="modalData.did"/>
   <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
 </form>
-{% endblock %}

@@ -1,4 +1,5 @@
 {% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
 {% block body %}
 <div class="grow p-4 justify-items-center grid gap-8 lg:grid-cols-2 xl:grid-cols-3" id="player-home">
 {% if player.player_type === 'bluesky' %}
@@ -64,12 +65,12 @@
     </div>
   </div>
 {% endif %}
-{% include "./partials/key-information-card.njk" %}
-{% include "./partials/my-details-card.njk" %}
-{% include "./partials/my-giftee-card.njk" %}
-{% include "./partials/presents-for-me-card.njk" %}
-{% include "./partials/presents-ive-sent-card.njk" %}
-{% include "./partials/nudges-ive-sent-card.njk" %}
+{% call card() %}{% include "./home/key-information.njk" %}{% endcall %}
+{% call card() %}{% include "./home/my-details.njk" %}{% endcall %}
+{% call card() %}{% include "./home/my-giftee.njk" %}{% endcall %}
+{% call card() %}{% include "./home/presents-for-me.njk" %}{% endcall %}
+{% call card() %}{% include "./home/presents-ive-sent.njk" %}{% endcall %}
+{% call card() %}{% include "./home/nudges-ive-sent.njk" %}{% endcall %}
 </div>
 <div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
   <template x-teleport="body">
