@@ -1,3 +1,6 @@
+{% extends "common/card-layout.njk" %}
+{% from "common/tracking.njk" import tracking %}
+{% block cardBody %}
 <div
   @click="isMobileWidth && (cardExpanded = !cardExpanded)"
   class="flex -ml-4 lg:ml-0 items-start"
@@ -5,16 +8,17 @@
   <div x-show="isMobileWidth" x-bind:class="'size-10 shrink-0 grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
   <div class="grow shrink">
     <h1>Presents for me</h1>
-    <% if (myGifts.length === 0) { %>
+    {% if myGifts.length === 0 %}
       <p>Once your Santa has sent a present it will show up here. Don't worry, we'll also DM you</p>
-    <% } else { %>
-      <p><%= myGifts.length %> <%= plur('gift', myGifts.length) %> <%= myGifts.length > 1 ? 'are on their' : 'is on it\'s' %> way!</p>
-    <% } %>
+    {% else %}
+      <p>{{ myGifts.length | ssPlur('gift') }} {{ 'are on their' if myGifts.length > 1 else "is on it's" }} way!</p>
+    {% endif %}
   </div>
   <div class="size-10 shrink-0 grow-0 i-mdi-gift"></div>
 </div>
 <div x-show="!isMobileWidth || cardExpanded">
-  <% myGifts.forEach(function(tracking) { %>
-    <%- include('../partials/tracking.ejs', {tracking, show_tracking_giftee: false, show_tracking_actions: true}) %>
-  <% }) %>
+  {% for receivedTracking in myGifts %}
+    {{ tracking(receivedTracking, csrfToken, show_tracking_actions=true) }}
+  {% endfor %}
 </div>
+{% endblock %}

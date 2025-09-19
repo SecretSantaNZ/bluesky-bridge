@@ -5,8 +5,6 @@ import type {
   FastifyRequest,
 } from 'fastify';
 import { UnauthorizedError } from 'http-errors-enhanced';
-import plur from 'plur';
-import * as dateUtils from '../../lib/dates.js';
 import {
   queryTrackingWithGiftee,
   queryTrackingWithMatch,
@@ -133,26 +131,18 @@ export const renderPlayerHome = async (
     ...(sentBadge && giftsIveSent.length > 0 ? [sentBadge] : []),
     ...playerBadges,
   ].filter((badge) => badge.id !== settings.current_game_badge_id);
-  return reply.view(
-    'player/home.ejs',
-    {
-      ...dateUtils,
-      ...nudgeOptions,
-      plur,
-      giftees,
-      carriers,
-      myGifts,
-      giftsIveSent,
-      sentNudges,
-      santaMastodonHandle: playerService.santaMastodonHandle,
-      santaMastodonUsername: playerService.santaMastodonHandle.split('@')[0],
-      santaMastodonHost: playerService.santaMastodonHost,
-      badges,
-    },
-    {
-      layout: 'layouts/base-layout.ejs',
-    }
-  );
+  return reply.nunjucks('player/home', {
+    ...nudgeOptions,
+    giftees,
+    carriers,
+    myGifts,
+    giftsIveSent,
+    sentNudges,
+    santaMastodonHandle: playerService.santaMastodonHandle,
+    santaMastodonUsername: playerService.santaMastodonHandle.split('@')[0],
+    santaMastodonHost: playerService.santaMastodonHost,
+    badges,
+  });
 };
 
 export const playerHome: FastifyPluginAsync = async (app) => {

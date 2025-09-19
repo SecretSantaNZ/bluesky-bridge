@@ -1,3 +1,6 @@
+{% extends "common/card-layout.njk" %}
+{% from "common/tracking.njk" import tracking %}
+{% block cardBody %}
 <div
   @click="isMobileWidth && (cardExpanded = !cardExpanded)"
   class="flex -ml-4 lg:ml-0 items-start"
@@ -5,17 +8,18 @@
   <div x-show="isMobileWidth" x-bind:class="'size-10 shrink-0 grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
   <div class="grow shrink">
     <h1>Presents I've sent</h1>
-    <% if (giftsIveSent.length === 0) { %>
+    {% if giftsIveSent.length === 0 %}
       <p>Once you've sent a present and entered the tracking number it will show up here.</p>
-    <% } else { %>
-      <p>You've sent <%= giftsIveSent.length %> <%= plur('gift', giftsIveSent.length) %>, great work!</p>
-    <% } %>
+    {% else %}
+      <p>You've sent {{ giftsIveSent.length | ssPlur('gift') }}, great work!</p>
+    {% endif %}
     <p class="text-sm">(Record your tracking under &quot;My giftee&quot;)</p>
   </div>
   <div class="size-10 shrink-0 grow-0 i-mdi-email-sent"></div>
 </div>
 <div x-show="!isMobileWidth || cardExpanded">
-  <% giftsIveSent.forEach(function(tracking) { %>
-    <%- include('../partials/tracking.ejs', {tracking, show_tracking_giftee: true, show_tracking_actions: false}) %>
-  <% }) %>
+  {% for sentTracking in giftsIveSent %}
+    {{ tracking(sentTracking, csrfToken, show_tracking_giftee=true, show_tracking_actions=false) }}
+  {% endfor %}
 </div>
+{% endblock %}
