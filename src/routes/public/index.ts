@@ -1,5 +1,4 @@
 import type { FastifyPluginAsync } from 'fastify';
-import * as dateUtils from '../../lib/dates.js';
 import { validateAuth } from '../../util/validateAuth.js';
 import { UnauthorizedError } from 'http-errors-enhanced';
 
@@ -33,7 +32,6 @@ export const publicContent: FastifyPluginAsync = async (app) => {
 
     reply.locals = {
       ...reply.locals,
-      ...dateUtils,
       csrfToken: request.tokenData?.csrfToken,
       player,
       settings,

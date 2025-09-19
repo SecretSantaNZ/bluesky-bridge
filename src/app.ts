@@ -12,7 +12,7 @@ import fastifyView from '@fastify/view';
 import fastifyCookie from '@fastify/cookie';
 import fastifyStatic from '@fastify/static';
 import ejs from 'ejs';
-import nunjucks from 'nunjucks';
+import nunjucks, { Environment } from 'nunjucks';
 
 import type { TokenManager } from './lib/TokenManager.js';
 
@@ -30,6 +30,8 @@ import { nudge } from './routes/nudge/index.js';
 import { xrpc } from './routes/xrpc/index.js';
 import { mastodon } from './routes/mastodon/index.js';
 import type { SelectedSettings } from './lib/settings.js';
+import { formatDate, formatDateIso, formatDatetime } from './lib/dates.js';
+import plur from 'plur';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -105,6 +107,16 @@ export const build = async (
     propertyName: 'nunjucks',
     options: {
       noCache: process.env.NODE_ENV !== 'production',
+      onConfigure: (env: Environment) => {
+        env.addFilter('ssDate', formatDate);
+        env.addFilter('ssDatetime', formatDatetime);
+        env.addFilter('ssIsoDate', formatDateIso);
+        env.addFilter('ssEscapeUri', encodeURIComponent);
+        env.addFilter(
+          'ssPlur',
+          (num: number, qualifier: string) => `${num} ${plur(qualifier, num)}`
+        );
+      },
     },
   });
 

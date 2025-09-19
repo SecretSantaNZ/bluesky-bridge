@@ -62,23 +62,23 @@
     <h2>What are the important dates?</h2>
     <div class="pl-6">
       <ul class="list-disc space-y-2">
-        <li><b>{{ formatDate(settings.signups_open_date) }}</b>: sign ups start!</li>
-        <li><b>{{ formatDate(settings.signups_close_date) }}</b>: Last day for signing up.</li>
-        <li><b>{{ formatDate(settings.signups_close_date) }}</b>: Also the last day to opt-out
+        <li><b>{{ settings.signups_open_date | ssDate }}</b>: sign ups start!</li>
+        <li><b>{{ settings.signups_close_date | ssDate }}</b>: Last day for signing up.</li>
+        <li><b>{{ settings.signups_close_date | ssDate }}</b>: Also the last day to opt-out
           without causing the Elves overtime! We get that life throws forks sometimes. If you can,
           please let us know if you cannot play any longer.</li>
         <li>
-          <b>{{ formatDate(settings.matches_sent_date) }}</b>: All matches will be announced. You'll get a DM
+          <b>{{ settings.matches_sent_date | ssDate }}</b>: All matches will be announced. You'll get a DM
           when you're matched, or login to the App to find your Giftee's details!
         </li>
         <li>
-          <b>{{ formatDate(settings.matches_sent_date) }}</b> to <b>{{ formatDate(settings.send_by_date) }}</b>:
+          <b>{{ settings.matches_sent_date | ssDate }}</b> to <b>{{ settings.send_by_date | ssDate }}</b>:
           Sleuthing and shopping time! Post hints for your Secret Santa and find out about your Giftee's
           favourite things. Send your gift!
         </li>
-        <li><b>{{ formatDate(settings.send_by_date) }}</b>: Last day for posting your presents.</li>
+        <li><b>{{ settings.send_by_date | ssDate }}</b>: Last day for posting your presents.</li>
         <li>
-          <b>{{ formatDate(settings.opening_date) }}</b>: Opening Day! Giftees: open your gifts and post photos and
+          <b>{{ settings.opening_date | ssDate }}</b>: Opening Day! Giftees: open your gifts and post photos and
           videos to tell your Secret Santa how much joy they brought you. Use the
           hashtag <a
           href="https://bsky.app/hashtag/{{ settings.hashtag.slice(1) }}"
@@ -111,8 +111,8 @@
   <div class="space-y-2">
     <h2>I signed up but can no longer play, how do I remove myself?</h2>
     <p>If you need to opt-out, head over to About me and click the Opt out button. If you do this before
-      {{ formatDate(settings.signups_close_date) }} then you don't need to do anything else. If it's after
-      {{ formatDate(settings.signups_close_date) }}, the Elves really appreciate a heads-up via DM to
+      {{ settings.signups_close_date | ssDate }} then you don't need to do anything else. If it's after
+      {{ settings.signups_close_date | ssDate }}, the Elves really appreciate a heads-up via DM to
       <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> so that we can
       make sure your original Giftee gets a new Santa. We understand that life happens so please do not
       hesitate to contact us as soon as you know circumstances have changed.</p>
