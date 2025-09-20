@@ -107,6 +107,7 @@ async function startAtOauth(
     if (request.headers['x-alpine-request']) {
       return reply.nunjucks('common/server-events', {
         redirectTo: url,
+        startRequestFrom: '#login',
       });
     } else {
       return reply.redirect(url.href, 303).send();

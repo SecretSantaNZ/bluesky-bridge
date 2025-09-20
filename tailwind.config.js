@@ -15,7 +15,12 @@ export default {
   plugins: [
     iconsPlugin(),
     plugin(function ({ addVariant }) {
-      addVariant('htmx-request', ['&.htmx-request', '.htmx-request &']);
+      addVariant('htmx-request', [
+        '&.htmx-request',
+        '.htmx-request &',
+        '&[aria-busy]',
+        '[aria-busy] &',
+      ]);
     }),
   ],
 };

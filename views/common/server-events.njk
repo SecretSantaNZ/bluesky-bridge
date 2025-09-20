@@ -5,4 +5,7 @@
   {%- if replaceUrl -%}
     window.history.replaceState(null, '', {{ replaceUrl | dump }});
   {%- endif -%}
+  {%- if startRequestFrom -%}
+    secretsantanz.startRequest(document.querySelector({{ startRequestFrom | dump }}));
+  {%- endif -%}
 "></div>
