@@ -1,0 +1,8 @@
+<div x-sync id="server-event" class="hidden" x-init="
+  {%- if redirectTo -%}
+    window.location = {{ redirectTo | dump }};
+  {%- endif -%}
+  {%- if replaceUrl -%}
+    window.history.replaceState(null, '', {{ replaceUrl | dump }});
+  {%- endif -%}
+"></div>

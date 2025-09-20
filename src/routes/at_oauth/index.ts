@@ -104,7 +104,13 @@ async function startAtOauth(
         : 'atproto',
     });
 
-    return reply.code(204).header('HX-Redirect', url.href).send();
+    if (request.headers['x-alpine-request']) {
+      return reply.nunjucks('common/server-events', {
+        redirectTo: url,
+      });
+    } else {
+      return reply.redirect(url.href, 303).send();
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     request.log.error(e);

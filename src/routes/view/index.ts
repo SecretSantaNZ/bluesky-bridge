@@ -34,6 +34,9 @@ export async function returnLoginView(
     settings,
     ...reply.locals,
   };
+  if (locals.errorMessage) {
+    reply.status(400);
+  }
   return reply.nunjucks('auth/login', {
     requestId,
     returnToken,

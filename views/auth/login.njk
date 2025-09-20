@@ -10,7 +10,7 @@
     <img class="rounded-xl" src="https://secretsantanz.imgix.net/elves-banner-2881b545-9291-4120-8d23-161cd6d0d2dd?w=576&h144&auto=format" alt="" width="576px" height="144px">
   </div>
   {% call card() %}
-    <form hx-post="/start-login" id="login" hx-swap="none" x-data="{
+    <form x-target="_none" x-target.error="login-error" method="post" action="/start-login" id="login" x-data="{
         signupsOpen: {{ settings.signups_open | default("false") }},
         defaultMode: {{ mode | default(null) | dump }},
         localMode: null,
@@ -25,7 +25,7 @@
           this.localMode = mode;
         },
       }"
-        @submit="newrelic.addPageAction('login_started', {mode, handle: handle.value, accountType})"
+        @submit="newrelic && newrelic.addPageAction('login_started', {mode, handle: handle.value, accountType})"
       >
       <input type="hidden" name="requestId" value="{{ requestId }}"/>
       <input type="hidden" name="returnToken" value="{{ returnToken }}"/>
