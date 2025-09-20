@@ -5,3 +5,10 @@
 /public/index.js.map
 /.env
 /bluesky-bridge-creds.creds
+
+*.swp
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+newrelic_agent.log
+todo.md
