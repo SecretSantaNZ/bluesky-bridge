@@ -24,7 +24,7 @@
       <input x-model="modalData.max_giftees" type="number" id="max_giftees" name="max_giftees" x-bind:min="modalData.game_mode === 'Super Santa' ? 2 : modalData.game_mode === 'Santa Only' ? 1 : 0" max="5" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"/>
     </div>
     {{ errorPanel(errorMessage, 'update-game-mode-error') }}
-    {{ inputSubmitWithActivity(hideClose=hideClose) }}
+    {{ inputSubmitWithActivity() }}
   </div>
   <input type="hidden" name="player_did" x-bind:value="modalData.did"/>
   <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>

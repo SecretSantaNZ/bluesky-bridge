@@ -2,7 +2,6 @@
 {% from "common/card.njk" import card %}
 {% block body %}
 <div class="w-full flex justify-center" x-data="{{ {modalData: {game_mode: player.game_mode or 'Regular', max_giftees: 2 } } | dump }}">
-  {% set hideClose=true %}
   {% call card() %}
     {% include "./partials/game-mode.njk" %}
   {% endcall %}

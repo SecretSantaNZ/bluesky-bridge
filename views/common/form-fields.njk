@@ -5,9 +5,8 @@
 </div>
 {% endmacro %}
 
-{% macro inputSubmitWithActivity(label='', xBindDisabled=false, hideClose=false) %}
+{% macro inputSubmitWithActivity(label='', xBindDisabled=false) %}
 <div class="flex items-center">
-  {% if not hideClose %}<button @click.prevent="$dispatch('ss-close-modal')" class="text-gray-400">Close</button>{% endif %}
   <div class="grow"></div>
   {{ activitySpinner() }}
   <input type="submit" name="save" value="{{ label if label else 'Save' }}" x-bind:disabled="{{ xBindDisabled }}" class="rounded-lg px-8 py-2 bg-bsky dark:disabled:bg-gray-600 disabled:bg-gray-400 hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />

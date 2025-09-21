@@ -3,7 +3,7 @@
 {% from "common/error.njk" import errorPanel %}
 {% from "common/form-fields.njk" import activitySpinner %}
 {% block body %}
-<div class="w-full flex justify-center relative">
+<div class="w-full flex justify-center">
 {% call card() %}
 <form x-target="_none" action="/opt-out" method="post" id="opt-out">
   <div class="space-y-8">
