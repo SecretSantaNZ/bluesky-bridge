@@ -10,7 +10,7 @@
     <img class="rounded-xl" src="https://secretsantanz.imgix.net/elves-banner-2881b545-9291-4120-8d23-161cd6d0d2dd?w=576&h144&auto=format" alt="" width="576px" height="144px">
   </div>
   {% call card() %}
-    <form x-target="_none" x-target.error="login-error" method="post" action="/start-login" id="login" x-data="{
+    <form x-target x-target.error="login-error" method="post" action="/start-login" id="login" @ajax:missing="event.preventDefault();" x-data="{
         signupsOpen: {{ settings.signups_open | default("false") }},
         defaultMode: {{ mode | default(null) | dump }},
         localMode: null,

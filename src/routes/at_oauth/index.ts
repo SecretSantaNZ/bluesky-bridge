@@ -218,8 +218,11 @@ export async function finishLogin(
       maxAge: 24 * 60 * 60,
     });
 
-    if (request.headers['hx-request']) {
-      return reply.header('HX-Refresh', 'true').code(204).send();
+    if (request.headers['x-alpine-request']) {
+      return reply.nunjucks('common/server-events', {
+        redirectTo: returnUrl ?? '/',
+        startRequestFrom: '#login',
+      });
     }
     return reply.redirect(returnUrl ?? '/', 303);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

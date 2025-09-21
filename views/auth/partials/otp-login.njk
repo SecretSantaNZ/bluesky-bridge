@@ -1,6 +1,6 @@
 {% from "common/error.njk" import errorPanel %}
 {% from "common/form-fields.njk" import activitySpinner %}
-<form hx-post="/finish-otp-login" id="login" hx-swap-oob="outerHTML" hx-swap="none">
+<form x-target="_none" x-target.error="login-error" action="/finish-otp-login" method="post" id="login">
 <input type="hidden" name="otpKey" value="{{ key }}"/>
 <input type="hidden" name="returnToken" value="{{ returnToken }}"/>
 <div class="space-y-8">
