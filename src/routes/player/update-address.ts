@@ -51,10 +51,12 @@ export const updateAddress: FastifyPluginAsync = async (rawApp) => {
             })
           )
         );
+        return reply.code(204).send();
       } else {
-        reply.header('HX-Refresh', 'true');
+        return reply.nunjucks('common/server-events', {
+          reload: true,
+        });
       }
-      return reply.code(204).send();
     }
   );
 };

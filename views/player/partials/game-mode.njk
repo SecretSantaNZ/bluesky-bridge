@@ -1,6 +1,6 @@
 {% from "common/form-fields.njk" import dropdown, inputSubmitWithActivity %}
 {% from "common/error.njk" import errorPanel %}
-<form hx-post="/player/update-game-mode{{ '?returnTooManyMatches=true' if returnTooManyMatches }}" hx-swap="none" id="update-game-mode">
+<form x-target="_none" action="/player/update-game-mode{{ '?returnTooManyMatches=true' if returnTooManyMatches }}" method="post" id="update-game-mode">
   <div class="space-y-8">
     {% if adminMode %}
       <h1 x-text="'Game mode for @' + modalData.handle"></h1>
