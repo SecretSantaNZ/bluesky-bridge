@@ -6,7 +6,6 @@ import {
   queryTracking,
   queryTrackingWithMatch,
 } from '../../lib/database/index.js';
-import * as dateUtils from '../../lib/dates.js';
 
 export const tracking: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -52,9 +51,8 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
         .where('tracking.id', '=', request.params.tracking_id)
         .executeTakeFirstOrThrow();
 
-      return reply.view('/partials/tracking.ejs', {
-        ...dateUtils,
-        tracking,
+      return reply.nunjucks('common/tracking', {
+        trackingRecord: tracking,
         show_tracking_giftee: false,
         show_tracking_actions: true,
       });
