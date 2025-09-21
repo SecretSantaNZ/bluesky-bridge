@@ -1,17 +1,17 @@
 {% from "common/form-fields.njk" import inputText, inputSubmitWithActivity %}
 {% from "common/error.njk" import errorPanel %}
-<form x-target="_none" action="/player/update-address" method="post" id="update-address" @ss-address-changed="modalData.address = $event.detail.address;">
+<form x-target="_none" action="/address" method="post" id="update-address" @ss-address-changed="address = $event.detail.address;"  x-data="{{ {address: player.address, delivery_instructions: player.delivery_instructions } | dump }}">
   <div class="space-y-8">
     {% if adminMode %}
-      <h1 x-text="'Enter address for @' + modalData.handle"></h1>
+      <h1 x-text="'Enter address for @' + handle"></h1>
     {% else %}
       <h1>Enter address for @{{ player_display_handle }}</h1>
     {% endif %}
-    {{ inputText(id='address', label='Address', placeholder='123 Candy Cane Lane, North Pole', xModel='modalData.address', inputType='address') }}
-    {{ inputText(id='delivery_instructions', label='Delivery instructions', placeholder='Leave by back door', xModel='modalData.delivery_instructions') }}
+    {{ inputText(id='address', label='Address', placeholder='123 Candy Cane Lane, North Pole', xModel='address', inputType='address') }}
+    {{ inputText(id='delivery_instructions', label='Delivery instructions', placeholder='Leave by back door', xModel='delivery_instructions') }}
     {{ errorPanel(errorMessage, 'update-address-error') }}
-    {{ inputSubmitWithActivity(xBindDisabled='!modalData.address', hideClose=hideClose) }}
+    {{ inputSubmitWithActivity(xBindDisabled='!address') }}
   </div>
-  <input type="hidden" name="player_did" x-bind:value="modalData.did"/>
+  {# <input type="hidden" name="player_did" x-bind:value="did"/> #}
   <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
 </form>

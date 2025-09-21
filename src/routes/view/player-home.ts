@@ -13,6 +13,7 @@ import {
 import type { SelectedSettings } from '../../lib/settings.js';
 import { optOut } from './opt-out.js';
 import { optIn } from './opt-in.js';
+import { address } from './address.js';
 
 const loadPlayerHomeLocals = async (
   {
@@ -171,7 +172,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
       }
       const hasAddress = Boolean(player.address && player.address.trim());
       if (!hasAddress) {
-        return reply.nunjucks('player/address-required');
+        return reply.nunjucks('player/address', { hideClose: true });
       }
       if (!player.game_mode) {
         return reply.nunjucks('player/game-mode-required');
@@ -181,6 +182,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
 
   await app.register(optOut);
   await app.register(optIn);
+  await app.register(address);
 
   app.get('/', async function (request, reply) {
     return renderPlayerHome(this.blueskyBridge, request, reply);

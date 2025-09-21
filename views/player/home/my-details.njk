@@ -24,9 +24,9 @@
       <p>{{ player.delivery_instructions }}</p>
     </div>
     {% if not player.locked_giftee_for_count %}
-      <button @click="$dispatch('ss-open-modal', {modal: 'address', modalData: {{ {address: player.address, delivery_instructions: player.delivery_instructions } | dump }} })" class="size-10 p-2 rounded-full shrink-0">
+      <a href="/address" class="no-underline size-10 p-2 rounded-full shrink-0">
         <span class="i-mdi-pencil size-full"><span class="sr-only">Edit addreess</span></span>
-      </button>
+      </a>
     {% endif %}
   </div>
   <div class="mt-4 flex items-start">
