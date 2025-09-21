@@ -1,4 +1,7 @@
 <div x-sync id="server-event" class="hidden" x-init="
+  {%- if reload -%}
+    window.location.reload();
+  {%- endif -%}
   {%- if redirectTo -%}
     window.location = {{ redirectTo | dump }};
   {%- endif -%}

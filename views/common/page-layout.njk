@@ -59,7 +59,9 @@
                 <div x-show="userMenuOpen" class="absolute top-10 right-0 min-w-48  border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
                   <ul>
                     <li>
-                      <button hx-post="/player/logout?csrfToken={{ csrfToken }}" class="p-2 w-full text-left shrink-0">Logout</button>
+                      <form x-target="_none" action="/player/logout?csrfToken={{ csrfToken }}" method="post">
+                        <button type="submit" class="p-2 w-full text-left shrink-0">Logout</button>
+                      </form>
                     </li>
                   </ul>
                 </div>
