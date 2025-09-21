@@ -11,6 +11,7 @@ import {
   loadNudgeOptions,
 } from '../../lib/database/index.js';
 import type { SelectedSettings } from '../../lib/settings.js';
+import { optIn } from './opt-in.js';
 
 const loadPlayerHomeLocals = async (
   {
@@ -157,23 +158,27 @@ export const playerHome: FastifyPluginAsync = async (app) => {
     };
     const player = playerHomeLocals.player;
 
-    if (player.booted) {
-      if (!player.admin) {
-        reply.clearCookie('session');
+    if (request.method === 'GET') {
+      if (player.booted) {
+        if (!player.admin) {
+          reply.clearCookie('session');
+        }
+        return reply.nunjucks('player/booted-out');
       }
-      return reply.nunjucks('player/booted-out');
-    }
-    if (player.opted_out) {
-      return reply.nunjucks('player/opted-out');
-    }
-    const hasAddress = Boolean(player.address && player.address.trim());
-    if (!hasAddress) {
-      return reply.nunjucks('player/address-required');
-    }
-    if (!player.game_mode) {
-      return reply.nunjucks('player/game-mode-required');
+      if (player.opted_out) {
+        return reply.nunjucks('player/opted-out');
+      }
+      const hasAddress = Boolean(player.address && player.address.trim());
+      if (!hasAddress) {
+        return reply.nunjucks('player/address-required');
+      }
+      if (!player.game_mode) {
+        return reply.nunjucks('player/game-mode-required');
+      }
     }
   });
+
+  await app.register(optIn);
 
   app.get('/', async function (request, reply) {
     return renderPlayerHome(this.blueskyBridge, request, reply);

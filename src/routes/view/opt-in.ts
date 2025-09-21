@@ -31,7 +31,7 @@ export const optIn: FastifyPluginAsync = async (rawApp) => {
       }
 
       return reply.nunjucks('common/server-events', {
-        reload: true,
+        redirectTo: '/',
       });
     }
   );
