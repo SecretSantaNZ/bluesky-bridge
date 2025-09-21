@@ -75,6 +75,12 @@
 {% call card() %}{% include "./home/presents-ive-sent.njk" %}{% endcall %}
 {% call card() %}{% include "./home/nudges-ive-sent.njk" %}{% endcall %}
 </div>
+<dialog x-init @dialog:open.window="$el.showModal()" @dialog:close.window="$el.close()" class="backdrop:bg-slate-700 backdrop:opacity-80 max-w-xl min-w-80 w-full rounded-lg drop-shadow-lg m-auto">
+  {% call card() %}
+  <div id="dialog-content"></div>
+  <form method="dialog" novalidate><button class="absolute text-gray-400 absolution bottom-8 left-8">Close</button></form>
+  {% endcall %}
+</dialog>
 <div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
   <template x-teleport="body">
     <div x-show="showModal">
@@ -83,7 +89,6 @@
       <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
         <%- include('../layouts/card.ejs', { bodyTemplate: 'player/address.ejs', xShow: "showModal === 'address'" }) %>
         <%- include('../layouts/card.ejs', { bodyTemplate: 'player/game-mode.ejs', xShow: "showModal === 'game-mode'" }) %>
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/confirm-opt-out.ejs', xShow: "showModal === 'opt-out'" }) %>
         <%- include('../layouts/card.ejs', { bodyTemplate: 'player/add-tracking.ejs', xShow: "showModal === 'add-tracking'", mode: 'add' }) %>
         <%- include('../layouts/card.ejs', { bodyTemplate: 'player/send-nudge.ejs', xShow: "showModal === 'send-nudge'" }) %>
         <%- include('../layouts/card.ejs', { bodyTemplate: 'player/badge-detail.ejs', xShow: "showModal === 'badge-detail'" }) %>
