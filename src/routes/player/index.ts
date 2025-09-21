@@ -4,7 +4,6 @@ import { BadRequestError } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { updateAddress } from './update-address.js';
 import { updateGameMode } from './update-game-mode.js';
-import { optOut } from './opt-out.js';
 import { sendNudge } from './send-nudge.js';
 import { addTracking } from './add-tracking.js';
 import { tracking } from './tracking.js';
@@ -60,7 +59,6 @@ export const player: FastifyPluginAsync = async (rawApp) => {
   await app.register(updateAddress);
   await app.register(updateGameMode);
   await app.register(refreshFollowing);
-  await app.register(optOut);
   await app.register(sendNudge);
   await app.register(retryDm);
   await app.register(addTracking);

@@ -11,6 +11,7 @@ import {
   loadNudgeOptions,
 } from '../../lib/database/index.js';
 import type { SelectedSettings } from '../../lib/settings.js';
+import { optOut } from './opt-out.js';
 import { optIn } from './opt-in.js';
 
 const loadPlayerHomeLocals = async (
@@ -178,6 +179,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
     }
   });
 
+  await app.register(optOut);
   await app.register(optIn);
 
   app.get('/', async function (request, reply) {
