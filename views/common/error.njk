@@ -21,4 +21,4 @@
     ></div>
   {% endif %}
 {% endmacro %}
-{{ errorPanel(errorMessage, elementId) }}
+{{ errorPanel(errorMessage, elementId) if elementId }}
