@@ -30,7 +30,9 @@ export const optIn: FastifyPluginAsync = async (rawApp) => {
         throw new NotFoundError();
       }
 
-      return reply.code(204).header('HX-Refresh', 'true').send();
+      return reply.nunjucks('common/server-events', {
+        reload: true,
+      });
     }
   );
 };
