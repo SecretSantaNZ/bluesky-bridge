@@ -81,17 +81,16 @@
   <form method="dialog" novalidate><button class="absolute text-gray-400 absolution bottom-8 left-8">Close</button></form>
   {% endcall %}
 </dialog>
-<div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
+<div x-data="{showModal: false}" @modal:open.window="showModal = true" @modal:close.window="showModal = false;">
   <template x-teleport="body">
     <div x-show="showModal">
       <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
       </div>
       <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/address.ejs', xShow: "showModal === 'address'" }) %>
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/game-mode.ejs', xShow: "showModal === 'game-mode'" }) %>
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/add-tracking.ejs', xShow: "showModal === 'add-tracking'", mode: 'add' }) %>
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/send-nudge.ejs', xShow: "showModal === 'send-nudge'" }) %>
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/badge-detail.ejs', xShow: "showModal === 'badge-detail'" }) %>
+        {% call card() %}
+        <div id="modal-content"></div>
+        <button class="absolute text-gray-400 absolution bottom-8 left-8" @click="showModal = false">Close</button>
+        {% endcall %}
       </div>
     </div>
   </template>

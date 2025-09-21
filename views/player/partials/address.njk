@@ -12,6 +12,5 @@
     {{ errorPanel(errorMessage, 'update-address-error') }}
     {{ inputSubmitWithActivity(xBindDisabled='!address') }}
   </div>
-  {# <input type="hidden" name="player_did" x-bind:value="did"/> #}
   <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
 </form>
