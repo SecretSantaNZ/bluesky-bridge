@@ -48,7 +48,7 @@
           </div>
           {% if player %}
             <script>
-              newrelic.setUserId({{ player.handle | dump | safe }});
+              newrelic?.setUserId({{ player.handle | dump | safe }});
             </script>
             <div class="relative text-slate-800 dark:text-slate-200" x-data x-cloak>
               {% if player.admin or not player.booted %}
@@ -65,7 +65,7 @@
                     </li>
                   </ul>
                 </div>
-                <div class="hidden" hx-get="/session-keep-alive" hx-trigger="every 1m" hx-disabled-elt="this"></div>
+                <div class="hidden" x-init="setInterval(() => $ajax('/session-keep-alive', {target: '_none'}), 60000)"></div>
               {% else %}
                 {{ avatar(player.avatar_url) }}
               {% endif %}
