@@ -27,6 +27,7 @@ export const optOut: FastifyPluginAsync = async (rawApp) => {
 
       return reply.nunjucks('common/server-events', {
         redirectTo: '/',
+        startRequestFrom: '#opt-out',
       });
     }
   );
