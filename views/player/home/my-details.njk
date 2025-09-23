@@ -35,9 +35,9 @@
       <p>Playing as a <b>{{ player.game_mode }}</b>{{ ' for up to ' + player.max_giftees + ' giftees' if player.game_mode !== 'Regular' and player.game_mode !== 'Giftee Only' }}</p>
     </div>
     {% if settings.signups_open %}
-      <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: {{ {game_mode: player.game_mode or 'Regular', max_giftees: player.max_giftees } | dump }} })" class="size-10 p-2 rounded-full shrink-0">
+      <a href="/game-mode" x-target="dialog-content:update-game-mode" @ajax:after="$dispatch('dialog:open')" class="size-10 p-2 rounded-full shrink-0">
         <span class="i-mdi-pencil size-full"><span class="sr-only">Edit game mood</span></span>
-      </button>
+      </a>
     {% endif %}
   </div>
   <div class="grow shrink"></div>

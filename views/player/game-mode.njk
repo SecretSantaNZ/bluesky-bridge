@@ -4,6 +4,7 @@
 <div class="w-full flex justify-center" x-data="{{ {modalData: {game_mode: player.game_mode or 'Regular', max_giftees: 2 } } | dump }}">
   {% call card() %}
     {% include "./partials/game-mode.njk" %}
+    {% if not hideClose %}<a href="/" class="text-gray-400 no-underline absolute bottom-8 left-8">Close</a>{% endif %}
   {% endcall %}
 </div>
 {% endblock %}
