@@ -15,6 +15,7 @@ import { optOut } from './opt-out.js';
 import { optIn } from './opt-in.js';
 import { address } from './address.js';
 import { gameMode } from './game-mode.js';
+import { badge } from './badge.js';
 
 const loadPlayerHomeLocals = async (
   {
@@ -185,6 +186,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
   await app.register(optIn);
   await app.register(address);
   await app.register(gameMode);
+  await app.register(badge);
 
   app.get('/', async function (request, reply) {
     return renderPlayerHome(this.blueskyBridge, request, reply);

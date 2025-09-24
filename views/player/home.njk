@@ -61,9 +61,9 @@
     } %}
     <div class="grid justify-items-center {{ gridClasses[badges.length | string] or '' }}">
       {% for badge in badges %}
-        <button type="button" @click="$dispatch('ss-open-modal', {modal: 'badge-detail', modalData: {{ badge | dump }} })" class="block shrink">
+        <a href="/badge/{{ badge.id }}" x-target="dialog-content:badge-detail" @ajax:after="$dispatch('dialog:open')" class="block shrink">
           <img src="{{ badge.image_url }}" alt="{{ badge.title }}" class="object-contain mx-2 max-h-16 drop-shadow-lg"/>
-        </button> 
+        </a> 
       {% endfor %}
     </div>
   </div>
@@ -76,3 +76,6 @@
 {% call card() %}{% include "./home/nudges-ive-sent.njk" %}{% endcall %}
 </div>
 {% endblock %}
+
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/add-tracking.ejs', xShow: "showModal === 'add-tracking'", mode: 'add' }) %>
+        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/send-nudge.ejs', xShow: "showModal === 'send-nudge'" }) %>
