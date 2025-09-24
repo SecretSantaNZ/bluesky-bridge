@@ -41,7 +41,7 @@ export const address: FastifyPluginAsync = async (rawApp) => {
 
       return reply.nunjucks('common/server-events', {
         redirectTo: '/',
-        startRequestFrom: '#update-address',
+        startRequestFrom: '#modal-content',
       });
     }
   );

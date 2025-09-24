@@ -25,7 +25,7 @@
       <p>{{ player.delivery_instructions }}</p>
     </div>
     {% if not player.locked_giftee_for_count %}
-      <a href="/address" x-target="modal-content:update-address" @ajax:after="$dispatch('modal:open'); initAutocompletes()" class="no-underline size-10 p-2 rounded-full shrink-0">
+      <a href="/address" x-target="modal-content" @ajax:after="$dispatch('modal:open'); initAutocompletes()" class="no-underline size-10 p-2 rounded-full shrink-0">
         {{ activitySpinner() }}
         <span class="htmx-request:hidden i-mdi-pencil size-full"><span class="sr-only">Edit addreess</span></span>
       </a>
@@ -37,14 +37,14 @@
       <p>Playing as a <b>{{ player.game_mode }}</b>{{ ' for up to ' + player.max_giftees + ' giftees' if player.game_mode !== 'Regular' and player.game_mode !== 'Giftee Only' }}</p>
     </div>
     {% if settings.signups_open %}
-      <a href="/game-mode" x-target="dialog-content:update-game-mode" @ajax:after="$dispatch('dialog:open')" class="size-10 p-2 rounded-full shrink-0">
+      <a href="/game-mode" x-target="dialog-content" @ajax:after="$dispatch('dialog:open')" class="size-10 p-2 rounded-full shrink-0">
         {{ activitySpinner() }}
         <span class="htmx-request:hidden i-mdi-pencil size-full"><span class="sr-only">Edit game mood</span></span>
       </a>
     {% endif %}
   </div>
   <div class="grow shrink"></div>
-  <a href="/opt-out" x-target="dialog-content:opt-out" @ajax:after="$dispatch('dialog:open')" id="opt-out-button" class="no-underline block rounded-lg px-8 py-2 mt-12 border-4 border-red-600 hover:bg-red-300 text-red-600 flex">
+  <a href="/opt-out" x-target="dialog-content" @ajax:after="$dispatch('dialog:open')" id="opt-out-button" class="no-underline block rounded-lg px-8 py-2 mt-12 border-4 border-red-600 hover:bg-red-300 text-red-600 flex">
     {{ activitySpinner() }}
     <div>Opt out</div>
   </a>

@@ -49,7 +49,7 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
 
       return reply.nunjucks('common/server-events', {
         redirectTo: '/',
-        startRequestFrom: '#update-game-mode',
+        startRequestFrom: '#dialog-content',
       });
     }
   );
