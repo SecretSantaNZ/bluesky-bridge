@@ -40,14 +40,14 @@ export function startRequest(source: Element) {
   // again
   if (requestCount > 1) return;
 
-  source.setAttribute('aria-busy', 'true');
+  source.setAttribute('data-fetching', 'true');
   const disabledElements = getInternalData<Array<Node>>(
     source,
     'disabledElements',
     []
   );
   for (const toDisable of document.querySelectorAll(
-    '[aria-busy] input, [aria-busy] button[type="submit"], [aria-busy] select, [aria-busy] form'
+    '[data-fetching] input, [data-fetching] button[type="submit"], [data-fetching] select, [data-fetching] form'
   )) {
     incrementInternalData(toDisable, 'inRequestCount');
     // @ts-expect-error not everything has disabled
@@ -64,8 +64,8 @@ export function endRequest(source: Element) {
   const requestCount = decrementInternalData(source, 'requestCount');
   // Still another request in flight, do not enable
   if (requestCount > 0) {
-    // Set aria-busy if we're not done, this stops alpine ajax clearing it
-    source.setAttribute('aria-busy', 'true');
+    // Set data-fetching if we're not done, this stops alpine ajax clearing it
+    source.setAttribute('data-fetching', 'true');
     return;
   }
 
@@ -88,6 +88,5 @@ export function endRequest(source: Element) {
   }
 
   setInternalData(source, 'disabledElements', remainingDisabledElements);
-  source.removeAttribute('xx-aria-busy');
-  source.removeAttribute('aria-busy');
+  source.removeAttribute('data-fetching');
 }

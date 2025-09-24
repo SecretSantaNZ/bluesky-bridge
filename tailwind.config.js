@@ -18,8 +18,8 @@ export default {
       addVariant('htmx-request', [
         '&.htmx-request',
         '.htmx-request &',
-        '&[aria-busy]',
-        '[aria-busy] &',
+        '&[data-fetching]',
+        '[data-fetching] &',
       ]);
     }),
   ],
