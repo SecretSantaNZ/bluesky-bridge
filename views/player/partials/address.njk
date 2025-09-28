@@ -1,6 +1,6 @@
 {% from "common/form-fields.njk" import inputText, inputSubmitWithActivity %}
 {% from "common/error.njk" import errorPanel %}
-<form x-target="_none" action="/address" method="post" id="modal-content" @ss-address-changed="address = $event.detail.address;"  x-data="{{ {address: player.address, delivery_instructions: player.delivery_instructions } | dump }}">
+<form x-target="_none" x-target.error="address-error" action="/address" method="post" id="modal-content" @ss-address-changed="address = $event.detail.address;"  x-data="{{ {address: player.address, delivery_instructions: player.delivery_instructions } | dump }}">
   <div class="space-y-8">
     {% if adminMode %}
       <h1 x-text="'Enter address for @' + handle"></h1>
@@ -9,7 +9,7 @@
     {% endif %}
     {{ inputText(id='address', label='Address', placeholder='123 Candy Cane Lane, North Pole', xModel='address', inputType='address') }}
     {{ inputText(id='delivery_instructions', label='Delivery instructions', placeholder='Leave by back door', xModel='delivery_instructions') }}
-    {{ errorPanel(errorMessage, 'modal-content-error') }}
+    {{ errorPanel(errorMessage, 'address-error') }}
     {{ inputSubmitWithActivity(xBindDisabled='!address') }}
   </div>
   <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>

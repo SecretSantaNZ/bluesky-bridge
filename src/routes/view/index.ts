@@ -36,6 +36,8 @@ export async function returnLoginView(
   };
   if (locals.errorMessage) {
     reply.status(400);
+  } else {
+    reply.status(401);
   }
   return reply.nunjucks('auth/login', {
     requestId,
@@ -57,6 +59,20 @@ export const view: FastifyPluginAsync = async (app) => {
       });
     }
     request.log.error(error);
+
+    const triggerId = request.headers['hx-trigger'];
+    const elementId =
+      request.headers['x-ssnz-error-target'] ??
+      (request.headers['x-alpine-target'] as string | undefined)?.split(
+        ' '
+      )[0] ??
+      (triggerId ? triggerId + '-error' : undefined);
+
+    // @ts-expect-error can't be bothered typing to http error
+    return reply.status(error.status ?? 500).nunjucks('common/error', {
+      errorMessage: error.message || 'Unknown Error',
+      elementId,
+    });
   });
 
   await app.register(playerHome);

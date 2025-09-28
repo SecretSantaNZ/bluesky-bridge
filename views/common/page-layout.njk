@@ -28,8 +28,6 @@
     x-data="{userMenuOpen: false, isMobileWidth: window.ssIsMobileWidth}"
     @click="userMenuOpen = false"
     @ss-is-mobile-width-changed.window="isMobileWidth = event.detail"
-    @ajax:before="secretsantanz.startRequest(event.target)"
-    @ajax:after="secretsantanz.endRequest(event.target)"
   >
     {% include "common/server-events.njk" %}
     <div class="flex flex-col">
