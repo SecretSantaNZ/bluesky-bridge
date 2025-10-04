@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { Player } from '../../lib/PlayerService.js';
 import { NotFoundError } from 'http-errors-enhanced';
+import { renderPlayerHome } from './player-home.js';
 
 export const badge: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -45,13 +46,34 @@ export const badge: FastifyPluginAsync = async (rawApp) => {
           .where('match.santa', '=', player.id)
           .executeTakeFirstOrThrow(),
       ]);
-      console.log({ badge, sentBadge, countTracking, params: request.params });
       if (request.params.badge_id === sentBadge?.id && countTracking > 0) {
+        reply.locals = {
+          ...reply.locals,
+          openDialog: true,
+          badge: sentBadge,
+        };
+        return renderPlayerHome(
+          this.blueskyBridge,
+          request,
+          reply,
+          'player/badge'
+        );
         return reply.nunjucks('player/badge', { badge: sentBadge });
       }
       if (badge == null) {
         throw new NotFoundError();
       }
+      reply.locals = {
+        ...reply.locals,
+        openDialog: true,
+        badge,
+      };
+      return renderPlayerHome(
+        this.blueskyBridge,
+        request,
+        reply,
+        'player/badge'
+      );
       return reply.nunjucks('player/badge', { badge });
     }
   );

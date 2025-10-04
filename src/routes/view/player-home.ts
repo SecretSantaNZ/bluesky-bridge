@@ -15,6 +15,7 @@ import { optOut } from './opt-out.js';
 import { optIn } from './opt-in.js';
 import { address } from './address.js';
 import { gameMode } from './game-mode.js';
+import { tracking } from './tracking.js';
 import { badge } from './badge.js';
 
 const loadPlayerHomeLocals = async (
@@ -47,7 +48,8 @@ const loadPlayerHomeLocals = async (
 export const renderPlayerHome = async (
   blueskyBridge: Pick<FastifyInstance['blueskyBridge'], 'playerService' | 'db'>,
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
+  view = 'player/home'
 ): Promise<FastifyReply> => {
   const playerHomeLocals = await loadPlayerHomeLocals(blueskyBridge, request);
   reply.locals = {
@@ -136,7 +138,7 @@ export const renderPlayerHome = async (
     ...(sentBadge && giftsIveSent.length > 0 ? [sentBadge] : []),
     ...playerBadges,
   ].filter((badge) => badge.id !== settings.current_game_badge_id);
-  return reply.nunjucks('player/home', {
+  return reply.nunjucks(view, {
     ...nudgeOptions,
     giftees,
     carriers,
@@ -147,6 +149,12 @@ export const renderPlayerHome = async (
     santaMastodonUsername: playerService.santaMastodonHandle.split('@')[0],
     santaMastodonHost: playerService.santaMastodonHost,
     badges,
+    replaceUrl: request.url,
+    ...(view === 'player/home'
+      ? {
+          closeDialog: true,
+        }
+      : undefined),
   });
 };
 
@@ -186,6 +194,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
   await app.register(optIn);
   await app.register(address);
   await app.register(gameMode);
+  await app.register(tracking);
   await app.register(badge);
 
   app.get('/', async function (request, reply) {

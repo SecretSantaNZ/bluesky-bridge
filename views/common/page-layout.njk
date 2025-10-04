@@ -29,7 +29,6 @@
     @click="userMenuOpen = false"
     @ss-is-mobile-width-changed.window="isMobileWidth = event.detail"
   >
-    {% include "common/server-events.njk" %}
     <div class="flex flex-col">
       <div class="sticky top-0 bg-bsky text-white drop-shadow-lg mb-8 z-50">
         <div class="flex items-center p-4 gap-4">
@@ -71,7 +70,7 @@
           {% endif %}
         </div>
       </div>
-      <div class="grow p-4 justify-items-center" x-data x-cloak>
+      <div class="grow p-4 justify-items-center" x-data x-cloak id="page-body">
         {% block body %}{% endblock %}
       </div>
     </div>
@@ -108,10 +107,14 @@
             }
         })();
     </script>
-    <dialog x-init @dialog:open.window="$el.showModal()" @dialog:close.window="$el.close()" class="backdrop:bg-slate-700 backdrop:opacity-80 max-w-xl min-w-80 w-full rounded-lg drop-shadow-lg m-auto">
+    <dialog x-init @dialog:open.window="$el.showModal()" @dialog:close.window="$el.close()" class="backdrop:bg-slate-700 backdrop:opacity-80 max-w-xl min-w-80 w-full rounded-lg drop-shadow-lg m-auto" id="dialog">
       {% call card() %}
-      <div id="dialog-content"></div>
-      <form method="dialog" novalidate><button class="absolute text-gray-400 absolution bottom-8 left-8">Close</button></form>
+      {% block dialogContent %}<div id="dialog-content"></div>{% endblock %}
+      {% if openDialog %}
+        <a href="/" class="absolute text-gray-400 absolution bottom-8 left-8">Close</a>
+      {% else %}
+        <form method="dialog" novalidate><button class="absolute text-gray-400 absolution bottom-8 left-8">Close</button></form>
+      {% endif %}
       {% endcall %}
     </dialog>
     <div x-data="{showModal: false}" @modal:open.window="showModal = true" @modal:close.window="showModal = false;">
@@ -126,5 +129,6 @@
         </div>
       </div>
     </div>
+    {% include "common/server-events.njk" %}
   </body>
 </html>
