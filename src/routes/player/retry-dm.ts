@@ -8,8 +8,6 @@ export const retryDm: FastifyPluginAsync = async (rawApp) => {
     const { playerService } = app.blueskyBridge;
     await playerService.retryPlayerDms(playerDid);
 
-    return reply.nunjucks('common/server-events', {
-      reload: true,
-    });
+    return reply.redirect('/', 303);
   });
 };

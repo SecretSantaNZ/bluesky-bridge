@@ -39,10 +39,7 @@ export const address: FastifyPluginAsync = async (rawApp) => {
           address == null ? undefined : !address.match(/new zealand|aotearoa/i),
       });
 
-      return reply.nunjucks('common/server-events', {
-        redirectTo: '/',
-        startRequestFrom: '#modal-content',
-      });
+      return reply.redirect('/', 303);
     }
   );
 };

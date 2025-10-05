@@ -5,7 +5,7 @@
 {% block body %}
 <div class="w-full flex justify-center">
   {% call card() %}
-    <form x-target="_none" x-target.error="opt-in-error" action="/opt-in" method="post" id="opt-in">
+    <form x-target="page-body" x-target.error="opt-in-error" action="/opt-in" method="post" id="opt-in">
       <div class="space-y-8">
         <h1>@{{ player_display_handle  }} opted out</h1>
         {% if settings.signups_open %}

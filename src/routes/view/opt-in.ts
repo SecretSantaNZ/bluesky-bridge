@@ -30,10 +30,7 @@ export const optIn: FastifyPluginAsync = async (rawApp) => {
         throw new NotFoundError();
       }
 
-      return reply.nunjucks('common/server-events', {
-        redirectTo: '/',
-        startRequestFrom: '#opt-in',
-      });
+      return reply.redirect('/', 303);
     }
   );
 };

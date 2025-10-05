@@ -47,10 +47,7 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
         throw new NotFoundError();
       }
 
-      return reply.nunjucks('common/server-events', {
-        redirectTo: '/',
-        startRequestFrom: '#dialog-content',
-      });
+      return reply.redirect('/', 303);
     }
   );
 };

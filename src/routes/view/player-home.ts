@@ -178,6 +178,10 @@ export const playerHome: FastifyPluginAsync = async (app) => {
         return reply.nunjucks('player/booted-out');
       }
       if (player.opted_out) {
+        reply.locals = {
+          ...reply.locals,
+          closeDialog: true,
+        };
         return reply.nunjucks('player/opted-out');
       }
       const hasAddress = Boolean(player.address && player.address.trim());

@@ -18,7 +18,7 @@
       <div class="shrink grow">
         <h1>@secretsanta.nz could not DM you</h1>
         <p>Make sure you <a href="/faq#how-do-i-enable-dms">enable DMs from people you follow</a>.</p>
-        <form x-target="_none" x-target.error="retry-dm-form" action="/player/retry-dm" method="post" id="retry-dm-form">
+        <form x-target="page-body" x-target.error="retry-dm-form" action="/player/retry-dm" method="post" id="retry-dm-form">
           <button class="mt-4"><div class="flex items-center"><div class="i-mdi-email-refresh-outline mr-2 size-6"></div>Retry...</div></button>
           <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
         </form>

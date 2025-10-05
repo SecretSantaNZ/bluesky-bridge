@@ -9,10 +9,11 @@
     window.history.replaceState(null, '', {{ replaceUrl | dump }});
   {%- endif -%}
   {%- if closeDialog -%}
-    $dispatch('dialog:close')
+    $dispatch('dialog:close');
+    $dispatch('modal:close');
   {%- endif -%}
   {%- if openDialog -%}
-    $dispatch('dialog:open')
+    $dispatch('dialog:open');
   {%- endif -%}
   {%- if startRequestFrom -%}
     secretsantanz.startRequest(document.querySelector({{ startRequestFrom | dump }}));
