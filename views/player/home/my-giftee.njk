@@ -25,7 +25,10 @@
         </div>
         <div class="flex justify-evenly mt-2">
           {% if giftee.nudge_count < 5 %}
-            <button @click="$dispatch('ss-open-modal', {modal: 'send-nudge', modalData: {{ {giftee_handle: giftee.handle, match_id: giftee.match_id} | dump }} })" class="flex items-center rounded-xs"><div class="i-mdi-message-bubble mr-1 size-5"></div><div>Nudge</div></button>
+            <a href="/match/{{ giftee.match_id }}/send-nudge" x-target="dialog-content" @ajax:after="$dispatch('dialog:open')" class="flex items-center rounded-xs">
+              {{ activitySpinner() }}
+            <div class="i-mdi-message-bubble mr-1 size-5"></div><div>Nudge</div>
+          </a>
           {% endif %}
           {% if giftee.tracking_count < 5 %}
             <a href="/match/{{ giftee.match_id }}/add-tracking" x-target="dialog-content" @ajax:after="$dispatch('dialog:open')" class="flex items-center rounded-xs">

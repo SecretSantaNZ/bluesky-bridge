@@ -8,7 +8,6 @@ import { UnauthorizedError } from 'http-errors-enhanced';
 import {
   queryTrackingWithGiftee,
   queryTrackingWithMatch,
-  loadNudgeOptions,
 } from '../../lib/database/index.js';
 import type { SelectedSettings } from '../../lib/settings.js';
 import { optOut } from './opt-out.js';
@@ -16,6 +15,7 @@ import { optIn } from './opt-in.js';
 import { address } from './address.js';
 import { gameMode } from './game-mode.js';
 import { tracking } from './tracking.js';
+import { nudge } from './nudge.js';
 import { badge } from './badge.js';
 
 const loadPlayerHomeLocals = async (
@@ -58,80 +58,70 @@ export const renderPlayerHome = async (
   };
   const player = playerHomeLocals.player;
   const { db, playerService } = blueskyBridge;
-  const [
-    giftees,
-    carriers,
-    myGifts,
-    giftsIveSent,
-    sentNudges,
-    nudgeOptions,
-    playerBadges,
-    sentBadge,
-  ] = await Promise.all([
-    db
-      .selectFrom('match')
-      .innerJoin('player', 'player.id', 'match.giftee')
-      .select([
-        'player.avatar_url',
-        'player.handle',
-        'player.address',
-        'player.delivery_instructions',
-        'match.id as match_id',
-        'match.match_status',
-        'match.nudge_count',
-        'match.tracking_count',
-      ])
-      .where('match.santa', '=', player.id)
-      .where('match.deactivated', 'is', null)
-      .where('match.match_status', '<>', 'draft')
-      .execute(),
-    db.selectFrom('carrier').selectAll().orderBy('id', 'asc').execute(),
-    queryTrackingWithMatch(db)
-      .where('match.giftee', '=', player.id)
-      .orderBy('shipped_date', 'asc')
-      .execute(),
-    queryTrackingWithGiftee(db)
-      .where('match.santa', '=', player.id)
-      .orderBy('shipped_date', 'asc')
-      .execute(),
-    db
-      .selectFrom('nudge')
-      .innerJoin('match', 'match.id', 'nudge.match')
-      .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
-      .innerJoin('nudge_type', 'nudge_type.id', 'nudge.nudge_type')
-      .select([
-        'nudge_type.name as nudge_type',
-        'nudge.created_at',
-        'giftee.handle as giftee_handle',
-        'nudge.post_url',
-      ])
-      .where('match.santa', '=', player.id)
-      .orderBy('nudge.created_at', 'asc')
-      .execute(),
-    loadNudgeOptions(db),
-    db
-      .selectFrom('player_badge')
-      .innerJoin('badge', 'badge.id', 'player_badge.badge_id')
-      .select([
-        'badge.id',
-        'badge.title',
-        'badge.description',
-        'badge.image_url',
-      ])
-      .where('player_badge.player_did', '=', player.did)
-      .orderBy('recorded_at', 'asc')
-      .execute(),
-    db
-      .selectFrom('badge')
-      .innerJoin('settings', 'settings.sent_present_badge_id', 'badge.id')
-      .select([
-        'badge.id',
-        'badge.title',
-        'badge.description',
-        'badge.image_url',
-      ])
-      .executeTakeFirst(),
-  ]);
+  const [giftees, myGifts, giftsIveSent, sentNudges, playerBadges, sentBadge] =
+    await Promise.all([
+      db
+        .selectFrom('match')
+        .innerJoin('player', 'player.id', 'match.giftee')
+        .select([
+          'player.avatar_url',
+          'player.handle',
+          'player.address',
+          'player.delivery_instructions',
+          'match.id as match_id',
+          'match.match_status',
+          'match.nudge_count',
+          'match.tracking_count',
+        ])
+        .where('match.santa', '=', player.id)
+        .where('match.deactivated', 'is', null)
+        .where('match.match_status', '<>', 'draft')
+        .execute(),
+      queryTrackingWithMatch(db)
+        .where('match.giftee', '=', player.id)
+        .orderBy('shipped_date', 'asc')
+        .execute(),
+      queryTrackingWithGiftee(db)
+        .where('match.santa', '=', player.id)
+        .orderBy('shipped_date', 'asc')
+        .execute(),
+      db
+        .selectFrom('nudge')
+        .innerJoin('match', 'match.id', 'nudge.match')
+        .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
+        .innerJoin('nudge_type', 'nudge_type.id', 'nudge.nudge_type')
+        .select([
+          'nudge_type.name as nudge_type',
+          'nudge.created_at',
+          'giftee.handle as giftee_handle',
+          'nudge.post_url',
+        ])
+        .where('match.santa', '=', player.id)
+        .orderBy('nudge.created_at', 'asc')
+        .execute(),
+      db
+        .selectFrom('player_badge')
+        .innerJoin('badge', 'badge.id', 'player_badge.badge_id')
+        .select([
+          'badge.id',
+          'badge.title',
+          'badge.description',
+          'badge.image_url',
+        ])
+        .where('player_badge.player_did', '=', player.did)
+        .orderBy('recorded_at', 'asc')
+        .execute(),
+      db
+        .selectFrom('badge')
+        .innerJoin('settings', 'settings.sent_present_badge_id', 'badge.id')
+        .select([
+          'badge.id',
+          'badge.title',
+          'badge.description',
+          'badge.image_url',
+        ])
+        .executeTakeFirst(),
+    ]);
 
   const settings = reply.locals?.settings as SelectedSettings;
   const badges = [
@@ -139,9 +129,7 @@ export const renderPlayerHome = async (
     ...playerBadges,
   ].filter((badge) => badge.id !== settings.current_game_badge_id);
   return reply.nunjucks(view, {
-    ...nudgeOptions,
     giftees,
-    carriers,
     myGifts,
     giftsIveSent,
     sentNudges,
@@ -199,6 +187,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
   await app.register(address);
   await app.register(gameMode);
   await app.register(tracking);
+  await app.register(nudge);
   await app.register(badge);
 
   app.get('/', async function (request, reply) {

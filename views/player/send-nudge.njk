@@ -1,0 +1,34 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% from "common/error.njk" import errorPanel %}
+{% from "common/form-fields.njk" import dropdown, inputSubmitWithActivity %}
+{% block body %}
+<div class="w-full flex justify-center">
+  {% call card() %}
+<form x-target="page-body" x-target.error="send-nudge-error" method="post" action="/nudge"
+    x-data="{{ nudgeOptions | dump }}"
+    id="dialog-content"
+  >
+  <div class="space-y-8">
+    <h1>Nudge @{{ match.giftee_handle }}</h1>
+    <p>Nudges are a post by <a href="https://bsky.app/profile/robosanta.secretsanta.nz" target="_blank">@robosanta.secretsanta.nz</a> that tag your Giftee so you can nudge them for a little more information.</p>
+    <div class="pl-6">
+      <ul class="list-disc space-y-2">
+        <li><b>Hint</b><br/>Asks your Giftee to tweet a hint so you can choose the perfect gift.</li>
+        <li><b>Arrival</b><br/>Checks that your Giftee has got their parcel in their hot little hands. Before you use this, please be reasonably sure the parcel should have arrived and check the delivery status.</li>
+        <li><b>Opening</b><br/>On and after opening day ({{ settings.opening_date | ssDate }}), this asks your Giftee to tweet about their gift: with photos or a wee video. THE BEST PART. Before you do this, please be reasonably sure the parcel should have arrived and check the delivery status.</li>
+        <li><b>Present Update</b><br/>Let your Giftee know that you're onto it, even though {{ settings.send_by_date | ssDate }} sending deadline may be making that swooshing sound as it goes past.</li>
+      </ul>
+    </div>
+    {{ dropdown(id='nudge_type', xModel='nudge_type', label='Type of nudge', options=nudgeTypes) }}
+    {{ dropdown(id='nudge_greeting', xModel='nudge_greeting', label='Greeting', optionsExp='nudgeGreetings[nudge_type]') }}
+    {{ dropdown(id='nudge_signoff', xModel='nudge_signoff', label='Signoff', optionsExp='nudgeSignoffs[nudge_type]') }}
+    {{ errorPanel(errorMessage, 'send-nudge-error') }}
+    {{ inputSubmitWithActivity(label='Nudge') }}
+  </div>
+  <input type="hidden" name="match_id" value="{{ match.match_id }}"/>
+  <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+<form>
+  {% endcall %}
+</div>
+{% endblock %}
