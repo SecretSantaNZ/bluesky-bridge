@@ -5,7 +5,7 @@
 {% block body %}
 <div class="w-full flex justify-center">
 {% call card() %}
-<form x-target="page-body" x-target.error="opt-out-error" action="/opt-out" method="post" id="dialog-content">
+<form x-target="page-body" x-target.error="opt-out-error" @ajax:success="$dispatch('dialog:close')" action="/opt-out" method="post" id="dialog-content">
   <div class="space-y-8">
     <h1>Opt out</h1>
     <p>You can opt out at any time, life happens sometimes and we'd rather you told us than ghost us,</p>

@@ -168,7 +168,6 @@ export const playerHome: FastifyPluginAsync = async (app) => {
       if (player.opted_out) {
         reply.locals = {
           ...reply.locals,
-          closeDialog: true,
         };
         return reply.nunjucks('player/opted-out');
       }
