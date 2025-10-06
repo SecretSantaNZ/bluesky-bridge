@@ -63,13 +63,6 @@ export const nudge: FastifyPluginAsync = async (rawApp) => {
         throw new InternalServerError(`Player not found ${did}`);
       }
 
-      console.log({
-        pid: player.id,
-        match_id,
-        nudge_type,
-        nudge_greeting,
-        nudge_signoff,
-      });
       const [match] = await Promise.all([
         db
           .selectFrom('match')

@@ -1,0 +1,40 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% from "common/error.njk" import errorPanel %}
+{% from "common/form-fields.njk" import activitySpinner, inputSubmitWithActivity %}
+{% block body %}
+<div class="w-full flex justify-center">
+  {% call card() %}
+<div id="dialog-content">
+  <h1 class="mb-4">@{{ player_display_handle }}'s Badges</h1>
+  {% for badge in playerBadges %}
+    <div class="flex mb-4 py-2 items-center">
+      <img src="{{ badge.image_url }}" class="block size-16 mr-4">
+      <p class="font-semibold text-xl">{{ badge.title }}</p>
+      <div class="grow"></div>
+      <form x-target="dialog-content" action="/admin/player/{{ player.id }}/badges/{{ badge.id }}/delete" method="post">
+        {{ activitySpinner() }}
+        <button type="submit">
+          <div class="i-mdi-trash-can-outline size-12 htmx-request:hidden"></div>
+        </button>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+      </form>
+  </div>
+  {% endfor %}
+  <form x-target="dialog-content" action="/admin/player/{{ player.id }}/badges" method="post" class="flex mb-4">
+    <select name="badge_id">
+      {% for badge in badges %}
+        <option value="{{ badge.id }}">{{ badge.title }}</option>
+      {% endfor %}
+    </select>
+    <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+    <div class="grow"></div>
+    {{ activitySpinner() }}
+    <button type="submit">
+      <div class="i-mdi-add size-12 htmx-request:hidden"></div>
+    </button>
+  </form>
+<div>
+  {% endcall %}
+</div>
+{% endblock %}

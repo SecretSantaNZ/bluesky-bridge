@@ -170,7 +170,13 @@ export const playerHome: FastifyPluginAsync = async (app) => {
         return reply.nunjucks('player/address', { hideClose: true });
       }
       if (!player.game_mode) {
-        return reply.nunjucks('player/game-mode', { hideClose: true });
+        return reply.nunjucks('player/game-mode', {
+          hideClose: true,
+          gameModeOptions: [
+            { id: 'Regular', text: 'Regular' },
+            { id: 'Super Santa', text: 'Super Santa' },
+          ],
+        });
       }
     }
   });

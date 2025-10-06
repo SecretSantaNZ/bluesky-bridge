@@ -25,7 +25,7 @@
       <p>{{ player.delivery_instructions }}</p>
     </div>
     {% if not player.locked_giftee_for_count %}
-      <a href="/address" x-target="modal-content" @ajax:success="$dispatch('modal:open'); initAutocompletes()" class="no-underline size-10 p-2 rounded-full shrink-0">
+      <a href="/address" x-target="modal-content" @ajax:success="$dispatch('modal:open')" class="no-underline size-10 p-2 rounded-full shrink-0">
         {{ activitySpinner() }}
         <span class="htmx-request:hidden i-mdi-pencil size-full"><span class="sr-only">Edit addreess</span></span>
       </a>
@@ -36,8 +36,8 @@
       <h2 class="text-md font-semibold">My game</h2>
       <p>Playing as a <b>{{ player.game_mode }}</b>{{ ' for up to ' + player.max_giftees + ' giftees' if player.game_mode !== 'Regular' and player.game_mode !== 'Giftee Only' }}</p>
     </div>
-    {% if settings.signups_open %}
-      <a href="/game-mode" x-target="dialog-content" @ajax:sucess="$dispatch('dialog:open')" class="size-10 p-2 rounded-full shrink-0">
+    {% if settings.signups_open and (player.game_mode === 'Regular' or player.game_mode === 'Super Santa') %}
+      <a href="/game-mode" x-target="dialog-content" @ajax:success="$dispatch('dialog:open')" class="size-10 p-2 rounded-full shrink-0">
         {{ activitySpinner() }}
         <span class="htmx-request:hidden i-mdi-pencil size-full"><span class="sr-only">Edit game mood</span></span>
       </a>

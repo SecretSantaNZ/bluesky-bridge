@@ -1,6 +1,10 @@
+{% extends "common/page-layout.njk" %}
+{% from 'admin/partials/player-link.njk' import playerLink %}
+{% from "common/form-fields.njk" import activitySpinner, dropdown, inputText, inputSubmitWithActivity %}
+{% from "common/error.njk" import errorPanel %}
+{% block body %}
 <div class="w-full px-12"
-    x-data="{...<%= JSON.stringify({players, showConfirm: '', initialFilter}) %>,
-    }"
+    x-data="{{ {players: players, showConfirm: '', initialFilter: initialFilter} | dump }}"
     x-init="activePlayersPager = secretsantanz.buildPager({
       handle: initialFilter,
       showSignupComplete: true,
@@ -27,8 +31,14 @@
       const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
       return players.filter(player => player.deactivated && (!cleanHandleFilter || player.handle.toLowerCase().includes(cleanHandleFilter)));
     });"
-    @ss-player-updated.window="players = players.map((player) => (player.did === event.detail.did ? event.detail : player))"
-    @ss-player-added.window="players.push(event.detail)"
+    @ss:player:updated.window="
+      let index = players.findIndex((player) => player.did === event.detail.did);
+      if (index != -1) {
+        players.splice(index, 1, event.detail);
+      } else {
+        players.push(event.detail);
+      }
+    "
   >
   <div class="flex items-center mb-2">
     <div class="flex space-x-8 items-center flex-col sm:flex-row grow">
@@ -59,7 +69,13 @@
       </div>
     </div>
 
-    <button @click="$dispatch('ss-open-modal', {modal: 'new-player', modalData: {}})">
+    <button @click="const contentElement = document.getElementById('modal-content');
+        contentElement.innerHTML = '';
+        contentElement.appendChild(
+          document.getElementById('new-player-modal-content').content.cloneNode(true)
+        );
+        $dispatch('modal:open');"
+      >
       <div class="i-mdi-add size-10"></div>
     </button>
   </div>
@@ -76,10 +92,10 @@
     <div class="flex justify-center"><b>Remove player</b></div>
   </div>
   <template x-for="player in activePlayersPager.pageData">
-    <div class="grid sm:grid-cols-7 space-x-4 border-b py-2" x-init="htmx && htmx.process($el)">
-      <%- include('./fragments/player-link.ejs', { showPostCount: true }) %>
-      <form hx-post="/player/refresh-following" class="flex items-center sm:justify-center">
-        <%- include('../partials/activity-spinner.ejs') %>
+    <div class="grid sm:grid-cols-7 space-x-4 border-b py-2">
+      {{ playerLink(showPostCount=true) }}
+      <form x-target="_none" x-bind:action="'/admin/player/' + player.id + '/refresh-following'" method="post" class="flex items-center sm:justify-center">
+        {{ activitySpinner() }}
         <button class="htmx-request:hidden">
           <div class="flex sm:justify-center items-center">
             <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="player.player_type === 'mastodon' && !player.following_santa_uri && !player.mastodon_following_santa"></div>
@@ -92,25 +108,26 @@
           </div>
           <div class="italic hidden sm:block">Click to recheck</div>
         </button>
-        <input type="hidden" name="player_did" x-bind:value="player.did"/>
-        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
       </form>
-      <button @click="$dispatch('ss-open-modal', {modal: 'address', modalData: player})">
-        <div class="flex sm:justify-center items-center">
+      <a x-bind:href="'/admin/player/' + player.id + '/address'" x-target="modal-content" @ajax:success="$dispatch('modal:open')" class="flex flex-col justify-center items-center">
+        {{ activitySpinner() }}
+        <div class="flex sm:justify-center items-center htmx-request:hidden">
           <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.address"></div>
           <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.address"></div>
           <div class="sm:hidden"><b>Has address</b> <span class="italic">(Click to edit)</span></div>
         </div>
         <div class="italic hidden sm:block">Click to edit</div>
-      </button>
-      <button @click="$dispatch('ss-open-modal', {modal: 'game-mode', modalData: {...player, game_mode: player.game_mode || 'Regular' }})">
-        <div class="flex sm:justify-center items-center">
+      </a>
+      <a x-bind:href="'/admin/player/' + player.id + '/game-mode'" x-target="dialog-content" @ajax:success="$dispatch('dialog:open')" class="flex flex-col justify-center items-center">
+        {{ activitySpinner() }}
+        <div class="flex sm:justify-center items-center htmx-request:hidden">
           <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.game_mode"></div>
           <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.game_mode"></div>
           <div class="sm:hidden"><b>Game mode</b> <span class="italic">(Click to edit)</span></div>
         </div>
         <div class="italic hidden sm:block">Click to edit</div>
-      </button>
+      </a>
       <div class="text-center" x-show="!player.player_dm_status.startsWith('error:')">
         <div class="flex sm:justify-center items-center">
           <div class="i-mdi-queue-first-in-last-out size-12" x-show="player.player_dm_status !== 'sent'"></div>
@@ -119,8 +136,8 @@
         </div>
         <div class="italic hidden sm:block" x-text="player.player_dm_status"></div>
       </div>
-      <form hx-post="/admin/retry-dm" class="flex items-center sm:justify-center" x-show="player.player_dm_status.startsWith('error:')">
-        <%- include('../partials/activity-spinner.ejs') %>
+      <form x-target="_none" x-bind:action="'/admin/player/' + player.id + '/retry-dm'" method="post" class="flex items-center sm:justify-center" x-show="player.player_dm_status.startsWith('error:')">
+        {{ activitySpinner() }}
         <button class="htmx-request:hidden" x-bind:title="player.player_dm_status">
           <div class="flex sm:justify-center items-center">
             <div class="i-mdi-cross-circle-outline text-red-600 size-12"></div>
@@ -130,28 +147,29 @@
         <div class="italic hidden sm:block">Click to retry</div>
         </button>
         <input type="hidden" name="player_did" x-bind:value="player.did"/>
-        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
       </form>
       <div class="flex items-center sm:justify-center">
-        <a hx-get="/admin/player-badges" x-bind:hx-vals="JSON.stringify({player_did: player.did})" class="flex pl-4 items-center"
-          hx-target="#modal-dialogue-content" hx-select="#player-badges" hx-swap="innerHtml" hx-indicator="#modal-dialogue"
-          @htmx:before-send.camel="$refs.modal.showModal()"
-        ><div x-text="player.badge_count" class="text-4xl"></div><div class="font-semibold ml-3 sm:hidden">Badges</div></a>
+        <a x-target="dialog-content" @ajax:success="$dispatch('dialog:open')" x-bind:href="'/admin/player/' + player.id + '/badges'" class="flex pl-4 items-center">
+          {{ activitySpinner() }}
+          <div x-text="player.badge_count" class="text-4xl htmx-request:hidden"></div><div class="font-semibold ml-3 sm:hidden">Badges</div>
+        </a>
       </div>
-      <form hx-post="/player/boot-player" class="flex items-center sm:justify-center">
+      <form x-target="_none" x-bind:action="'/admin/player/' + player.id + '/boot'" method="post" class="flex items-center sm:justify-center">
         <button x-show="`remove-${player.did}` !== showConfirm" @click.prevent.stop="showConfirm = `remove-${player.did}`">
           <div class="flex sm:justify-center items-center ">
             <div class="i-mdi-trash-can-outline size-12"></div>
             <div class="sm:hidden"><b>Remove player</b></div>
           </div>
         </button>
-        <%- include('../partials/activity-spinner.ejs') %>
-        <input x-show="`remove-${player.did}` === showConfirm" type="submit" name="save" value="Remove player" class="htmx-request:hidden rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+        {{ activitySpinner() }}
+        <input x-show="`remove-${player.did}` === showConfirm" type="submit" name="opt_out" value="Opt out" class="htmx-request:hidden rounded-lg px-8 py-2 bg-bsky dark:disabled:bg-gray-600 disabled:bg-gray-400 hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+        <input x-show="`remove-${player.did}` === showConfirm" type="submit" name="boot" value="Boot player" class="htmx-request:hidden rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
         <button x-show="`remove-${player.did}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
           <div class="i-mdi-close size-12 text-gray-400"></div>
         </button>
         <input type="hidden" name="player_did" x-bind:value="player.did"/>
-        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
       </form>
     </div>
   </template>
@@ -175,49 +193,58 @@
     <div class="flex justify-center"><b>Reactivate player</b></div>
   </div>
   <template x-for="player in inactivePlayersPager.pageData">
-    <div class="grid sm:grid-cols-3 space-x-4 border-b py-2" x-init="htmx && htmx.process($el)">
-      <%- include('./fragments/player-link.ejs') %>
+    <div class="grid sm:grid-cols-3 space-x-4 border-b py-2">
+      {{ playerLink() }}
       <div class="flex justify-center items-center">
         <span x-text="player.booted ? 'Booted out' : 'Opted out'"></span>
       </div>
-      <form hx-post="/player/restore-player" class="flex items-center sm:justify-center">
+      <form x-target="_none" x-bind:action="'/admin/player/' + player.id + '/restore'" method="post" class="flex items-center sm:justify-center">
         <button x-show="`restore-${player.did}` !== showConfirm" @click.prevent.stop="showConfirm = `restore-${player.did}`">
           <div class="flex sm:justify-center items-center ">
             <div class="i-mdi-restore size-12"></div>
             <div class="sm:hidden"><b>Restore player</b></div>
           </div>
         </button>
-        <%- include('../partials/activity-spinner.ejs') %>
+        {{ activitySpinner() }}
         <input x-show="`restore-${player.did}` === showConfirm" type="submit" name="save" value="Restore player" class="htmx-request:hidden rounded-lg px-8 py-2 bg-green-600 hover:bg-green-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
         <button x-show="`restore-${player.did}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
           <div class="i-mdi-close size-12 text-gray-400"></div>
         </button>
         <input type="hidden" name="player_did" x-bind:value="player.did"/>
-        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
       </form>
     </div>
   </template>
 </div>
-<div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
-  <template x-teleport="body">
-    <div x-show="showModal">
-      <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
-      </div>
-      <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/address.ejs', xShow: "showModal === 'address'", adminMode: true }) %>
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'player/game-mode.ejs', xShow: "showModal === 'game-mode'", adminMode: true }) %>
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/new-player.ejs', xShow: "showModal === 'new-player'", adminMode: true  }) %>
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/player-notes.ejs', xShow: "showModal === 'player-notes'", adminMode: true  }) %>
-      </div>
+<template id="new-player-modal-content">
+  <form x-target="_none" x-target.error="new-player-error" @ajax:success="$dispatch('modal:close')" action="/admin/player" method="post" id="new-player" @ss-address-changed="address = $event.detail.address;"
+    x-data="{term: '', actors: [], address: ''}"
+    x-init="initAutocompletes();"
+  >
+  <div class="space-y-8">
+    <h1>Add player</h1>
+    {{ dropdown(id='player_type', label='Player type', options=[
+      {id: 'bluesky', text: 'Bluesky'},
+      {id: 'mastodon', text: 'Mastodon'}
+    ]) }}
+    <div>
+      {{ inputText(id='new_player_handle', name='handle', label='Handle', placeholder='coolplayer.bsky.social', xModel='term', attributes={
+        list: 'new_player_handles',
+        autocomplete: 'false',
+        '@keypress.debounce': "actors = JSON.parse(await $fetch('https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=' + encodeURIComponent(term.replace(/^@/, '').trim().toLowerCase()))).actors"
+      }) }}
+      <datalist id="new_player_handles"> 
+        <template x-for="item in (actors || [])">
+          <option x-bind:value="(term.startsWith('@') ? '@' : '') + item.handle"></option>
+        </template>
+      </datalist>
     </div>
-  </template>
-</div>
-<dialog id="modal-dialogue" x-ref="modal" class="bg-slate-300 dark:bg-slate-800 backdrop:bg-slate-700 backdrop:opacity-80 max-w-xl min-w-80 w-full border-solid border rounded-xl border-slate-500 p-8 drop-shadow-lg m-auto">
-  <div class="w-full flex flex-col min-h-32">
-    <div id="modal-dialogue-content" class="htmx-request:hidden">
-    </div>
-    <div class="grow flex justify-center items-center">
-      <%- include('../partials/activity-spinner.ejs') %>
-    </div>
+    {{ inputText(id='new_player_address', name='address', label='Address', placeholder='123 Candy Cane Lane, North Pole', xModel='address', inputType='address') }}
+    {{ inputText(id='new_player_delivery_instructions', name='delivery_instructions', label='Delivery instructions', placeholder='Leave by back door') }}
+    {{ errorPanel(errorMessage, 'new-player-error') }}
+    {{ inputSubmitWithActivity() }}
   </div>
-</dialog>
+  <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+</form>
+</template>
+{% endblock %}

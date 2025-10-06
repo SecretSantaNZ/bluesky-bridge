@@ -1,7 +1,20 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import * as dateUtils from '../../../lib/dates.js';
+import type { Database } from '../../../lib/database/index.js';
+
+export function baseAdminPlayerQuery(db: Database) {
+  return db
+    .selectFrom('player')
+    .selectAll('player')
+    .select((eb) =>
+      eb
+        .selectFrom('player_badge')
+        .select(({ fn }) => fn.countAll<number>().as('badge_count'))
+        .whereRef('player_badge.player_did', '=', 'player.did')
+        .as('badge_count')
+    );
+}
 
 export const managePlayers: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -16,17 +29,7 @@ export const managePlayers: FastifyPluginAsync = async (rawApp) => {
     },
     async function (request, reply) {
       const { db } = this.blueskyBridge;
-      const baseQuery = db
-        .selectFrom('player')
-        .selectAll('player')
-        .select((eb) =>
-          eb
-            .selectFrom('player_badge')
-            .select(({ fn }) => fn.countAll<number>().as('badge_count'))
-            .whereRef('player_badge.player_did', '=', 'player.did')
-            .as('badge_count')
-        )
-        .orderBy('id', 'asc');
+      const baseQuery = baseAdminPlayerQuery(db).orderBy('id', 'asc');
       if (request.query.player_did && request.headers['hx-request']) {
         const player = await baseQuery
           .where('player.did', '=', request.query.player_did)
@@ -34,18 +37,11 @@ export const managePlayers: FastifyPluginAsync = async (rawApp) => {
         return reply.send(player);
       }
       const players = await baseQuery.execute();
-      return reply.view(
-        'admin/manage-players.ejs',
-        {
-          ...dateUtils,
-          players,
-          initialFilter: request.query.handle ?? '',
-          replaceUrl: request.routeOptions.url,
-        },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
+      return reply.nunjucks('admin/manage-players', {
+        players,
+        initialFilter: request.query.handle ?? '',
+        replaceUrl: request.routeOptions.url,
+      });
     }
   );
 };

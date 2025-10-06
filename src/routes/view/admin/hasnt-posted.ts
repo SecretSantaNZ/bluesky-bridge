@@ -47,9 +47,6 @@ export const hasntPosted: FastifyPluginAsync = async (rawApp) => {
   app.get('/hasnt-posted', async function (request, reply) {
     const { db } = this.blueskyBridge;
     const settings = await loadSettings(db);
-    console.log(
-      await buildHasntPostedQuery(db, settings.opening_date).compile()
-    );
     const [matches] = await Promise.all([
       buildHasntPostedQuery(db, settings.opening_date).execute(),
     ]);

@@ -6,7 +6,12 @@ import { z } from 'zod';
 export const gameMode: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
   app.get('/game-mode', function (request, reply) {
-    return reply.nunjucks('player/game-mode');
+    return reply.nunjucks('player/game-mode', {
+      gameModeOptions: [
+        { id: 'Regular', text: 'Regular' },
+        { id: 'Super Santa', text: 'Super Santa' },
+      ],
+    });
   });
 
   app.post(

@@ -8,14 +8,15 @@
   {%- if replaceUrl -%}
     window.history.replaceState(null, '', {{ replaceUrl | dump }});
   {%- endif -%}
-  {%- if closeDialog -%}
-    $dispatch('dialog:close');
-    $dispatch('modal:close');
-  {%- endif -%}
   {%- if openDialog -%}
     $dispatch('dialog:open');
   {%- endif -%}
   {%- if startRequestFrom -%}
     secretsantanz.startRequest(document.querySelector({{ startRequestFrom | dump }}));
   {%- endif -%}
+  {%- for event in playerEvents | default([]) -%}
+    {%- if event.updated -%}
+      $dispatch('ss:player:updated', {{ event.updated | dump }});
+    {%- endif -%}
+  {%- endfor -%}
 "></div>

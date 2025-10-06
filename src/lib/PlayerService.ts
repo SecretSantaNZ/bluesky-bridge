@@ -386,16 +386,26 @@ export class PlayerService {
     return dbPlayer == null ? undefined : dbPlayerToPlayer(dbPlayer);
   }
 
-  async refreshFollowing(
-    player_did: string
-  ): Promise<SelectedPlayer | undefined> {
-    const { player_type, mastodon_account } = await this.db
+  async getPlayerById(id: number): Promise<Player | undefined> {
+    const dbPlayer = await this.db
       .selectFrom('player')
-      .select(['player_type', 'mastodon_account'])
-      .where('did', '=', player_did)
+      .selectAll()
+      .where('id', '=', id)
+      .executeTakeFirst();
+
+    return dbPlayer == null ? undefined : dbPlayerToPlayer(dbPlayer);
+  }
+
+  async refreshFollowing(
+    playerId: number
+  ): Promise<SelectedPlayer | undefined> {
+    const { player_type, mastodon_account, did } = await this.db
+      .selectFrom('player')
+      .select(['player_type', 'mastodon_account', 'did'])
+      .where('id', '=', playerId)
       .executeTakeFirstOrThrow();
     const [{ relationships }, mastodonFollowing] = await Promise.all([
-      fetchRelationships(this.santaAccountDid, player_did),
+      fetchRelationships(this.santaAccountDid, did),
       player_type === 'mastodon'
         ? this.lookupMastodonFollowing(mastodon_account as string)
         : undefined,
@@ -411,7 +421,7 @@ export class PlayerService {
         santa_following_uri: relationship?.following ?? null,
         ...mastodonFollowing,
       })
-      .where('did', '=', player_did)
+      .where('id', '=', playerId)
       .returningAll()
       .executeTakeFirst();
 
