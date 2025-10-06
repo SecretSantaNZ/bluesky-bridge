@@ -137,12 +137,6 @@ export const renderPlayerHome = async (
     santaMastodonUsername: playerService.santaMastodonHandle.split('@')[0],
     santaMastodonHost: playerService.santaMastodonHost,
     badges,
-    replaceUrl: request.url,
-    ...(view === 'player/home'
-      ? {
-          closeDialog: true,
-        }
-      : undefined),
   });
 };
 

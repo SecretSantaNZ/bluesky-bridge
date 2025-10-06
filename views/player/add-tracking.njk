@@ -5,7 +5,7 @@
 {% block body %}
 <div class="w-full flex justify-center">
   {% call card() %}
-<form x-target="page-body dialog" x-target.error="add-tracking-error" method="post" action="/tracking"
+<form x-target="page-body dialog-content" x-target.error="add-tracking-error" @ajax:success="if (!$event.detail.url.match(/\/badge\//)) $dispatch('dialog:close')" method="post" action="/tracking"
   x-data="{{ tracking | dump }}"
   id="dialog-content"
   >

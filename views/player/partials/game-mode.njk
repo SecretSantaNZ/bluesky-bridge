@@ -1,6 +1,6 @@
 {% from "common/form-fields.njk" import dropdown, inputSubmitWithActivity %}
 {% from "common/error.njk" import errorPanel %}
-<form x-target="page-body" x-target.error="game-mode-error" action="/game-mode" method="post" id="dialog-content"  x-data="{
+<form x-target="page-body" x-target.error="game-mode-error" @ajax:success="$dispatch('dialog:close')" action="/game-mode" method="post" id="dialog-content"  x-data="{
     ...{{ {_game_mode: player.game_mode or 'Regular', max_giftees: player.max_giftees } | dump }},
     get game_mode() {
       return this._game_mode;

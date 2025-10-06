@@ -1,6 +1,6 @@
 {% from "common/form-fields.njk" import inputText, inputSubmitWithActivity %}
 {% from "common/error.njk" import errorPanel %}
-<form x-target="page-body" x-target.error="address-error" action="/address" method="post" id="modal-content" @ss-address-changed="address = $event.detail.address;"  x-data="{{ {address: player.address, delivery_instructions: player.delivery_instructions } | dump }}">
+<form x-target="page-body" x-target.error="address-error" @ajax:success="$dispatch('modal:close')" action="/address" method="post" id="modal-content" @ss-address-changed="address = $event.detail.address;"  x-data="{{ {address: player.address, delivery_instructions: player.delivery_instructions } | dump }}">
   <div class="space-y-8">
     {% if adminMode %}
       <h1 x-text="'Enter address for @' + handle"></h1>

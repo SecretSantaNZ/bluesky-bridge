@@ -5,7 +5,7 @@
 {% block body %}
 <div class="w-full flex justify-center">
   {% call card() %}
-<form x-target="page-body" x-target.error="send-nudge-error" method="post" action="/nudge"
+<form x-target="page-body" x-target.error="send-nudge-error" @ajax:success="$dispatch('dialog:close')" method="post" action="/nudge"
     x-data="{{ nudgeOptions | dump }}"
     id="dialog-content"
   >
