@@ -5,8 +5,6 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { deactivateMatch } from './deactivate-match.js';
 import { reassignGiftee } from './reassign-giftee.js';
 import { publish } from './publish.js';
-import { deleteDrafts } from './delete-drafts.js';
-import { autoMatch } from './autoMatch.js';
 import { markContacted } from './mark-contacted.js';
 import { markSorted } from './mark-sorted.js';
 
@@ -42,8 +40,6 @@ export const match: FastifyPluginAsync = async (rawApp) => {
   await app.register(deactivateMatch);
   await app.register(reassignGiftee);
   await app.register(publish);
-  await app.register(deleteDrafts);
-  await app.register(autoMatch);
   await app.register(markContacted);
   await app.register(markSorted);
 };

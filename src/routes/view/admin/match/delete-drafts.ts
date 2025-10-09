@@ -19,8 +19,7 @@ export const deleteDrafts: FastifyPluginAsync = async (rawApp) => {
         .where('match_status', '=', 'draft')
         .execute();
 
-      reply.header('HX-Refresh', 'true');
-      return reply.code(204).send();
+      return reply.redirect('/admin/draft-matches', 303);
     }
   );
 };

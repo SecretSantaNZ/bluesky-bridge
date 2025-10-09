@@ -5,7 +5,7 @@ import { BadRequestError } from 'http-errors-enhanced';
 import type { InsertObject } from 'kysely';
 import { sql } from 'kysely';
 import { z } from 'zod';
-import type { DatabaseSchema } from '../../lib/database/schema.js';
+import type { DatabaseSchema } from '../../../../lib/database/schema.js';
 
 type MatchNode = { giftee: number; santa: number };
 
@@ -80,7 +80,7 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
           ])
         )
         .orderBy(
-          sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end`,
+          sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end)`,
           'asc'
         )
         .orderBy('giftee_count')
@@ -184,8 +184,7 @@ export const autoMatch: FastifyPluginAsync = async (rawApp) => {
         await db.insertInto('match').values(matches).execute();
       }
 
-      reply.header('HX-Refresh', 'true');
-      return reply.code(204).send();
+      return reply.redirect('/admin/draft-matches', 303);
     }
   );
 };

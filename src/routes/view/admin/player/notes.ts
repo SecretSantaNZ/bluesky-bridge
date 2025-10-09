@@ -4,6 +4,7 @@ import { z } from 'zod';
 import type { Player } from '../../../../lib/PlayerService.js';
 import { NotFoundError } from 'http-errors-enhanced';
 import { baseAdminPlayerQuery } from '../manage-players.js';
+import { queryFullMatch } from '../../../../lib/database/match.js';
 
 export const notes: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -18,7 +19,7 @@ export const notes: FastifyPluginAsync = async (rawApp) => {
     },
     async function (request, reply) {
       const { db, playerService } = this.blueskyBridge;
-      const [player, notes, adminPlayer] = await Promise.all([
+      const [player, notes, adminPlayer, affectedMatches] = await Promise.all([
         playerService.getPlayerById(request.params.player_id),
         db
           .selectFrom('note')
@@ -30,6 +31,14 @@ export const notes: FastifyPluginAsync = async (rawApp) => {
         baseAdminPlayerQuery(db)
           .where('player.id', '=', request.params.player_id)
           .executeTakeFirstOrThrow(),
+        queryFullMatch(db)
+          .where((eb) =>
+            eb.or([
+              eb('santa.id', '=', request.params.player_id),
+              eb('giftee.id', '=', request.params.player_id),
+            ])
+          )
+          .execute(),
       ]);
 
       return reply.nunjucks('admin/player/notes', {
@@ -40,6 +49,7 @@ export const notes: FastifyPluginAsync = async (rawApp) => {
             updated: adminPlayer,
           },
         ],
+        matchEvents: affectedMatches.map((match) => ({ updated: match })),
       });
     }
   );

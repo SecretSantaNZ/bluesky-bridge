@@ -16,6 +16,7 @@ import { withoutGifts } from './without-gifts.js';
 import { hasntPosted } from './hasnt-posted.js';
 import { settings } from './settings.js';
 import { player } from './player/index.js';
+import { match } from './match/index.js';
 import { fragments } from './fragments/index.js';
 
 export const admin: FastifyPluginAsync = async (app) => {
@@ -68,5 +69,6 @@ export const admin: FastifyPluginAsync = async (app) => {
   await app.register(hasntPosted);
   await app.register(settings);
   await app.register(player, { prefix: '/player' });
+  await app.register(match, { prefix: '/match' });
   await app.register(fragments, { prefix: '/fragments' });
 };

@@ -19,4 +19,12 @@
       $dispatch('ss:player:updated', {{ event.updated | dump }});
     {%- endif -%}
   {%- endfor -%}
+  {%- for event in matchEvents | default([]) -%}
+    {%- if event.updated -%}
+      $dispatch('ss:match:updated', {{ event.updated | dump }});
+    {%- endif -%}
+    {%- if event.deactivated -%}
+      $dispatch('ss:match:deactivated', {{ event.deactivated | dump }});
+    {%- endif -%}
+  {%- endfor -%}
 "></div>
