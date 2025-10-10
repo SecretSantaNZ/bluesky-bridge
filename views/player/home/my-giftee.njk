@@ -1,5 +1,4 @@
 {% from 'common/avatar.njk' import avatar %}
-{% from "common/form-fields.njk" import activitySpinner %}
 <div
   @click="isMobileWidth && (cardExpanded = !cardExpanded)"
   class="flex -ml-4 lg:ml-0 items-start"
@@ -25,14 +24,12 @@
         </div>
         <div class="flex justify-evenly mt-2">
           {% if giftee.nudge_count < 5 %}
-            <a href="/match/{{ giftee.match_id }}/send-nudge" x-target="dialog-content" @ajax:after="$dispatch('dialog:open')" class="flex items-center rounded-xs">
-              {{ activitySpinner() }}
+            <a href="/match/{{ giftee.match_id }}/send-nudge" x-target="modal-content" @ajax:before="$dispatch('modal:open')" class="flex items-center rounded-xs">
             <div class="i-mdi-message-bubble mr-1 size-5"></div><div>Nudge</div>
           </a>
           {% endif %}
           {% if giftee.tracking_count < 5 %}
-            <a href="/match/{{ giftee.match_id }}/add-tracking" x-target="dialog-content" @ajax:after="$dispatch('dialog:open')" class="flex items-center rounded-xs">
-              {{ activitySpinner() }}
+            <a href="/match/{{ giftee.match_id }}/add-tracking" x-target="modal-content" @ajax:before="$dispatch('modal:open')" class="flex items-center rounded-xs">
               <div class="i-mdi-email mr-1 size-5"></div><div>Add sent present</div>
             </a>
           {% endif %}

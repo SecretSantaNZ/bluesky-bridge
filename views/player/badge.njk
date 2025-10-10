@@ -1,7 +1,7 @@
 {% extends "player/home.njk" %}
 {% from "common/card.njk" import card %}
-{% block dialogContent %}
-  <div class="space-y-8" id="dialog-content">
+{% block modalContent %}
+  <div class="space-y-8" id="modal-content" x-init="informationalModal = true">
     <h1>{{ badge.title }}</h1>
     <p>{{ badge.description }}</p>
     <div class="flex flex-col justify-center">
@@ -11,4 +11,5 @@
       />
     </div>
   </div>
+  <div @modal:close.window="window.location = '/'"></div>
 {% endblock %}

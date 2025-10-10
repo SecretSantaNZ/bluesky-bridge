@@ -69,12 +69,7 @@
       </div>
     </div>
 
-    <button @click="const contentElement = document.getElementById('modal-content');
-        contentElement.innerHTML = '';
-        contentElement.appendChild(
-          document.getElementById('new-player-modal-content').content.cloneNode(true)
-        );
-        $dispatch('modal:open');"
+    <button @click="$dispatch('modal:open', {templateId: 'new-player-modal-content'})"
       >
       <div class="i-mdi-add size-10"></div>
     </button>
@@ -110,18 +105,16 @@
         </button>
         <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
       </form>
-      <a x-bind:href="'/admin/player/' + player.id + '/address'" x-target="modal-content" @ajax:success="$dispatch('modal:open')" class="flex flex-col justify-center items-center">
-        {{ activitySpinner() }}
-        <div class="flex sm:justify-center items-center htmx-request:hidden">
+      <a x-bind:href="'/admin/player/' + player.id + '/address'" x-target="modal-content" @ajax:before="$dispatch('modal:open')" class="flex flex-col justify-center items-center">
+        <div class="flex sm:justify-center items-center">
           <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.address"></div>
           <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.address"></div>
           <div class="sm:hidden"><b>Has address</b> <span class="italic">(Click to edit)</span></div>
         </div>
         <div class="italic hidden sm:block">Click to edit</div>
       </a>
-      <a x-bind:href="'/admin/player/' + player.id + '/game-mode'" x-target="dialog-content" @ajax:success="$dispatch('dialog:open')" class="flex flex-col justify-center items-center">
-        {{ activitySpinner() }}
-        <div class="flex sm:justify-center items-center htmx-request:hidden">
+      <a x-bind:href="'/admin/player/' + player.id + '/game-mode'" x-target="modal-content" @ajax:before="$dispatch('modal:open')" class="flex flex-col justify-center items-center">
+        <div class="flex sm:justify-center items-center">
           <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.game_mode"></div>
           <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.game_mode"></div>
           <div class="sm:hidden"><b>Game mode</b> <span class="italic">(Click to edit)</span></div>
@@ -150,9 +143,8 @@
         <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
       </form>
       <div class="flex items-center sm:justify-center">
-        <a x-target="dialog-content" @ajax:success="$dispatch('dialog:open')" x-bind:href="'/admin/player/' + player.id + '/badges'" class="flex pl-4 items-center">
-          {{ activitySpinner() }}
-          <div x-text="player.badge_count" class="text-4xl htmx-request:hidden"></div><div class="font-semibold ml-3 sm:hidden">Badges</div>
+        <a x-target="modal-content" @ajax:before="$dispatch('modal:open')" x-bind:href="'/admin/player/' + player.id + '/badges'" class="flex pl-4 items-center">
+          <div x-text="player.badge_count" class="text-4xl"></div><div class="font-semibold ml-3 sm:hidden">Badges</div>
         </a>
       </div>
       <form x-target="_none" x-bind:action="'/admin/player/' + player.id + '/boot'" method="post" class="flex items-center sm:justify-center">

@@ -1,4 +1,3 @@
-{% from "common/form-fields.njk" import activitySpinner %}
 {% macro matchPlayer(rowProp = 'match', side, description) %}
 <div class="flex sm:justify-center items-center text-lg">
   <div class="italic sm:hidden mr-2">{{ description }}:</div>
@@ -37,8 +36,7 @@
       ></span
     ></a>
   </div>
-  <a x-target="dialog-content" @ajax:success="$dispatch('dialog:open')" x-bind:href="'/admin/player/' + {{ rowProp }}.{{ side }}_id + '/notes'">
-    {{ activitySpinner() }}
+  <a x-target="modal-content" @ajax:before="$dispatch('modal:open')" x-bind:href="'/admin/player/' + {{ rowProp }}.{{ side }}_id + '/notes'">
     <template x-if="{{ rowProp }}.{{ side }}_note_count">
       <div class="i-mdi-comment-text-multiple size-6"></div>
     </template>

@@ -49,7 +49,7 @@ export const badge: FastifyPluginAsync = async (rawApp) => {
       if (request.params.badge_id === sentBadge?.id && countTracking > 0) {
         reply.locals = {
           ...reply.locals,
-          openDialog: true,
+          openModal: true,
           badge: sentBadge,
         };
         return renderPlayerHome(
@@ -65,7 +65,7 @@ export const badge: FastifyPluginAsync = async (rawApp) => {
       }
       reply.locals = {
         ...reply.locals,
-        openDialog: true,
+        openModal: true,
         badge,
       };
       return renderPlayerHome(

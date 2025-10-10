@@ -5,10 +5,10 @@
 {% block body %}
 <div class="w-full flex justify-center">
   {% call card() %}
-<div class="space-y-8" id="dialog-content">
+<div class="space-y-8" id="modal-content" x-init="informationalModal = true">
   <h1>Notes about @{{ player.handle }}</h1>
   <p class="text-sm">Notes are only visible to the elves, use this to record anything we want to keep track of so other elves can be aware of it when dealing with the player.</p>
-  <form x-target="dialog-content" x-target.error="add-node-error" @ajax:success="$dispatch('dialog:close')" action="/admin/player/{{ player.id }}/notes" method="post" id="add-note">
+  <form x-target="modal-content" x-target.error="add-node-error" @ajax:success="$dispatch('modal:close')" action="/admin/player/{{ player.id }}/notes" method="post" id="add-note">
     <div class="space-y-8">
       <div class="group">
         <label

@@ -61,7 +61,7 @@
     } %}
     <div class="grid justify-items-center {{ gridClasses[badges.length | string] or '' }}">
       {% for badge in badges %}
-        <a href="/badge/{{ badge.id }}" x-target="dialog-content" @ajax:success="$dispatch('dialog:open')" class="block shrink">
+        <a href="/badge/{{ badge.id }}" x-target="modal-content" @ajax:before="$dispatch('modal:open')" class="block shrink">
           <img src="{{ badge.image_url }}" alt="{{ badge.title }}" class="object-contain mx-2 max-h-16 drop-shadow-lg"/>
         </a> 
       {% endfor %}

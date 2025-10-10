@@ -4,8 +4,8 @@
 <div class="w-full flex justify-center">
   {% call card() %}
     <form
-        x-target="dialog-content" x-target.error="game-mode-error" @ajax:success="$dispatch('dialog:close')"
-        action="/admin/player/{{ player.id }}/game-mode" method="post" id="dialog-content"
+        x-target="modal-content" x-target.error="game-mode-error" @ajax:success="$dispatch('modal:close')"
+        action="/admin/player/{{ player.id }}/game-mode" method="post" id="modal-content"
       >
       <h1 class="mb-8">Game mode for @{{ player_display_handle }}</h1>
       {% include "player/partials/game-mode.njk" %}

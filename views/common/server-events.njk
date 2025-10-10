@@ -8,9 +8,6 @@
   {%- if replaceUrl -%}
     window.history.replaceState(null, '', {{ replaceUrl | dump }});
   {%- endif -%}
-  {%- if openDialog -%}
-    $dispatch('dialog:open');
-  {%- endif -%}
   {%- if startRequestFrom -%}
     secretsantanz.startRequest(document.querySelector({{ startRequestFrom | dump }}));
   {%- endif -%}

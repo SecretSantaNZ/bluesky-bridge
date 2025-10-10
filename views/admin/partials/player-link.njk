@@ -1,4 +1,3 @@
-{% from "common/form-fields.njk" import activitySpinner %}
 {% macro playerLink(showPostCount=false) %}
 <div x-data="{expandPostCount: false}" x-bind:class="'flex justify-center ' + (expandPostCount ? 'items-start' : 'items-center')">
   <div class="size-10 block shrink-0 rounded-full overflow-hidden">
@@ -34,8 +33,7 @@
     </div>
     {% endif %}
   </div>
-  <a x-target="dialog-content" @ajax:success="$dispatch('dialog:open')" x-bind:href="'/admin/player/' + player.id + '/notes'">
-    {{ activitySpinner() }}
+  <a x-target="modal-content" @ajax:before="$dispatch('modal:open')" x-bind:href="'/admin/player/' + player.id + '/notes'">
     <template x-if="player.note_count">
       <div class="i-mdi-comment-text-multiple size-6"></div>
     </template>

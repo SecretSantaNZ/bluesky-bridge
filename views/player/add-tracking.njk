@@ -5,9 +5,9 @@
 {% block body %}
 <div class="w-full flex justify-center">
   {% call card() %}
-<form x-target="page-body dialog-content" x-target.error="add-tracking-error" @ajax:success="if (!$event.detail.url.match(/\/badge\//)) $dispatch('dialog:close')" method="post" action="/tracking"
+<form x-target="page-body modal-content" x-target.error="add-tracking-error" @ajax:success="if (!$event.detail.url.match(/\/badge\//)) $dispatch('modal:close')" method="post" action="/tracking"
   x-data="{{ tracking | dump }}"
-  id="dialog-content"
+  id="modal-content"
   >
   <div class="space-y-8">
     <h1>Add tracking for @{{ match.giftee_handle }}</h1>
@@ -33,7 +33,7 @@
   </div>
   <input type="hidden" name="match_id" value="{{ match.match_id }}"/>
   <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
-<form>
+</form>
 <a href="/" class="text-gray-400 no-underline absolute bottom-8 left-8">Close</a>
   {% endcall %}
 </div>

@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { NotFoundError } from 'http-errors-enhanced';
 import { baseAdminPlayerQuery } from '../manage-players.js';
+import { loadSettings } from '../../../../lib/settings.js';
 
 export const badges: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -19,30 +20,32 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
     async function (request, reply) {
       const playerId = request.params.player_id;
       const { db, playerService } = this.blueskyBridge;
-      const [player, playerBadges, badges, adminPlayer] = await Promise.all([
-        playerService.getPlayerById(playerId),
-        db
-          .selectFrom('player_badge')
-          .innerJoin('badge', 'badge.id', 'player_badge.badge_id')
-          .innerJoin('player', 'player.did', 'player_badge.player_did')
-          .select([
-            'badge.id',
-            'badge.title',
-            'badge.description',
-            'badge.image_url',
-          ])
-          .where('player.id', '=', playerId)
-          .orderBy('recorded_at', 'asc')
-          .execute(),
-        db
-          .selectFrom('badge')
-          .select(['badge.id', 'badge.title'])
-          .orderBy('badge.id', 'desc')
-          .execute(),
-        baseAdminPlayerQuery(db)
-          .where('player.id', '=', playerId)
-          .executeTakeFirstOrThrow(),
-      ]);
+      const [player, playerBadges, badges, settings, adminPlayer] =
+        await Promise.all([
+          playerService.getPlayerById(playerId),
+          db
+            .selectFrom('player_badge')
+            .innerJoin('badge', 'badge.id', 'player_badge.badge_id')
+            .innerJoin('player', 'player.did', 'player_badge.player_did')
+            .select([
+              'badge.id',
+              'badge.title',
+              'badge.description',
+              'badge.image_url',
+            ])
+            .where('player.id', '=', playerId)
+            .orderBy('recorded_at', 'asc')
+            .execute(),
+          db
+            .selectFrom('badge')
+            .select(['badge.id', 'badge.title'])
+            .orderBy('badge.id', 'desc')
+            .execute(),
+          loadSettings(db),
+          baseAdminPlayerQuery(db)
+            .where('player.id', '=', playerId)
+            .executeTakeFirstOrThrow(),
+        ]);
       if (player == null) {
         throw new NotFoundError();
       }
@@ -50,7 +53,9 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
       return reply.nunjucks('admin/player/badges', {
         playerBadges,
         badges: badges.filter(
-          (badge) => !playerBadges.find((pb) => pb.id === badge.id)
+          (badge) =>
+            !playerBadges.find((pb) => pb.id === badge.id) &&
+            badge.id !== settings.sent_present_badge_id
         ),
         csrfToken: request.tokenData?.csrfToken,
         player,

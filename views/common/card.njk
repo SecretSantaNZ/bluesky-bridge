@@ -1,7 +1,7 @@
 {% macro card() %}
 <div 
   x-data="{cardExpanded: false}"
-  class="max-w-xl min-w-80 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex flex-col"
+  class="max-w-xl min-w-80 w-full max-h-full overflow-auto border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex flex-col"
 >
   {{ caller() }}
 </div>
