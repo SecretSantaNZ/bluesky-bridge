@@ -4,12 +4,16 @@ import { z } from 'zod';
 import { baseAdminPlayerQuery } from '../manage-players.js';
 import { autoMatch } from './autoMatch.js';
 import { publish } from './publish.js';
+import { nudges } from './nudges.js';
+import { tracking } from './tracking.js';
 import { deleteDrafts } from './delete-drafts.js';
 
 export const match: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
   await app.register(autoMatch);
   await app.register(publish);
+  await app.register(nudges);
+  await app.register(tracking);
   await app.register(deleteDrafts);
 
   app.post(

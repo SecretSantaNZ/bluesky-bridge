@@ -16,15 +16,8 @@
     const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
     return draftMatches.filter((match) => !cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter));
   })"
-  @ss:match:updated.window="
-    let index = draftMatches.findIndex((match) => match.match_id === event.detail.match_id);
-    if (index != -1) {
-      draftMatches.splice(index, 1, event.detail);
-    } else {
-      draftMatches.push(event.detail);
-    }
-  "
-  @ss:match:deactivated.window="draftMatches = draftMatches.filter((match) => match.match_id !== event.detail.match_id)"
+  @ss:match:deactivated.window="draftMatches = secretsantanz.removeMatch(draftMatches, event.detail.match_id)"
+  @ss:match:updated.window="draftMatches = secretsantanz.replaceMatch(draftMatches, event.detail)"
 >
   <div class="grid sm:grid-cols-2 sm:space-x-4 space-y-4 sm:space-y-0 mb-8">
     <button x-show="criticalMatchIssues > 0" @click="window.open('/admin/fix-matches')">

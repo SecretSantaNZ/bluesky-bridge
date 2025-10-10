@@ -1,0 +1,22 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% from "common/error.njk" import errorPanel %}
+{% from "common/form-fields.njk" import inputText, dropdown, inputSubmitWithActivity %}
+{% from "common/tracking.njk" import tracking %}
+{% block body %}
+<div class="w-full flex justify-center">
+  {% call card() %}
+  <div class="space-y-8" id="modal-content">
+    <h1>Tracking from @{{ match.santa_handle }} to @{{ match.giftee_handle }}</h1>
+    {% for trackingRecord in trackings %}
+      {{ tracking(trackingRecord, csrfToken, show_tracking_actions=true) }}
+    {% endfor %}
+    <div id="match-tracking" class="htmx-request:hidden"></div>
+    <form x-target="modal-content" x-target.error="add-tracking-error" @ajax:success="$dispatch('modal:close')"
+      method="post" action="/admin/match/{{ match.match_id }}/tracking"
+    >
+      {% include "player/partials/add-tracking.njk" %}
+    </form>
+  </div>
+  {% endcall %}
+{% endblock %}

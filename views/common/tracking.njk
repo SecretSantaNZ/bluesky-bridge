@@ -2,7 +2,7 @@
 {% macro tracking(tracking, csrfToken, show_tracking_giftee=false, show_tracking_actions=false) %}
 <div class="mt-8 flex flex-col items-center" id="tracking-details-{{ tracking.tracking_id }}">
   <p>
-    {% if show_tracking_actions %}To @{{ tracking.giftee_handle }} on{% else %}Sent{% endif %}
+    {% if show_tracking_giftee %}To @{{ tracking.giftee_handle }} on{% else %}Sent{% endif %}
     {{ tracking.shipped_date | ssDate }} with {{ tracking.carrier }} <b>{{ tracking.tracking_number }}</b>. {{ 'Gifts are wrapped.' if tracking.giftwrap_status else  'Gifts are naked (do not remove postal wrapper / box).' }}
   </p>
   {% if show_tracking_actions %}

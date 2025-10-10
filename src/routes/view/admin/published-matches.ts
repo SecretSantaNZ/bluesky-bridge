@@ -1,5 +1,4 @@
 import type { FastifyPluginAsync } from 'fastify';
-import * as dateUtils from '../../../lib/dates.js';
 import {
   loadNudgeOptions,
   queryFullMatch,
@@ -19,17 +18,10 @@ export const publishedMatches: FastifyPluginAsync = async (app) => {
     const pageData = {
       publishedMatches,
     };
-    return reply.view(
-      'admin/published-matches.ejs',
-      {
-        ...dateUtils,
-        ...nudgeOptions,
-        carriers,
-        pageData,
-      },
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+    return reply.nunjucks('admin/published-matches', {
+      ...nudgeOptions,
+      carriers,
+      pageData,
+    });
   });
 };
