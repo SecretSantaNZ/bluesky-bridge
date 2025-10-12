@@ -50,15 +50,9 @@ export const settings: FastifyPluginAsync = async (rawApp) => {
     const [settings] = await Promise.all([
       db.selectFrom('settings').selectAll().executeTakeFirstOrThrow(),
     ]);
-    return reply.view(
-      'admin/settings.ejs',
-      {
-        settings: toData(settings),
-      },
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+    return reply.nunjucks('admin/settings', {
+      settings: toData(settings),
+    });
   });
 
   app.post(
@@ -87,15 +81,7 @@ export const settings: FastifyPluginAsync = async (rawApp) => {
       };
       await db.updateTable('settings').set(updates).execute();
       await settingsChanged(updates);
-      return reply.view(
-        'admin/settings.ejs',
-        {
-          settings: toData(updates),
-        },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
+      return reply.redirect('/admin/settings', 303);
     }
   );
 
@@ -111,7 +97,7 @@ export const settings: FastifyPluginAsync = async (rawApp) => {
 
       await playerService.resetEverything();
 
-      return reply.code(204).send();
+      return reply.redirect('/admin/settings', 303);
     }
   );
 };
