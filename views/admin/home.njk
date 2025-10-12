@@ -1,0 +1,22 @@
+{% extends "common/page-layout.njk" %}
+{% block body %}
+<div class="grow p-4 justify-items-center grid gap-8 lg:grid-cols-2 xl:grid-cols-3">
+<h1 class="lg:col-span-2 xl:col-span-3">
+  Starting the game
+</h1>
+{% include "admin/home/manager-players.njk" %}
+{% include "admin/home/draft-matches.njk" %}
+{% include "admin/home/fix-matches.njk" %}
+<h1 class="lg:col-span-2 xl:col-span-3">
+  Sleuthing & Helping
+</h1>
+{% include "admin/home/published-matches.njk" %}
+{% include "admin/home/nudges.njk" %}
+{% include "admin/home/tracking.njk" %}
+<h1 class="lg:col-span-2 xl:col-span-3">
+  Chasing
+</h1>
+{% include "admin/home/without-gifts.njk" %}
+{% include "admin/home/hasnt-posted.njk" %}
+</div>
+{% endblock %}
