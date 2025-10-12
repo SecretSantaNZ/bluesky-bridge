@@ -1,5 +1,8 @@
+{% extends "common/page-layout.njk" %}
+{% from "./partials/match-player.njk" import matchPlayer %}
+{% block body %}
 <div class="w-full px-12"
-  x-data="<%= JSON.stringify({...pageData, showConfirm: ''}) %>"
+  x-data="{matches: {{ matches | dump }}, showConfirm: ''}"
   x-init="pager = secretsantanz.buildPager({
     handle: '',
   }, function(filters) {
@@ -30,8 +33,8 @@
   </div>
   <template x-for="match in pager.pageData">
     <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2">
-      <%- include('./fragments/match-player.ejs', {description: 'Santa', side: 'santa'}) %>
-      <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
+      {{ matchPlayer(description='Santa', side='santa') }}
+      {{ matchPlayer(description='Giftee', side='giftee') }}
       <div class="flex lg:justify-center items-center text-lg">
         <div class="italic lg:hidden mr-2">Last Posted:</div>
         <div x-text="match.lastPosted ? secretsantanz.formatDatetime(match.lastPosted) : ''"></div>
@@ -43,3 +46,4 @@
     </div>
   </template>
 </div>
+{% endblock %}

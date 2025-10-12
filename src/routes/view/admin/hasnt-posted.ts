@@ -50,17 +50,8 @@ export const hasntPosted: FastifyPluginAsync = async (rawApp) => {
     const [matches] = await Promise.all([
       buildHasntPostedQuery(db, settings.opening_date).execute(),
     ]);
-    const pageData = {
+    return reply.nunjucks('admin/hasnt-posted', {
       matches,
-    };
-    return reply.view(
-      'admin/hasnt-posted.ejs',
-      {
-        pageData,
-      },
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+    });
   });
 };
