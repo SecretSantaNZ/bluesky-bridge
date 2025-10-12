@@ -76,7 +76,6 @@ export const nudges: FastifyPluginAsync = async (rawApp) => {
         db
           .selectFrom('match')
           .selectAll()
-          .where('santa', '=', player.id)
           .where('id', '=', match_id)
           .executeTakeFirstOrThrow(),
         db
