@@ -30,16 +30,17 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
           .execute(),
       ]);
 
-      const newTracking = {
+      const trackingRecord = {
         shipped_date: formatDateIso(new Date()),
         tracking_number: '',
-        carrier: carriers[0]?.id,
+        carrier_id: carriers[0]?.id,
+        giftwrap_status: 0,
       };
 
       return reply.nunjucks('admin/match/tracking', {
         match,
         carriers,
-        newTracking,
+        trackingRecord,
         trackings,
         matchEvents: [{ updated: match }],
       });

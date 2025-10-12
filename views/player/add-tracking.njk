@@ -5,9 +5,15 @@
 {% block body %}
 <div class="w-full flex justify-center">
   {% call card() %}
-<form x-target="page-body modal-content" x-target.error="add-tracking-error" @ajax:success="if (!$event.detail.url.match(/\/badge\//)) $dispatch('modal:close')" method="post" action="/tracking"
+<form x-target="page-body modal-content" x-target.error="add-tracking-error" @ajax:success="if (!$event.detail.url.match(/\/badge\//)) $dispatch('modal:close')"
+  method="post" action="/match/{{ match.match_id }}/tracking"
   id="modal-content"
-  >
+  class="space-y-8"
+>
+  <h1>Add tracking for @{{ match.giftee_handle }}</h1>
+  <p>Let @{{ match.giftee_handle }} (and the elves) know that their present is on their way by adding the tracking number here.</p>
+  <p>This will DM @{{ match.giftee_handle }} the tracking number so they can watch out for your gift.</p>
+
   {% include "player/partials/add-tracking.njk" %}
 </form>
 <a href="/" class="text-gray-400 no-underline absolute bottom-8 left-8">Close</a>

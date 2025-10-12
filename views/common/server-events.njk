@@ -32,4 +32,12 @@
       $dispatch('ss:nudge:deleted', {{ event.deleted | dump }});
     {%- endif -%}
   {%- endfor -%}
+  {%- for event in trackingEvents | default([]) -%}
+    {%- if event.updated -%}
+      $dispatch('ss:tracking:updated', {{ event.updated | dump }});
+    {%- endif -%}
+    {%- if event.deactivated -%}
+      $dispatch('ss:tracking:deactivated', {{ event.deactivated | dump }});
+    {%- endif -%}
+  {%- endfor -%}
 "></div>

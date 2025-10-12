@@ -1,26 +1,21 @@
 {% from "common/error.njk" import errorPanel %}
 {% from "common/form-fields.njk" import inputText, dropdown, inputSubmitWithActivity %}
-<div class="space-y-8" x-data="{{ newTracking | dump }}">
-  <h1>Add tracking for @{{ match.giftee_handle }}</h1>
-  <p>Let @{{ match.giftee_handle }} (and the elves) know that their present is on their way by adding the tracking number here.</p>
-  <p>This will DM @{{ match.giftee_handle }} the tracking number so they can watch out for your gift.</p>
-
+<div class="space-y-8" x-data="{{ trackingRecord | dump }}">
   {{ inputText(id='shipped_date', label='Date shipped', xModel='shipped_date', inputType='date') }}
-  {{ dropdown(id='carrier', label='Carrier', xModel='carrier', options=carriers ) }}
+  {{ dropdown(id='carrier', label='Carrier', xModel='carrier_id', options=carriers ) }}
   {{ inputText(id='tracking_number', label='Tracking number', placeholder='AA123456789NZ', xModel='tracking_number') }}
   <fieldset  class="p-2 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50">
     <legend class="pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300">Giftwrap situation</legend>
     <div>
-      <input type="radio" id="giftwrap_status_wrapped" name="giftwrap_status" value="1"/>
+      <input type="radio" id="giftwrap_status_wrapped" name="giftwrap_status" value="1" x-model="giftwrap_status"/>
       <label for="giftwrap_status_wrapped">Gifts are wrapped</label>
     </div>
     <div>
-      <input type="radio" id="giftwrap_status_naked" name="giftwrap_status" value="0" checked />
+      <input type="radio" id="giftwrap_status_naked" name="giftwrap_status" value="0" x-model="giftwrap_status" />
       <label for="giftwrap_status_naked">Gifts are naked</label>
     </div>
   </fieldset>
   {{ errorPanel(errorMessage, 'add-tracking-error') }}
   {{ inputSubmitWithActivity(xBindDisabled='!shipped_date || !tracking_number') }}
 </div>
-<input type="hidden" name="match_id" value="{{ match.match_id }}"/>
 <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>

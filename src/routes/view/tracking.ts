@@ -3,7 +3,12 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import z from 'zod';
 import { queryFullMatch } from '../../lib/database/match.js';
 import { formatDateIso } from '../../lib/dates.js';
-import { BadRequestError, InternalServerError } from 'http-errors-enhanced';
+import {
+  BadRequestError,
+  InternalServerError,
+  NotFoundError,
+} from 'http-errors-enhanced';
+import { queryTrackingWithMatch } from '../../lib/database/tracking.js';
 
 export const tracking: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -28,26 +33,29 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
         db.selectFrom('carrier').selectAll().orderBy('id', 'asc').execute(),
       ]);
 
-      const newTracking = {
+      const trackingRecord = {
         shipped_date: formatDateIso(new Date()),
         tracking_number: '',
-        carrier: carriers[0]?.id,
+        carrier_id: carriers[0]?.id,
+        giftwrap_status: 0,
       };
 
       return reply.nunjucks('player/add-tracking', {
         match,
         carriers,
-        newTracking,
+        trackingRecord,
       });
     }
   );
 
   app.post(
-    '/tracking',
+    '/match/:match_id/tracking',
     {
       schema: {
-        body: z.object({
+        params: z.object({
           match_id: z.coerce.number(),
+        }),
+        body: z.object({
           shipped_date: z.string().date(),
           carrier: z.coerce.number(),
           tracking_number: z.string(),
@@ -56,13 +64,9 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function handler(request, reply) {
-      const {
-        match_id,
-        shipped_date,
-        carrier,
-        tracking_number,
-        giftwrap_status,
-      } = request.body;
+      const { match_id } = request.params;
+      const { shipped_date, carrier, tracking_number, giftwrap_status } =
+        request.body;
       const did = request.tokenSubject as string;
       const { db, playerService } = this.blueskyBridge;
       const player = await playerService.getPlayer(did);
@@ -115,6 +119,45 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
       if (trackingBadge != null && countTracking === 0) {
         return reply.redirect(`/badge/${trackingBadge.id}`, 303);
       }
+      return reply.redirect('/', 303);
+    }
+  );
+
+  app.post(
+    '/tracking/:tracking_id/:action',
+    {
+      schema: {
+        params: z.object({
+          tracking_id: z.coerce.number(),
+          action: z.enum(['missing', 'arrived']),
+        }),
+        body: z.object({}),
+      },
+    },
+    async function handler(request, reply) {
+      const did = request.tokenSubject as string;
+      const { db, playerService } = app.blueskyBridge;
+      const player = await playerService.getPlayer(did);
+      if (player == null) {
+        throw new NotFoundError();
+      }
+      // Only allow non elves to update tracking for their own gifts
+      await queryTrackingWithMatch(db)
+        .where('match.giftee', '=', player.id)
+        .where('tracking.id', '=', request.params.tracking_id)
+        .executeTakeFirstOrThrow();
+
+      await db
+        .updateTable('tracking')
+        .set({
+          missing:
+            request.params.action === 'missing'
+              ? new Date().toISOString()
+              : null,
+        })
+        .where('id', '=', request.params.tracking_id)
+        .execute();
+
       return reply.redirect('/', 303);
     }
   );

@@ -2,9 +2,6 @@ import type { FastifyPluginAsync } from 'fastify';
 import { validateAuth } from '../../util/validateAuth.js';
 import { BadRequestError } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { sendNudge } from './send-nudge.js';
-import { addTracking } from './add-tracking.js';
-import { tracking } from './tracking.js';
 import { logout } from './logout.js';
 import { retryDm } from './retry-dm.js';
 
@@ -58,8 +55,5 @@ export const player: FastifyPluginAsync = async (rawApp) => {
   });
 
   await app.register(logout);
-  await app.register(sendNudge);
   await app.register(retryDm);
-  await app.register(addTracking);
-  await app.register(tracking);
 };

@@ -2,8 +2,6 @@ import type { FastifyPluginAsync } from 'fastify';
 import { queryTrackingWithGifteeAndSanta } from '../../../lib/database/index.js';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import * as dateUtils from '../../../lib/dates.js';
-import { escapeUnicode } from '../../../util/escapeUnicode.js';
 
 export const tracking: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -15,56 +13,48 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
         .execute(),
       db.selectFrom('carrier').selectAll().orderBy('id', 'asc').execute(),
     ]);
-    const pageData = {
+    return reply.nunjucks('admin/tracking', {
       tracking,
-    };
-    return reply.view(
-      'admin/tracking.ejs',
-      {
-        ...dateUtils,
-        pageData,
-        carriers,
-      },
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+      carriers,
+    });
   });
 
-  app.post(
-    '/tracking/deactivate',
+  app.get(
+    '/tracking/:tracking_id',
     {
       schema: {
-        body: z.object({
+        params: z.object({
           tracking_id: z.coerce.number(),
         }),
       },
     },
     async function handler(request, reply) {
-      const { tracking_id } = request.body;
+      const { tracking_id } = request.params;
       const { db } = this.blueskyBridge;
-      await db
-        .updateTable('tracking')
-        .set({ deactivated: new Date().toISOString() })
-        .where('id', '=', tracking_id)
-        .executeTakeFirstOrThrow();
 
-      reply.header(
-        'HX-Trigger',
-        JSON.stringify({
-          'ss-tracking-deactivated': { id: request.body.tracking_id },
-        })
-      );
-      return reply.code(204).send();
+      const [carriers, trackingRecord] = await Promise.all([
+        db.selectFrom('carrier').selectAll().orderBy('id', 'asc').execute(),
+        queryTrackingWithGifteeAndSanta(db)
+          .where('tracking.id', '=', tracking_id)
+          .executeTakeFirstOrThrow(),
+      ]);
+
+      return reply.nunjucks('admin/tracking/edit', {
+        carriers,
+        trackingRecord,
+        trackingEvents: [{ updated: trackingRecord }],
+      });
     }
   );
 
   app.post(
-    '/tracking/update',
+    '/tracking/:tracking_id',
     {
       schema: {
-        body: z.object({
+        params: z.object({
           tracking_id: z.coerce.number(),
+        }),
+        body: z.object({
           shipped_date: z.string().date(),
           carrier: z.coerce.number(),
           tracking_number: z.string(),
@@ -73,13 +63,9 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function handler(request, reply) {
-      const {
-        tracking_id,
-        shipped_date,
-        carrier,
-        tracking_number,
-        giftwrap_status,
-      } = request.body;
+      const { tracking_id } = request.params;
+      const { shipped_date, carrier, tracking_number, giftwrap_status } =
+        request.body;
       const { db } = this.blueskyBridge;
       await db
         .selectFrom('carrier')
@@ -99,21 +85,67 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
         .where('id', '=', tracking_id)
         .executeTakeFirstOrThrow();
 
-      const updatedTracking = await queryTrackingWithGifteeAndSanta(db)
+      return reply.redirect(`/admin/tracking/${tracking_id}`);
+    }
+  );
+
+  app.post(
+    '/tracking/:tracking_id/deactivate',
+    {
+      schema: {
+        params: z.object({
+          tracking_id: z.coerce.number(),
+        }),
+      },
+    },
+    async function handler(request, reply) {
+      const { tracking_id } = request.params;
+      const { db } = this.blueskyBridge;
+      await db
+        .updateTable('tracking')
+        .set({ deactivated: new Date().toISOString() })
+        .where('id', '=', tracking_id)
+        .executeTakeFirstOrThrow();
+
+      return reply.nunjucks('common/server-events', {
+        trackingEvents: [{ deactivated: { tracking_id } }],
+      });
+    }
+  );
+
+  app.post(
+    '/tracking/:tracking_id/:action',
+    {
+      schema: {
+        params: z.object({
+          tracking_id: z.coerce.number(),
+          action: z.enum(['missing', 'arrived']),
+        }),
+        body: z.object({}),
+      },
+    },
+    async function handler(request, reply) {
+      const { tracking_id } = request.params;
+      const { db } = app.blueskyBridge;
+
+      await db
+        .updateTable('tracking')
+        .set({
+          missing:
+            request.params.action === 'missing'
+              ? new Date().toISOString()
+              : null,
+        })
+        .where('id', '=', tracking_id)
+        .execute();
+
+      const trackingRecord = await queryTrackingWithGifteeAndSanta(db)
         .where('tracking.id', '=', tracking_id)
         .executeTakeFirstOrThrow();
 
-      reply.header(
-        'HX-Trigger',
-        escapeUnicode(
-          JSON.stringify({
-            'ss-tracking-updated': updatedTracking,
-            'ss-close-modal': true,
-          })
-        )
-      );
-
-      return reply.code(204).send();
+      return reply.nunjucks('common/server-events', {
+        trackingEvents: [{ updated: trackingRecord }],
+      });
     }
   );
 };
