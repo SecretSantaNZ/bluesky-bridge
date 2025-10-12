@@ -25,16 +25,10 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
       db.selectFrom('badge').selectAll().orderBy('id', 'desc').execute(),
       db.selectFrom('settings').selectAll().executeTakeFirstOrThrow(),
     ]);
-    return reply.view(
-      'admin/badges.ejs',
-      {
-        badges,
-        settings,
-      },
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+    return reply.nunjucks('admin/badges', {
+      badges,
+      settings,
+    });
   });
 
   app.get(
