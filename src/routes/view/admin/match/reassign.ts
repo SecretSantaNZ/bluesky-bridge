@@ -35,12 +35,23 @@ export const reassign: FastifyPluginAsync = async (rawApp) => {
         params: z.object({
           match_id: z.coerce.number(),
         }),
+        querystring: z
+          .object({
+            super_santa_match: z.enum(['true', 'false']),
+          })
+          .partial(),
       },
     },
     async function handler(request, reply) {
       const { db } = app.blueskyBridge;
 
-      return renderReassign(db, reply, request.params.match_id);
+      return renderReassign(
+        db,
+        reply,
+        request.params.match_id,
+        200,
+        request.query
+      );
     }
   );
 
@@ -118,7 +129,11 @@ export const reassign: FastifyPluginAsync = async (rawApp) => {
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      return reply.redirect('/admin/fix-matches');
+      if (request.body.super_santa_match) {
+        return reply.redirect('/admin/without-gifts', 303);
+      }
+
+      return reply.redirect('/admin/fix-matches', 303);
     }
   );
 };

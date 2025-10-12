@@ -5,6 +5,7 @@ export async function loadPlayersWhoCanHaveMoreGifees(db: Database) {
   return db
     .selectFrom('player')
     .select([
+      'id',
       'handle',
       'did',
       'address_location',

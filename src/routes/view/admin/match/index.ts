@@ -65,4 +65,53 @@ export const match: FastifyPluginAsync = async (rawApp) => {
       });
     }
   );
+
+  app.post(
+    '/:match_id/mark-sorted',
+    {
+      schema: {
+        params: z.object({
+          match_id: z.coerce.number(),
+        }),
+        body: z.object({}),
+      },
+    },
+    async function handler(request, reply) {
+      const { db } = app.blueskyBridge;
+
+      await db
+        .updateTable('match')
+        .set({
+          followup_action: 'sorted',
+        })
+        .where('id', '=', request.params.match_id)
+        .execute();
+
+      return reply.redirect('/admin/without-gifts', 303);
+    }
+  );
+  app.post(
+    '/:match_id/mark-contacted',
+    {
+      schema: {
+        params: z.object({
+          match_id: z.coerce.number(),
+        }),
+        body: z.object({}),
+      },
+    },
+    async function handler(request, reply) {
+      const { db } = app.blueskyBridge;
+
+      await db
+        .updateTable('match')
+        .set({
+          contacted: new Date().toISOString(),
+        })
+        .where('id', '=', request.params.match_id)
+        .execute();
+
+      return reply.redirect('/admin/without-gifts', 303);
+    }
+  );
 };

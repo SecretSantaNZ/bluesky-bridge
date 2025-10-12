@@ -1,8 +1,10 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { sql } from 'kysely';
 import { z } from 'zod';
-import { queryFullMatch } from '../../../lib/database/index.js';
+import {
+  loadPlayersWhoCanHaveMoreGifees,
+  queryFullMatch,
+} from '../../../lib/database/index.js';
 import type { ExpressionBuilder } from 'kysely';
 import type { DatabaseSchema } from '../../../lib/database/schema.js';
 import type { OperandExpression } from 'kysely';
@@ -42,27 +44,7 @@ export const withoutGifts: FastifyPluginAsync = async (rawApp) => {
       const { db } = this.blueskyBridge;
       const [playersWhoCanHaveMoreGifees, matches, toMessageCount] =
         await Promise.all([
-          db
-            .selectFrom('player')
-            .select([
-              'handle',
-              'did',
-              'address_location',
-              'avatar_url',
-              'note_count',
-              'giftee_count',
-              'giftee_for_count',
-              'max_giftees',
-            ])
-            .where('giftee_count_status', '=', 'can_have_more')
-            .where('signup_complete', '=', 1)
-            .orderBy(
-              sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end)`,
-              'asc'
-            )
-            .orderBy('giftee_count')
-            .orderBy(sql`random()`)
-            .execute(),
+          loadPlayersWhoCanHaveMoreGifees(db),
           queryFullMatch(db)
             .where('match.match_status', '=', 'locked')
             .orderBy('match.id', 'asc')
@@ -73,23 +55,11 @@ export const withoutGifts: FastifyPluginAsync = async (rawApp) => {
             .where((eb) => filterToInactiveMatches(eb))
             .executeTakeFirstOrThrow(),
         ]);
-      const pageData = {
+      return reply.nunjucks('admin/without-gifts', {
         playersWhoCanHaveMoreGifees,
         matches,
-      };
-      if (request.query.data === 'true') {
-        return reply.send(pageData);
-      }
-      return reply.view(
-        'admin/without-gifts.ejs',
-        {
-          pageData,
-          toMessageCount: toMessageCount.cnt,
-        },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
+        toMessageCount: toMessageCount.cnt,
+      });
     }
   );
 
@@ -121,7 +91,11 @@ export const withoutGifts: FastifyPluginAsync = async (rawApp) => {
         )
         .executeTakeFirst();
 
-      return reply.send(`DMs will be sent to ${result.numUpdatedRows} Santas`);
+      return reply
+        .header('content-type', 'text/html')
+        .send(
+          `<div id="poke-without-gifts-form" x-sync>DMs will be sent to ${result.numUpdatedRows} Santas</div>`
+        );
     }
   );
 };

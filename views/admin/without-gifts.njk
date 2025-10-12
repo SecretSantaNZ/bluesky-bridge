@@ -1,5 +1,9 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/form-fields.njk" import activitySpinner %}
+{% from "./partials/match-player.njk" import matchPlayer %}
+{% block body %}
 <div class="w-full px-12"
-  x-data="<%= JSON.stringify({...pageData, showConfirm: ''}) %>"
+  x-data="{matches: [], showConfirm: ''}"
   x-init="pager = secretsantanz.buildPager({
     handle: '',
     showWithPresentUpdates: true,
@@ -18,8 +22,11 @@
       && (filters.showHasGift || (match.tracking_count === 0 || match.tracking_missing_count > 0))
     );
   })"
-  @ss-reload-data.window="Object.assign($data, JSON.parse(await $fetch(window.location.pathname + '?data=true')));"
+  @ss:match:deactivated.window="matches = secretsantanz.removeMatch(matches, event.detail.match_id)"
+  @ss:match:updated.window="matches = secretsantanz.replaceMatch(matches, event.detail)"
+  @ss:matches:refresh.window="matches = event.detail.matches"
 >
+  <div id="refresh-matches" class="hidden" x-sync x-init="$dispatch('ss:matches:refresh', {matches: {{ matches | dump}} })"></div>
   <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
     <h1>People without gifts</h1>
     <div>
@@ -63,8 +70,8 @@
   </div>
   <template x-for="match in pager.pageData">
     <div class="grid sm:grid-cols-3 lg:grid-cols-6 lg:space-x-4 border-b py-2">
-      <%- include('./fragments/match-player.ejs', {description: 'Santa', side: 'santa'}) %>
-      <%- include('./fragments/match-player.ejs', {description: 'Giftee', side: 'giftee'}) %>
+      {{ matchPlayer(description='Santa', side='santa') }}
+      {{ matchPlayer(description='Giftee', side='giftee') }}
       <div class="flex lg:justify-center items-center text-lg">
         <div class="italic lg:hidden mr-2">Category:</div>
         <div x-text="match.super_santa_match ? 'Super santa' : match.tracking_count === 0 ? 'No tracking' : 'Present missing'"></div>
@@ -73,26 +80,28 @@
         <div class="italic lg:hidden mr-2">Present updates sent:</div>
         <div x-text="match.nudge_present_update_count"></div>
       </div>
-      <form hx-post="/match/mark-contacted" class="flex items-center sm:justify-center lg:col-span-1">
+      <form x-target="_none" x-bind:action="'/admin/match/' + match.match_id + '/mark-contacted'" method="post" class="flex items-center sm:justify-center lg:col-span-1">
         <div class="italic lg:hidden mr-2">Contacted:</div>
         <div>
           <div x-text="match.contacted && secretsantanz.formatDatetime(match.contacted)"></div>
-          <%- include('../partials/activity-spinner.ejs') %>
+          {{ activitySpinner() }}
           <button type="submit" class="flex items-center rounded-xs"><div class="i-mdi-message-bubble mr-1 size-5"></div><div>Mark contacted</div></button>
           <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
-          <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+          <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
         </div>
       </form>
       <div class="flex lg:justify-center items-center text-lg">
         <div class="italic lg:hidden mr-2">Action:</div>
         <div x-show="match.followup_action" x-text="match.followup_action"></div>
         <div x-show="!match.followup_action">
-          <button @click="$dispatch('ss-open-modal', {modal: 'reassign-giftee', modalData: {...match}})" class="flex items-center rounded-xs"><div class="i-mdi-rotate-3d-variant mr-1 size-5"></div><div>Assign super santa</div></button>
-          <form hx-post="/match/mark-sorted">
-            <%- include('../partials/activity-spinner.ejs') %>
+          <a x-target="modal-content" @ajax:before="$dispatch('modal:open')" x-bind:href="'/admin/match/' + match.match_id + '/reassign?super_santa_match=true'" class="flex items-center rounded-xs">
+            <div class="i-mdi-rotate-3d-variant mr-1 size-5"></div>
+            <div>Assign super santa</div>
+          </a>
+          <form x-target="_none" x-bind:action="'/admin/match/' + match.match_id + '/mark-sorted'" method="post">
+            {{ activitySpinner() }}
             <button type="submit" class="htmx-request:hidden flex items-center rounded-xs"><div class="i-mdi-tick mr-1 size-5"></div><div>Mark sorted</div></button>
-            <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
-            <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+            <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
           </form>
         </div>
       </div>
@@ -100,39 +109,16 @@
   </template>
   
   <div class="mt-12 grid sm:grid-cols-3 space-y-12">
-    <div class="sm:col-span-2">
-      <h1>Players available to Santa</h1>
-      <template x-for="player in playersWhoCanHaveMoreGifees.slice(0, 15)">
-        <div class="mb-2 flex">
-          <%- include('./fragments/player-link.ejs') %>
-          <div class="ml-2" x-text="`(${player.giftee_count} / ${player.max_giftees})`"></div>
-        </div>
-      </template>
-      <div x-show="playersWhoCanHaveMoreGifees.length > 15">... and <span x-text="playersWhoCanHaveMoreGifees.length - 15"></span> more</div>
-      <datalist id="players-available-to-santa"> 
-        <template x-for="player in playersWhoCanHaveMoreGifees">
-          <option x-bind:value="player.handle"></option>
-        </template>
-      </datalist>
+    <div class="sm:col-span-2" id="players-available-to-santa" x-sync>
+      {% include "admin/partials/players-available-to-santa.njk" %}
     </div>
     <div class="flex items-start justify-center">
-      <form hx-post="/admin/without-gifts/poke" class="flex items-center">
-        <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 border-bsky h-full">Poke <%= toMessageCount %> inactive Santas</button>
-        <%- include('../partials/activity-spinner.ejs') %>
-        <input type="hidden" name="csrfToken" value="<%= csrfToken %>"/>
+      <form x-target="poke-without-gifts-form" x-sync action="/admin/without-gifts/poke" method="post" class="flex items-center" id="poke-without-gifts-form">
+        <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 border-bsky h-full">Poke {{ toMessageCount }} inactive Santas</button>
+        {{ activitySpinner() }}
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
       </form>
     </div>
   </div>
 </div>
-<div x-data="{showModal: null, modalData: {}}" @ss-open-modal.window="showModal = $event.detail.modal; modalData = $event.detail.modalData;" @ss-close-modal.window="showModal = null;">
-  <template x-teleport="body">
-    <div x-show="showModal">
-      <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
-      </div>
-      <div class="fixed max-h-dvh w-dvw top-0 left-0 z-50 overflow-auto flex justify-evenly items-stretch flex-wrap p-4">
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/reassign-giftee.ejs', xShow: "showModal === 'reassign-giftee'", super_santa_match: 'true' }) %>
-        <%- include('../layouts/card.ejs', { bodyTemplate: 'admin/player-notes.ejs', xShow: "showModal === 'player-notes'", adminMode: true  }) %>
-      </div>
-    </div>
-  </template>
-</div>
+{% endblock %}
