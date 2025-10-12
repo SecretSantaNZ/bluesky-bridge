@@ -7,6 +7,7 @@ import { notes } from './notes.js';
 import { badges } from './badges.js';
 import { address } from './address.js';
 import { gameMode } from './game-mode.js';
+import { assignSanta } from './assign-santa.js';
 import type { InsertObject } from 'kysely';
 import type { DatabaseSchema } from '../../../../lib/database/schema.js';
 import {
@@ -22,6 +23,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
   await app.register(badges, { prefix: '/:player_id' });
   await app.register(address, { prefix: '/:player_id' });
   await app.register(gameMode, { prefix: '/:player_id' });
+  await app.register(assignSanta, { prefix: '/:player_id' });
 
   app.post(
     '/',

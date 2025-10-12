@@ -13,6 +13,9 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
         params: z.object({
           player_id: z.coerce.number(),
         }),
+        querystring: z.object({
+          return_to: z.literal('fix-matches').optional(),
+        }),
       },
     },
     async function (request, reply) {
@@ -45,6 +48,7 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
             updated: adminPlayer,
           },
         ],
+        return_to: request.query.return_to,
       });
     }
   );
@@ -64,6 +68,7 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
             'Giftee Only',
           ]),
           max_giftees: z.coerce.number(),
+          return_to: z.literal('fix-matches').optional(),
         }),
       },
     },
@@ -76,6 +81,7 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
         throw new NotFoundError();
       }
       const { game_mode, max_giftees } = request.body;
+      const { return_to, ...rest } = request.body;
       if (game_mode === 'Super Santa' && (!max_giftees || max_giftees < 2)) {
         throw new BadRequestError(
           'Must opt in to at least 2 giftees if super santa'
@@ -88,13 +94,16 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
         defaultedMaxGiftees = 0;
       }
       await playerService.patchPlayer(player.did, {
-        ...request.body,
+        ...rest,
         max_giftees: defaultedMaxGiftees,
       });
       if (player == null) {
         throw new NotFoundError();
       }
 
+      if (return_to === 'fix-matches') {
+        return reply.redirect('/admin/fix-matches', 303);
+      }
       return reply.redirect(`/admin/player/${player.id}/game-mode`, 303);
     }
   );

@@ -6,7 +6,6 @@ import { sendNudge } from './send-nudge.js';
 import { addTracking } from './add-tracking.js';
 import { tracking } from './tracking.js';
 import { logout } from './logout.js';
-import { assignSanta } from './assign-santa.js';
 import { retryDm } from './retry-dm.js';
 
 export const player: FastifyPluginAsync = async (rawApp) => {
@@ -63,7 +62,4 @@ export const player: FastifyPluginAsync = async (rawApp) => {
   await app.register(retryDm);
   await app.register(addTracking);
   await app.register(tracking);
-
-  // admin only
-  await app.register(assignSanta);
 };

@@ -1,0 +1,29 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% from "common/error.njk" import errorPanel %}
+{% from "common/form-fields.njk" import inputText, inputSubmitWithActivity %}
+{% block body %}
+<div class="w-full flex justify-center">
+  {% call card() %}
+    <form action="/admin/player/{{ player.id }}/assign-santa" method="post" id="modal-content"
+      x-target="page-body" x-target.error="assign-santa-error" @ajax:success="$dispatch('modal:close')"
+      x-data="{santa_handle: ''}"
+      x-effect="document.getElementById('assign_santa_santa_handle').setCustomValidity(document.getElementById('players-available-to-santa').querySelector('[value=&quot;'+santa_handle+'&quot;]') === null ? 'Handle not found' : '')"
+    >
+      <div class="space-y-8">
+        <h1>Assign giftee for @{{ player.handle }}</h1>
+        <div>
+          {{ inputText(id='assign_santa_santa_handle', name='santa_handle', label='Santa', placeholder='coolplayer.bsky.social', xModel='santa_handle', attributes={
+            list: 'players-available-to-santa',
+            autocomplete: 'false'
+          }) }}
+        </div>
+        {{ errorPanel(errorMessage, 'assign-santa-error') }}
+        {{ inputSubmitWithActivity() }}
+      </div>
+      <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+      {% include "admin/partials/players-available-to-santa.njk" %}
+    </form>
+  {% endcall %}
+</div>
+{% endblock %}

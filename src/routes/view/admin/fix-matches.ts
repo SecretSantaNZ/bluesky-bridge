@@ -1,6 +1,8 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { sql } from 'kysely';
-import type { Database } from '../../../lib/database/index.js';
+import {
+  loadPlayersWhoCanHaveMoreGifees,
+  type Database,
+} from '../../../lib/database/index.js';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 
@@ -15,12 +17,14 @@ export function buildTooManyGifteeMatchesQuery(db: Database) {
       'santa.address_location as santa_address_location',
       'santa.game_mode',
       'santa.max_giftees',
+      'santa.id as santa_id',
       'santa.did as santa_did',
       'santa.handle as santa_handle',
       'santa.deactivated as santa_deactivated',
       'santa.avatar_url as santa_avatar_url',
       'santa.note_count as santa_note_count',
       'santa.booted as santa_booted',
+      'giftee.id as giftee_id',
       'giftee.did as giftee_did',
       'giftee.address_location as giftee_address_location',
       'giftee.handle as giftee_handle',
@@ -44,12 +48,14 @@ export function buildBrokenMatchesQuery(db: Database) {
     .innerJoin('player as santa', 'santa.id', 'match.santa')
     .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
     .select([
+      'santa.id as santa_id',
       'santa.did as santa_did',
       'santa.handle as santa_handle',
       'santa.deactivated as santa_deactivated',
       'santa.avatar_url as santa_avatar_url',
       'santa.note_count as santa_note_count',
       'santa.booted as santa_booted',
+      'giftee.id as giftee_id',
       'giftee.did as giftee_did',
       'giftee.handle as giftee_handle',
       'giftee.deactivated as giftee_deactivated',
@@ -75,12 +81,14 @@ export function buildTooManySantasMatchesQuery(db: Database) {
       'santa.handle',
       'santa.game_mode',
       'santa.max_giftees',
+      'santa.id as santa_id',
       'santa.did as santa_did',
       'santa.handle as santa_handle',
       'santa.deactivated as santa_deactivated',
       'santa.avatar_url as santa_avatar_url',
       'santa.note_count as santa_note_count',
       'santa.booted as santa_booted',
+      'giftee.id as giftee_id',
       'giftee.did as giftee_did',
       'giftee.handle as giftee_handle',
       'giftee.deactivated as giftee_deactivated',
@@ -107,12 +115,14 @@ export function buildMultipleGifteeMatchesQuery(db: Database) {
       'santa.handle',
       'santa.game_mode',
       'santa.max_giftees',
+      'santa.id as santa_id',
       'santa.did as santa_did',
       'santa.handle as santa_handle',
       'santa.deactivated as santa_deactivated',
       'santa.avatar_url as santa_avatar_url',
       'santa.note_count as santa_note_count',
       'santa.booted as santa_booted',
+      'giftee.id as giftee_id',
       'giftee.did as giftee_did',
       'giftee.handle as giftee_handle',
       'giftee.deactivated as giftee_deactivated',
@@ -151,27 +161,7 @@ export const fixMatches: FastifyPluginAsync = async (rawApp) => {
         needsSantaAssigned,
         tooManySantasMatches,
       ] = await Promise.all([
-        db
-          .selectFrom('player')
-          .select([
-            'handle',
-            'did',
-            'address_location',
-            'avatar_url',
-            'note_count',
-            'giftee_count',
-            'giftee_for_count',
-            'max_giftees',
-          ])
-          .where('giftee_count_status', '=', 'can_have_more')
-          .where('signup_complete', '=', 1)
-          .orderBy(
-            sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end)`,
-            'asc'
-          )
-          .orderBy('giftee_count')
-          .orderBy(sql`random()`)
-          .execute(),
+        loadPlayersWhoCanHaveMoreGifees(db),
         buildBrokenMatchesQuery(db).execute(),
         buildTooManyGifteeMatchesQuery(db).execute(),
         db
@@ -197,15 +187,14 @@ export const fixMatches: FastifyPluginAsync = async (rawApp) => {
       if (request.query.data === 'true') {
         return reply.send(pageData);
       }
-      return reply.view(
-        'admin/fix-matches.ejs',
-        {
-          pageData,
-        },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
+      return reply.nunjucks('admin/fix-matches', {
+        playersWhoCanHaveMoreGifees,
+        brokenMatches,
+        tooManyGifteeMatches,
+        needsSantaAssigned,
+        tooManySantasMatches,
+        multipleGifteeMatches,
+      });
     }
   );
 };

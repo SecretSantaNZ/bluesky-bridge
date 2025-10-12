@@ -6,6 +6,7 @@ import { autoMatch } from './autoMatch.js';
 import { publish } from './publish.js';
 import { nudges } from './nudges.js';
 import { tracking } from './tracking.js';
+import { reassign } from './reassign.js';
 import { deleteDrafts } from './delete-drafts.js';
 
 export const match: FastifyPluginAsync = async (rawApp) => {
@@ -14,6 +15,7 @@ export const match: FastifyPluginAsync = async (rawApp) => {
   await app.register(publish);
   await app.register(nudges);
   await app.register(tracking);
+  await app.register(reassign);
   await app.register(deleteDrafts);
 
   app.post(
@@ -22,6 +24,9 @@ export const match: FastifyPluginAsync = async (rawApp) => {
       schema: {
         params: z.object({
           match_id: z.coerce.number(),
+        }),
+        body: z.object({
+          return_to: z.literal('fix-matches').optional(),
         }),
       },
     },
@@ -47,6 +52,9 @@ export const match: FastifyPluginAsync = async (rawApp) => {
           ])
         )
         .execute();
+      if (request.body.return_to === 'fix-matches') {
+        return reply.redirect('/admin/fix-matches', 303);
+      }
       return reply.nunjucks('common/server-events', {
         playerEvents: players.map((player) => ({ updated: player })),
         matchEvents: [

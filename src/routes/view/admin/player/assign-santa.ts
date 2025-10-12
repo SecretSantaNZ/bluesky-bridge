@@ -1,23 +1,47 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { ForbiddenError } from 'http-errors-enhanced';
 import { z } from 'zod';
+import { loadPlayersWhoCanHaveMoreGifees } from '../../../../lib/database/loadPlayersWhoCanHaveMoreGifees.js';
 
 export const assignSanta: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
+  app.get(
+    '/assign-santa',
+    {
+      schema: {
+        params: z.object({
+          player_id: z.coerce.number(),
+        }),
+      },
+    },
+    async function handler(request, reply) {
+      const { db, playerService } = this.blueskyBridge;
+
+      const [player, playersWhoCanHaveMoreGifees] = await Promise.all([
+        playerService.getPlayerById(request.params.player_id),
+        loadPlayersWhoCanHaveMoreGifees(db),
+      ]);
+
+      return reply.nunjucks('admin/player/assign-santa.njk', {
+        player,
+        playersWhoCanHaveMoreGifees,
+      });
+    }
+  );
+
   app.post(
     '/assign-santa',
     {
       schema: {
+        params: z.object({
+          player_id: z.coerce.number(),
+        }),
         body: z.object({
           santa_handle: z.string(),
         }),
       },
     },
     async function handler(request, reply) {
-      if (!request.tokenData?.admin) {
-        throw new ForbiddenError();
-      }
       const { db } = app.blueskyBridge;
 
       const [santa, giftee] = await Promise.all([
@@ -31,7 +55,7 @@ export const assignSanta: FastifyPluginAsync = async (rawApp) => {
           .selectFrom('player')
           .selectAll()
           .where('deactivated', '=', 0)
-          .where('did', '=', request.playerDid as string)
+          .where('id', '=', request.params.player_id)
           .executeTakeFirstOrThrow(),
       ]);
 
@@ -51,15 +75,7 @@ export const assignSanta: FastifyPluginAsync = async (rawApp) => {
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      // reply.header(
-      //   'HX-Trigger',
-      //   JSON.stringify({
-      //     'ss-match-deactivated': { id: request.body.match_id },
-      //   })
-      // );
-      // FIXME would prefer to update data
-      reply.header('HX-Refresh', 'true');
-      return reply.code(204).send();
+      return reply.redirect('/admin/fix-matches', 303);
     }
   );
 };

@@ -1,0 +1,100 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% from "common/error.njk" import errorPanel %}
+{% from "common/form-fields.njk" import inputText, inputSubmitWithActivity %}
+{% block body %}
+<div class="w-full flex justify-center">
+  {% call card() %}
+<form action="/admin/match/{{ match.match_id }}/reassign" method="post"
+    x-data="{
+      _santa_handle: {{ santa_handle | default(match.santa_handle) | dump }},
+      reassignError: {{ reassignError | default('') | dump }},
+      get santa_handle() {
+        return this._santa_handle;
+      },
+      set santa_handle(santa_handle) {
+        this._santa_handle = santa_handle;
+        this.reassignError = '';
+      }
+    }"
+    x-init="initMap()"
+    id="modal-content"
+    x-target="page-body" x-target.409="modal-content" @ajax:success="$dispatch('modal:close')"
+    @ss-santa-selected.window="santa_handle = $event.detail.santa_handle"
+  >
+<script>
+  async function initMap() {
+    if (!window.google || !google.maps || !google.maps.importLibrary) return;
+    const { Map } = await google.maps.importLibrary("maps");
+    const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker")
+
+    const map = new Map(document.getElementById('reassign-map'), {
+      mapId: 'reassign-map',
+    });
+    {% for santa in playersWhoCanHaveMoreGifees %}
+      {% if santa.address_location %}
+      {
+        const santaMarker = new AdvancedMarkerElement({
+          map,
+          position: {{- santa.address_location | safe -}},
+          title: {{- santa.handle | dump | safe -}},
+        });
+        santaMarker.addEventListener('click', () => {
+          window.dispatchEvent(new CustomEvent('ss-santa-selected', {{ { detail: { santa_handle: santa.handle } } | dump | safe }}));
+        })
+      }
+      {% endif %}
+    {% endfor %}
+
+    const gifteePin = new PinElement({
+      background: '#0000FF',
+      glyphColor: '#6666FF'
+    });
+    const gifteeMarker = new AdvancedMarkerElement({
+      map,
+      content: gifteePin.element,
+    });
+
+    gifteeMarker.title = {{ match.giftee_handle | dump | safe }};
+    {% if match.giftee_address_location %}
+      const gifteeLocation = {{ match.giftee_address_location | safe }};
+      gifteeMarker.position = gifteeLocation;
+      map.setCenter(gifteeLocation);
+      map.setZoom(10);
+    {% else %}
+      gifteeMarker.position = null;
+    {% endif %}
+  }
+</script>
+  <div class="space-y-8">
+    <h1>Reassign giftee for @{{ match.giftee_handle }}</h1>
+    <div>
+      {{ inputText(id='reassign_giftee_santa_handle', name='santa_handle', label='Santa', placeholder='coolplayer.bsky.social', xModel='santa_handle', attributes={
+        list: 'players-available-to-santa',
+        autocomplete: 'false'
+      }) }}
+      <div x-show="reassignError === 'santa-not-found'" x-text="'Cannot find player ' + santa_handle + ' to assign.'" class="text-red-600"></div>
+    </div>
+    {% if super_santa_match %}
+      <div x-show="reassignError === 'too-many-giftees'" class="text-orange-600 text-lg">
+        <p><span x-text="santa_handle"></span> can't have more giftees.</p>
+        <p>Save again to assign anyway.</p>
+      </div>
+    {% else %}
+      <div x-show="reassignError === 'too-many-giftees'" x-text="santa_handle + '  can\'t have more giftees.'" class="text-red-600"></div>
+    {% endif %}
+    {{ inputSubmitWithActivity() }}
+  </div>
+  {% if super_santa_match %}
+    <input type="hidden" name="super_santa_match" value="{{ super_santa_match }}"/>
+    <input type="hidden" name="force" x-bind:value="reassignError === 'too-many-giftees' ? 'true' : 'false'"/>
+  {% endif %}
+  <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+  <div class="flex justify-center mt-12">
+    <div class="gme-map size-96" id="reassign-map"></div>
+  </div>
+  {% include "admin/partials/players-available-to-santa.njk" %}
+</form>
+  {% endcall %}
+</div>
+{% endblock %}
