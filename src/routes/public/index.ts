@@ -39,10 +39,10 @@ export const publicContent: FastifyPluginAsync = async (app) => {
   });
 
   app.get('/faq', async function (request, reply) {
-    return reply.nunjucks('public/faq', {});
+    return reply.view('public/faq', {});
   });
 
   app.get('/rules', async function (request, reply) {
-    return reply.nunjucks('public/rules', {});
+    return reply.view('public/rules', {});
   });
 };

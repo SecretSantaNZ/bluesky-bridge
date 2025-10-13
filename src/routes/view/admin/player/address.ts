@@ -29,7 +29,7 @@ export const address: FastifyPluginAsync = async (rawApp) => {
         throw new NotFoundError();
       }
 
-      return reply.nunjucks('admin/player/address', {
+      return reply.view('admin/player/address', {
         player,
         player_display_handle:
           player.player_type === 'mastodon'

@@ -13,7 +13,7 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
         .execute(),
       db.selectFrom('carrier').selectAll().orderBy('id', 'asc').execute(),
     ]);
-    return reply.nunjucks('admin/tracking', {
+    return reply.view('admin/tracking', {
       tracking,
       carriers,
     });
@@ -39,7 +39,7 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
           .executeTakeFirstOrThrow(),
       ]);
 
-      return reply.nunjucks('admin/tracking/edit', {
+      return reply.view('admin/tracking/edit', {
         carriers,
         trackingRecord,
         trackingEvents: [{ updated: trackingRecord }],
@@ -107,7 +107,7 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
         .where('id', '=', tracking_id)
         .executeTakeFirstOrThrow();
 
-      return reply.nunjucks('common/server-events', {
+      return reply.view('common/server-events', {
         trackingEvents: [{ deactivated: { tracking_id } }],
       });
     }
@@ -143,7 +143,7 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
         .where('tracking.id', '=', tracking_id)
         .executeTakeFirstOrThrow();
 
-      return reply.nunjucks('common/server-events', {
+      return reply.view('common/server-events', {
         trackingEvents: [{ updated: trackingRecord }],
       });
     }

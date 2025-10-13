@@ -58,7 +58,7 @@ export const badge: FastifyPluginAsync = async (rawApp) => {
           reply,
           'player/badge'
         );
-        return reply.nunjucks('player/badge', { badge: sentBadge });
+        return reply.view('player/badge', { badge: sentBadge });
       }
       if (badge == null) {
         throw new NotFoundError();
@@ -74,7 +74,7 @@ export const badge: FastifyPluginAsync = async (rawApp) => {
         reply,
         'player/badge'
       );
-      return reply.nunjucks('player/badge', { badge });
+      return reply.view('player/badge', { badge });
     }
   );
 };

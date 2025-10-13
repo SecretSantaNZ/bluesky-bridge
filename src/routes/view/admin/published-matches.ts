@@ -18,7 +18,7 @@ export const publishedMatches: FastifyPluginAsync = async (app) => {
     const pageData = {
       publishedMatches,
     };
-    return reply.nunjucks('admin/published-matches', {
+    return reply.view('admin/published-matches', {
       ...nudgeOptions,
       carriers,
       pageData,

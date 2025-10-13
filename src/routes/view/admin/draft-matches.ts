@@ -53,7 +53,7 @@ export const draftMatches: FastifyPluginAsync = async (app) => {
       criticalMatchIssues: brokenMatchCount + tooManyGifteesCount,
       warnMatchIssues: tooManySantasCount + multipleGifteesCount,
     };
-    return reply.nunjucks('admin/draft-matches', {
+    return reply.view('admin/draft-matches', {
       pageData,
     });
   });

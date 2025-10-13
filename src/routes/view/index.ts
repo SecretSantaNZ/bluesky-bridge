@@ -39,7 +39,7 @@ export async function returnLoginView(
   } else {
     reply.status(401);
   }
-  return reply.nunjucks('auth/login', {
+  return reply.view('auth/login', {
     requestId,
     returnToken,
     replaceUrl: returnUrl,
@@ -69,7 +69,7 @@ export const view: FastifyPluginAsync = async (app) => {
       (triggerId ? triggerId + '-error' : undefined);
 
     // @ts-expect-error can't be bothered typing to http error
-    return reply.status(error.status ?? 500).nunjucks('common/error', {
+    return reply.status(error.status ?? 500).view('common/error', {
       errorMessage: error.message || 'Unknown Error',
       elementId,
     });

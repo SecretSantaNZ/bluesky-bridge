@@ -55,7 +55,7 @@ export const match: FastifyPluginAsync = async (rawApp) => {
       if (request.body.return_to === 'fix-matches') {
         return reply.redirect('/admin/fix-matches', 303);
       }
-      return reply.nunjucks('common/server-events', {
+      return reply.view('common/server-events', {
         playerEvents: players.map((player) => ({ updated: player })),
         matchEvents: [
           {

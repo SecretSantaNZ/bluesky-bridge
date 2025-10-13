@@ -22,7 +22,7 @@ export const assignSanta: FastifyPluginAsync = async (rawApp) => {
         loadPlayersWhoCanHaveMoreGifees(db),
       ]);
 
-      return reply.nunjucks('admin/player/assign-santa.njk', {
+      return reply.view('admin/player/assign-santa.njk', {
         player,
         playersWhoCanHaveMoreGifees,
       });

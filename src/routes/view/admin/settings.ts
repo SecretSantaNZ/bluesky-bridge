@@ -50,7 +50,7 @@ export const settings: FastifyPluginAsync = async (rawApp) => {
     const [settings] = await Promise.all([
       db.selectFrom('settings').selectAll().executeTakeFirstOrThrow(),
     ]);
-    return reply.nunjucks('admin/settings', {
+    return reply.view('admin/settings', {
       settings: toData(settings),
     });
   });

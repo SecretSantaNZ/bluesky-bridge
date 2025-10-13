@@ -187,7 +187,7 @@ export const fixMatches: FastifyPluginAsync = async (rawApp) => {
       if (request.query.data === 'true') {
         return reply.send(pageData);
       }
-      return reply.nunjucks('admin/fix-matches', {
+      return reply.view('admin/fix-matches', {
         playersWhoCanHaveMoreGifees,
         brokenMatches,
         tooManyGifteeMatches,

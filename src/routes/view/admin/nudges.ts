@@ -10,7 +10,7 @@ export const nudges: FastifyPluginAsync = async (rawApp) => {
     const [nudges] = await Promise.all([
       queryFullNudge(db).orderBy('nudge.id', 'desc').execute(),
     ]);
-    return reply.nunjucks('admin/nudges', {
+    return reply.view('admin/nudges', {
       nudges,
     });
   });
@@ -33,7 +33,7 @@ export const nudges: FastifyPluginAsync = async (rawApp) => {
         .where('id', '=', request.params.nudge_id)
         .execute();
 
-      return reply.nunjucks('common/server-events', {
+      return reply.view('common/server-events', {
         nudgeEvents: [{ deleted: { nudge_id: request.params.nudge_id } }],
       });
     }

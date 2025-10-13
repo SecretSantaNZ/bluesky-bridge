@@ -41,7 +41,7 @@ export const notes: FastifyPluginAsync = async (rawApp) => {
           .execute(),
       ]);
 
-      return reply.nunjucks('admin/player/notes', {
+      return reply.view('admin/player/notes', {
         player,
         notes,
         playerEvents: [

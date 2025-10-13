@@ -13,7 +13,7 @@ export const logout: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function handler(request, reply) {
-      return reply.clearCookie('session').nunjucks('common/server-events', {
+      return reply.clearCookie('session').view('common/server-events', {
         reload: true,
       });
     }

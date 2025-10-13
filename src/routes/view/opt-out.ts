@@ -7,7 +7,7 @@ export const optOut: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
 
   app.get('/opt-out', async function handler(request, reply) {
-    return reply.nunjucks('player/opt-out');
+    return reply.view('player/opt-out');
   });
 
   app.post(

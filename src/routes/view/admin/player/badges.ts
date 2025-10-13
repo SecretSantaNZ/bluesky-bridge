@@ -50,7 +50,7 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
         throw new NotFoundError();
       }
 
-      return reply.nunjucks('admin/player/badges', {
+      return reply.view('admin/player/badges', {
         playerBadges,
         badges: badges.filter(
           (badge) =>

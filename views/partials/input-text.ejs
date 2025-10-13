@@ -1,4 +1,0 @@
-<div class="group" <% if (locals.xShow) {%>x-show="<%= xShow %>"<% } %>>
-  <label for="<%= id %>" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300 scheme-light dark:scheme-dark"><%= label %></label>
-  <input <% if (locals.xModel) { %>x-model="<%= xModel %>" <% } %>type="<%= locals.input_type || 'text' %>" id="<%= id %>" name="<%= locals.name || id %>" placeholder="<%= placeholder %>" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"<% Object.entries(locals.attributes || {}).forEach(([key, value]) => { %> <%= key %>="<%= value %>"<%}); %>/>
-</div>

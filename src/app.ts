@@ -11,7 +11,6 @@ import fastifyFormBody from '@fastify/formbody';
 import fastifyView from '@fastify/view';
 import fastifyCookie from '@fastify/cookie';
 import fastifyStatic from '@fastify/static';
-import ejs from 'ejs';
 import nunjucks, { Environment } from 'nunjucks';
 
 import type { TokenManager } from './lib/TokenManager.js';
@@ -69,7 +68,6 @@ declare module 'fastify' {
   }
   export interface FastifyReply {
     locals?: Record<string, unknown>;
-    nunjucks: FastifyReply['view'];
   }
 }
 
@@ -86,15 +84,6 @@ export const build = async (
   await app.register(fastifyHttpErrorsEnhanced);
   await app.register(fastifyView, {
     engine: {
-      ejs,
-    },
-    root: path.join(process.cwd(), 'views'),
-    defaultContext: {
-      newrelic,
-    },
-  });
-  await app.register(fastifyView, {
-    engine: {
       nunjucks,
     },
     root: path.join(process.cwd(), 'views'),
@@ -102,7 +91,6 @@ export const build = async (
       newrelic,
     },
     viewExt: 'njk',
-    propertyName: 'nunjucks',
     options: {
       noCache: process.env.NODE_ENV !== 'production',
       onConfigure: (env: Environment) => {

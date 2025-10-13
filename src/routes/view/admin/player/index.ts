@@ -86,7 +86,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
       const adminPlayer = await baseAdminPlayerQuery(db)
         .where('did', '=', playerDid)
         .executeTakeFirst();
-      return reply.nunjucks('common/server-events', {
+      return reply.view('common/server-events', {
         playerEvents: [
           {
             updated: adminPlayer,
@@ -119,7 +119,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
         .where('player.id', '=', request.params.player_id)
         .executeTakeFirstOrThrow();
 
-      return reply.nunjucks('common/server-events', {
+      return reply.view('common/server-events', {
         playerEvents: [
           {
             updated: adminPlayer,
@@ -154,7 +154,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
         .where('player.id', '=', request.params.player_id)
         .executeTakeFirstOrThrow();
 
-      return reply.nunjucks('common/server-events', {
+      return reply.view('common/server-events', {
         playerEvents: [
           {
             updated: adminPlayer,
@@ -198,7 +198,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
         .where('player.id', '=', request.params.player_id)
         .executeTakeFirstOrThrow();
 
-      return reply.nunjucks('common/server-events', {
+      return reply.view('common/server-events', {
         playerEvents: [
           {
             updated: adminPlayer,
@@ -240,7 +240,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
         .where('player.id', '=', request.params.player_id)
         .executeTakeFirstOrThrow();
 
-      return reply.nunjucks('common/server-events', {
+      return reply.view('common/server-events', {
         playerEvents: [
           {
             updated: adminPlayer,

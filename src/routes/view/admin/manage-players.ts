@@ -37,7 +37,7 @@ export const managePlayers: FastifyPluginAsync = async (rawApp) => {
         return reply.send(player);
       }
       const players = await baseQuery.execute();
-      return reply.nunjucks('admin/manage-players', {
+      return reply.view('admin/manage-players', {
         players,
         initialFilter: request.query.handle ?? '',
         replaceUrl: request.routeOptions.url,

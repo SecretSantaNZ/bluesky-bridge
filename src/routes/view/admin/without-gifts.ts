@@ -55,7 +55,7 @@ export const withoutGifts: FastifyPluginAsync = async (rawApp) => {
             .where((eb) => filterToInactiveMatches(eb))
             .executeTakeFirstOrThrow(),
         ]);
-      return reply.nunjucks('admin/without-gifts', {
+      return reply.view('admin/without-gifts', {
         playersWhoCanHaveMoreGifees,
         matches,
         toMessageCount: toMessageCount.cnt,

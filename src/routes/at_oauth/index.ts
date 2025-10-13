@@ -84,7 +84,7 @@ async function startAtOauth(
         markError: (errorText) => Promise.reject(new Error(errorText)),
       });
 
-      return reply.nunjucks('auth/partials/otp-login', {
+      return reply.view('auth/partials/otp-login', {
         key,
         returnToken,
       });
@@ -105,7 +105,7 @@ async function startAtOauth(
     });
 
     if (request.headers['x-alpine-request']) {
-      return reply.nunjucks('common/server-events', {
+      return reply.view('common/server-events', {
         redirectTo: url,
         startRequestFrom: '#login',
       });
@@ -172,7 +172,7 @@ export async function finishLogin(
         'at://',
         ''
       );
-      return reply.nunjucks('player/signups-closed', {
+      return reply.view('player/signups-closed', {
         replaceUrl: '/',
         player: undefined,
         player_handle,
@@ -182,7 +182,7 @@ export async function finishLogin(
             : player_handle,
       });
     } else if (player.booted && !admin) {
-      return reply.nunjucks(
+      return reply.view(
         'player/booted-out',
         {
           replaceUrl: '/',
@@ -219,7 +219,7 @@ export async function finishLogin(
     });
 
     if (request.headers['x-alpine-request']) {
-      return reply.nunjucks('common/server-events', {
+      return reply.view('common/server-events', {
         redirectTo: returnUrl ?? '/',
         startRequestFrom: '#login',
       });

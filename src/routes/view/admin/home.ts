@@ -120,7 +120,7 @@ export const adminHome: FastifyPluginAsync = async (app) => {
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
         .executeTakeFirstOrThrow(),
     ]);
-    return reply.nunjucks('admin/home', {
+    return reply.view('admin/home', {
       signupCompleteCount,
       registeredPlayersCount,
       criticalMatchIssues: brokenMatchCount + tooManyGifteesCount,

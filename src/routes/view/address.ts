@@ -7,7 +7,7 @@ import { getLocation } from '../../lib/googlePlaces.js';
 export const address: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
   app.get('/address', function (request, reply) {
-    return reply.nunjucks('player/address');
+    return reply.view('player/address');
   });
 
   app.post(

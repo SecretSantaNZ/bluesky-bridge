@@ -29,7 +29,7 @@ export const nudge: FastifyPluginAsync = async (rawApp) => {
           loadNudgeOptions(db),
         ]);
 
-      return reply.nunjucks('player/send-nudge', {
+      return reply.view('player/send-nudge', {
         match,
         nudgeTypes,
         nudgeOptions: {

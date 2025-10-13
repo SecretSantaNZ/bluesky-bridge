@@ -128,7 +128,7 @@ export const renderPlayerHome = async (
     ...(sentBadge && giftsIveSent.length > 0 ? [sentBadge] : []),
     ...playerBadges,
   ].filter((badge) => badge.id !== settings.current_game_badge_id);
-  return reply.nunjucks(view, {
+  return reply.view(view, {
     giftees,
     myGifts,
     giftsIveSent,
@@ -157,20 +157,20 @@ export const playerHome: FastifyPluginAsync = async (app) => {
         if (!player.admin) {
           reply.clearCookie('session');
         }
-        return reply.nunjucks('player/booted-out');
+        return reply.view('player/booted-out');
       }
       if (player.opted_out) {
         reply.locals = {
           ...reply.locals,
         };
-        return reply.nunjucks('player/opted-out');
+        return reply.view('player/opted-out');
       }
       const hasAddress = Boolean(player.address && player.address.trim());
       if (!hasAddress) {
-        return reply.nunjucks('player/address', { hideClose: true });
+        return reply.view('player/address', { hideClose: true });
       }
       if (!player.game_mode) {
-        return reply.nunjucks('player/game-mode', {
+        return reply.view('player/game-mode', {
           hideClose: true,
           gameModeOptions: [
             { id: 'Regular', text: 'Regular' },

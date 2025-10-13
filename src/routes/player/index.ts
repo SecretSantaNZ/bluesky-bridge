@@ -48,7 +48,7 @@ export const player: FastifyPluginAsync = async (rawApp) => {
       (triggerId ? triggerId + '-error' : undefined);
 
     // @ts-expect-error can't be bothered typing to http error
-    return reply.status(error.status ?? 500).nunjucks('common/error', {
+    return reply.status(error.status ?? 500).view('common/error', {
       errorMessage: error.message || 'Unknown Error',
       elementId,
     });

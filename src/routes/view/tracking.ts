@@ -40,7 +40,7 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
         giftwrap_status: 0,
       };
 
-      return reply.nunjucks('player/add-tracking', {
+      return reply.view('player/add-tracking', {
         match,
         carriers,
         trackingRecord,

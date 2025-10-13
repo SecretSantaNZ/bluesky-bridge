@@ -4,7 +4,7 @@ import { iconsPlugin } from '@egoist/tailwindcss-icons';
 
 export default {
   // darkMode: 'selector',
-  content: ['./views/**/*.ejs', './views/**/*.njk'],
+  content: ['./views/**/*.njk'],
   theme: {
     extend: {
       colors: {

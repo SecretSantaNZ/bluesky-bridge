@@ -19,7 +19,7 @@ async function renderReassign(
     loadPlayersWhoCanHaveMoreGifees(db),
   ]);
 
-  return reply.status(status).nunjucks('admin/match/reassign.njk', {
+  return reply.status(status).view('admin/match/reassign.njk', {
     ...extra,
     match,
     playersWhoCanHaveMoreGifees,

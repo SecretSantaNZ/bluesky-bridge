@@ -34,7 +34,7 @@ export const nudges: FastifyPluginAsync = async (rawApp) => {
           loadNudgeOptions(db),
         ]);
 
-      return reply.nunjucks('admin/match/nudges', {
+      return reply.view('admin/match/nudges', {
         match,
         nudges,
         nudgeTypes,

@@ -31,7 +31,7 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
         throw new NotFoundError();
       }
 
-      return reply.nunjucks('admin/player/game-mode', {
+      return reply.view('admin/player/game-mode', {
         player,
         player_display_handle:
           player.player_type === 'mastodon'

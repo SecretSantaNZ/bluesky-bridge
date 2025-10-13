@@ -25,7 +25,7 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
       db.selectFrom('badge').selectAll().orderBy('id', 'desc').execute(),
       db.selectFrom('settings').selectAll().executeTakeFirstOrThrow(),
     ]);
-    return reply.nunjucks('admin/badges', {
+    return reply.view('admin/badges', {
       badges,
       settings,
     });
@@ -74,7 +74,7 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
           assigned_for_type = 'posting';
         }
       }
-      return reply.nunjucks('admin/badge', {
+      return reply.view('admin/badge', {
         badge: { ...badge, assigned_for_type },
       });
     }
@@ -108,7 +108,7 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
         Expires: 300,
       });
 
-      return reply.nunjucks('admin/upload-form', {
+      return reply.view('admin/upload-form', {
         url,
         fields,
         image_url: `https://secretsantanz.imgix.net/${name}?w=386&w386&format=auto`,
