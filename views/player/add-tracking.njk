@@ -5,7 +5,7 @@
 {% block body %}
 <div class="w-full flex justify-center">
   {% call card() %}
-<form x-target="page-body modal-content" x-target.error="add-tracking-error" @ajax:success="if (!$event.detail.url.match(/\/badge\//)) $dispatch('modal:close')"
+<form x-target="presents-ive-sent-card my-giftee-card my-badges-card modal-content" x-target.error="add-tracking-error" @ajax:success="if (!$event.detail.url.match(/\/badge\//)) $dispatch('modal:close')"
   method="post" action="/match/{{ match.match_id }}/tracking"
   id="modal-content"
   class="space-y-8"

@@ -19,7 +19,7 @@
     }"
     x-init="initMap()"
     id="modal-content"
-    x-target="page-body" x-target.409="modal-content" @ajax:success="$dispatch('modal:close')"
+    x-target="{{ '_none' if super_santa_match else 'page-body' }}" x-target.409="modal-content" @ajax:success="$dispatch('modal:close')"
     @ss-santa-selected.window="santa_handle = $event.detail.santa_handle"
   >
 <script>

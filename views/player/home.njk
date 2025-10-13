@@ -46,7 +46,7 @@
   {% endif %}
 {% endif %}
 {% if settings.show_badges and badges.length > 0%}
-  <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
+  <div id="my-badges-card" class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
     <div class="flex">
       <div class="grow shrink">
         <h1>My badges</h1>
@@ -69,10 +69,10 @@
   </div>
 {% endif %}
 {% call card() %}{% include "./home/key-information.njk" %}{% endcall %}
-{% call card() %}{% include "./home/my-details.njk" %}{% endcall %}
-{% call card() %}{% include "./home/my-giftee.njk" %}{% endcall %}
+{% call card('my-details-card') %}{% include "./home/my-details.njk" %}{% endcall %}
+{% call card('my-giftee-card') %}{% include "./home/my-giftee.njk" %}{% endcall %}
 {% call card() %}{% include "./home/presents-for-me.njk" %}{% endcall %}
-{% call card() %}{% include "./home/presents-ive-sent.njk" %}{% endcall %}
-{% call card() %}{% include "./home/nudges-ive-sent.njk" %}{% endcall %}
+{% call card('presents-ive-sent-card') %}{% include "./home/presents-ive-sent.njk" %}{% endcall %}
+{% call card('nudges-ive-sent-card') %}{% include "./home/nudges-ive-sent.njk" %}{% endcall %}
 </div>
 {% endblock %}

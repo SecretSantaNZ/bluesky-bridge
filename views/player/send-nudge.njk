@@ -3,7 +3,7 @@
 {% block body %}
 <div class="w-full flex justify-center">
   {% call card() %}
-<form x-target="page-body" x-target.error="send-nudge-error" @ajax:success="$dispatch('modal:close')" method="post" action="/nudge"
+<form x-target="nudges-ive-sent-card my-giftee-card" x-target.error="send-nudge-error" @ajax:success="$dispatch('modal:close')" method="post" action="/nudge"
     x-data="{{ nudgeOptions | dump }}"
     id="modal-content"
   >
