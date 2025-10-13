@@ -1,0 +1,5 @@
+<div id="presigned-fields" x-init="url = {{ url | dump }}; pending_url = {{ image_url | dump }}">
+  {% for name, value in fields %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}" />
+  {% endfor %}
+</div>
