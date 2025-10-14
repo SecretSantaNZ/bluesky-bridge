@@ -29,7 +29,7 @@
       <div x-show="!expandPostCount"><span x-text="player.post_count_since_signup"></span> / <span x-text="player.post_count"></span></div>
       <div x-show="expandPostCount">Posts since sign up: <b><span x-text="player.post_count_since_signup"></span></b></div>
       <div x-show="expandPostCount">Total posts sign up: <b><span x-text="player.post_count"></span></b></div>
-      <div x-show="expandPostCount">As of <b><span x-text="secretsantanz.formatDatetime(player.last_checked_post_count)"></span></b></div>
+      <div x-show="expandPostCount">As of <b><span x-datetime="player.last_checked_post_count"></span></b></div>
     </div>
     {% endif %}
   </div>

@@ -7,7 +7,6 @@ const buildOptions = {
   entryPoints: ['src/public/index.ts', 'src/index.css'],
   bundle: true,
   outdir: 'public',
-  globalName: 'secretsantanz',
   minify: true,
   sourcemap: true,
   plugins: [tailwindPlugin({})],

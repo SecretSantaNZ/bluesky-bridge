@@ -5,7 +5,7 @@
 {% block body %}
 <div class="w-full px-12"
     x-data="{{ {players: players, showConfirm: '', initialFilter: initialFilter} | dump }}"
-    x-init="activePlayersPager = secretsantanz.buildPager({
+    x-init="activePlayersPager = $pager({
       handle: initialFilter,
       showSignupComplete: true,
       showSignupIncomplete: true,
@@ -25,7 +25,7 @@
         }
       });
     });
-    inactivePlayersPager = secretsantanz.buildPager({
+    inactivePlayersPager = $pager({
       handle: initialFilter,
     }, function(filters) {
       const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();

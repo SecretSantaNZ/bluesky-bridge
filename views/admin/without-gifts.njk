@@ -4,7 +4,7 @@
 {% block body %}
 <div class="w-full px-12"
   x-data="{matches: [], showConfirm: ''}"
-  x-init="pager = secretsantanz.buildPager({
+  x-init="pager = $pager({
     handle: '',
     showWithPresentUpdates: true,
     showContacted: true,
@@ -22,8 +22,8 @@
       && (filters.showHasGift || (match.tracking_count === 0 || match.tracking_missing_count > 0))
     );
   })"
-  @ss:match:deactivated.window="matches = secretsantanz.removeMatch(matches, event.detail.match_id)"
-  @ss:match:updated.window="matches = secretsantanz.replaceMatch(matches, event.detail)"
+  @ss:match:deactivated.window="matches = $removeMatch(matches, event.detail.match_id)"
+  @ss:match:updated.window="matches = $replaceMatch(matches, event.detail)"
   @ss:matches:refresh.window="matches = event.detail.matches"
 >
   <div id="refresh-matches" class="hidden" x-sync x-init="$dispatch('ss:matches:refresh', {matches: {{ matches | dump}} })"></div>
@@ -83,7 +83,7 @@
       <form x-target="_none" x-bind:action="'/admin/match/' + match.match_id + '/mark-contacted'" method="post" class="flex items-center sm:justify-center lg:col-span-1">
         <div class="italic lg:hidden mr-2">Contacted:</div>
         <div>
-          <div x-text="match.contacted && secretsantanz.formatDatetime(match.contacted)"></div>
+          <div x-datetime="match.contacted"></div>
           {{ activitySpinner() }}
           <button type="submit" class="flex items-center rounded-xs"><div class="i-mdi-message-bubble mr-1 size-5"></div><div>Mark contacted</div></button>
           <input type="hidden" name="match_id" x-bind:value="match.match_id"/>

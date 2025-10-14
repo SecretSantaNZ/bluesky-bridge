@@ -2,7 +2,6 @@ import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import z from 'zod';
 import { queryFullMatch } from '../../lib/database/match.js';
-import { formatDateIso } from '../../lib/dates.js';
 import {
   BadRequestError,
   InternalServerError,
@@ -34,7 +33,6 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
       ]);
 
       const trackingRecord = {
-        shipped_date: formatDateIso(new Date()),
         tracking_number: '',
         carrier_id: carriers[0]?.id,
         giftwrap_status: 0,

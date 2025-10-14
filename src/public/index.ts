@@ -1,7 +1,6 @@
 import { startRequest, endRequest } from './disableFields.js';
-export * from './disableFields.js';
-export * from './utils.js';
-export * from '../lib/dates.js';
+import { buildPager, removeMatch, replaceMatch } from './utils.js';
+import { formatDate, formatDateIso, formatDatetime } from '../lib/dates.js';
 
 import Alpine from 'alpinejs';
 import morph from '@alpinejs/morph';
@@ -17,6 +16,36 @@ window.Alpine = Alpine;
 Alpine.plugin(morph);
 Alpine.plugin(ajax);
 Alpine.plugin(persist);
+Alpine.magic('pager', () => buildPager);
+Alpine.magic('replaceMatch', () => replaceMatch);
+Alpine.magic('removeMatch', () => removeMatch);
+Alpine.magic('currentDateIso', () => formatDateIso(new Date()));
+Alpine.magic('startRequest', () => (startRequestFrom) => {
+  startRequest(document.querySelector(startRequestFrom));
+});
+Alpine.directive(
+  'datetime',
+  (el, { expression }, { evaluateLater, effect }) => {
+    const getIsoDatetime = evaluateLater(expression);
+    effect(() => {
+      getIsoDatetime((isoDatetime) => {
+        const formattedDateTime = isoDatetime
+          ? formatDatetime(isoDatetime as string | Date)
+          : '';
+        el.innerText = formattedDateTime;
+      });
+    });
+  }
+);
+Alpine.directive('date', (el, { expression }, { evaluateLater, effect }) => {
+  const getIsoDate = evaluateLater(expression);
+  effect(() => {
+    getIsoDate((isoDate) => {
+      const formattedDate = isoDate ? formatDate(isoDate as string | Date) : '';
+      el.innerText = formattedDate;
+    });
+  });
+});
 
 Alpine.start();
 

@@ -9,14 +9,14 @@
       return this.publishedMatches.filter((match) => match.match_status === 'shared').length;
     },
   }"
-  x-init="pager = secretsantanz.buildPager({
+  x-init="pager = $pager({
     handle: ''
   }, function(filters) {
     const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
     return publishedMatches.filter((match) => !cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter));
   })"
-  @ss:match:deactivated.window="publishedMatches = secretsantanz.removeMatch(publishedMatches, event.detail.match_id)"
-  @ss:match:updated.window="publishedMatches = secretsantanz.replaceMatch(publishedMatches, event.detail)"
+  @ss:match:deactivated.window="publishedMatches = $removeMatch(publishedMatches, event.detail.match_id)"
+  @ss:match:updated.window="publishedMatches = $replaceMatch(publishedMatches, event.detail)"
 >
   <div class="grid sm:grid-cols-2 md:grid-cols-3 sm:space-x-4 space-y-4 sm:space-y-0 justify-center mb-8">
     <form x-show="sharedMatchesCount > 0" x-target="page-body" x-target.error="publish-to-shared" id="publish-to-shared" action="/admin/match/publish" method="post" class="flex items-center justify-center">

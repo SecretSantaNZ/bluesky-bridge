@@ -9,7 +9,7 @@
     window.history.replaceState(null, '', {{ replaceUrl | dump }});
   {%- endif -%}
   {%- if startRequestFrom -%}
-    secretsantanz.startRequest(document.querySelector({{ startRequestFrom | dump }}));
+    $startRequest({{ startRequestFrom | dump }});
   {%- endif -%}
   {%- for event in playerEvents | default([]) -%}
     {%- if event.updated -%}
