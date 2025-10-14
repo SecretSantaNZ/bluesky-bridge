@@ -89,6 +89,8 @@ export const build = async (
     root: path.join(process.cwd(), 'views'),
     defaultContext: {
       newrelic,
+      indexCss: process.env.INDEX_CSS_NAME ?? 'index.css',
+      indexJs: process.env.INDEX_JS_NAME ?? 'index.js',
     },
     viewExt: 'njk',
     options: {
@@ -109,6 +111,12 @@ export const build = async (
   await app.register(fastifyStatic, {
     prefix: '/public/',
     root: path.join(process.cwd(), 'public'),
+    ...(process.env.NODE_ENV === 'production'
+      ? {
+          immutable: true,
+          maxAge: '30d',
+        }
+      : undefined),
   });
 
   // Add schema validator and serializer

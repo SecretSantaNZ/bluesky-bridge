@@ -45,6 +45,6 @@
     @apply cursor-pointer;
   }
   form {
-    @apply m-0
+    @apply m-0;
   }
 }

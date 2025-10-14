@@ -4,15 +4,12 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "run-s build:server build:tailwind build:client",
+    "build": "run-s build:server build:client",
     "build:server": "rm -rf ./dist && tsc",
-    "build:tailwind": "npx  @tailwindcss/cli -i ./src/input.css -o ./public/style.css",
-    "build:client": "npx esbuild --bundle src/public/index.ts --outdir=public --global-name=secretsantanz --minify --sourcemap",
-    "start": "run-p start:tailwind start:server start:client",
+    "build:client": "node build-client.mjs build",
+    "start": "run-p start:server start:client",
     "start:server": "nodemon --watch 'src/**' --ext 'ts' --exec 'tsx src/server.ts'",
-    "start:tailwind": "npm run build:tailwind -- --watch",
-    "start:client": "npm run build:client -- --watch",
-    "start:server-with-secrets": "sudo systemd-run --pty --same-dir --wait --collect --service-type=exec --pipe -p LoadCredentialEncrypted=bluesky-bridge-creds:$(pwd)/bluesky-bridge-creds.creds -p User=$(whoami) -E PATH=\"$PATH\" sh -c 'npm run start:server'"
+    "start:client": "node build-client.mjs watch"
   },
   "author": "",
   "license": "ISC",
@@ -37,6 +34,7 @@
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
     "esbuild": "^0.25.9",
+    "esbuild-plugin-tailwindcss": "^2.1.0",
     "eslint": "^9.34.0",
     "eslint-plugin-prettier": "^5.5.4",
     "nodemon": "^3.1.10",
