@@ -97,7 +97,13 @@ export const build = async (
       noCache: process.env.NODE_ENV !== 'production',
       onConfigure: (env: Environment) => {
         env.addFilter('ssDate', formatDate);
-        env.addFilter('ssDatetime', formatDatetime);
+        env.addFilter('ssDatetime', (isoDatetime) =>
+          env.getFilter('safe')(
+            isoDatetime
+              ? `<span x-datetime="${env.getFilter('escape')(JSON.stringify(isoDatetime))}">${env.getFilter('escape')(formatDatetime(isoDatetime))}</span>`
+              : ''
+          )
+        );
         env.addFilter('ssEscapeUri', encodeURIComponent);
         env.addFilter(
           'ssPlur',
