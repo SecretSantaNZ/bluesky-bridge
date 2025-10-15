@@ -10,9 +10,4 @@
   {% if playersWhoCanHaveMoreGifees.length > 15 %}
   <div>... and {{ playersWhoCanHaveMoreGifees.length - 15 }} more</div>
   {% endif %}
-  <datalist id="players-available-to-santa"> 
-    {% for player in playersWhoCanHaveMoreGifees %}
-      <option value="{{ player.handle }}"></option>
-    {% endfor %}
-  </datalist>
 </div>

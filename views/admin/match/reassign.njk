@@ -73,6 +73,11 @@
         list: 'players-available-to-santa',
         autocomplete: 'false'
       }) }}
+      <datalist id="players-available-to-santa"> 
+        {% for player in playersWhoCanHaveMoreGifees %}
+          <option value="{{ player.handle }}"></option>
+        {% endfor %}
+      </datalist>
       <div x-show="reassignError === 'santa-not-found'" x-text="'Cannot find player ' + santa_handle + ' to assign.'" class="text-red-600"></div>
     </div>
     {% if super_santa_match %}

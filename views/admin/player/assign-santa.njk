@@ -17,6 +17,11 @@
             list: 'players-available-to-santa',
             autocomplete: 'false'
           }) }}
+          <datalist id="players-available-to-santa"> 
+            {% for player in playersWhoCanHaveMoreGifees %}
+              <option value="{{ player.handle }}"></option>
+            {% endfor %}
+          </datalist>
         </div>
         {{ errorPanel(errorMessage, 'assign-santa-error') }}
         {{ inputSubmitWithActivity() }}
