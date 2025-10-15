@@ -1,0 +1,19 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% from "common/error.njk" import errorPanel %}
+{% from "common/form-fields.njk" import inputText, dropdown, inputSubmitWithActivity %}
+{% block body %}
+<div class="w-full flex justify-center">
+  {% call card() %}
+  <form x-target="modal-content" x-target.error="add-tracking-error" @ajax:success="$dispatch('modal:close')"
+    method="post" action="/admin/tracking/{{ trackingRecord.tracking_id }}"
+    class="space-y-8"
+    id="modal-content"
+  >
+    <h1>Edit tracking for @{{ trackingRecord.giftee_handle }}</h1>
+    <p>Note: this will <b>not</b> send a new DM if the DM has already been sent, but the corrected details will be shown in the app.</p>
+
+    {% include "player/partials/add-tracking.njk" %}
+  </form>
+  {% endcall %}
+{% endblock %}

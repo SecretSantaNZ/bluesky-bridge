@@ -1,0 +1,13 @@
+{% from "./player-link.njk" import playerLink %}
+<div>
+  <h1>Players available to Santa</h1>
+  {% for player in (playersWhoCanHaveMoreGifees | batch(15))[0] %}
+    <div class="mb-2 flex" x-data="{player: {{ player | dump }} }">
+      {{ playerLink() }}
+      <div class="ml-2">{{ player.giftee_count }} / {{ player.max_giftees }}</div>
+    </div>
+  {% endfor %}
+  {% if playersWhoCanHaveMoreGifees.length > 15 %}
+  <div>... and {{ playersWhoCanHaveMoreGifees.length - 15 }} more</div>
+  {% endif %}
+</div>

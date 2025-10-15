@@ -1,0 +1,223 @@
+{% extends "common/page-layout.njk" %}
+{% block body %}
+<div
+  class="max-w-3xl w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex flex-col space-y-16"
+>
+  <h1>Frequently asked questions</h1>
+  {% include './partials/what-is-secret-santa.njk' %}
+  <div class="space-y-2">
+    <h2>Who is running Secret Santa NZ?</h2>
+    <p>Secret Santa NZ is run by <a href="https://bsky.app/profile/foxylustygrover.bsky.social" target="_blank">@foxylustygrover.bsky.social</a> and her crack team of elves and a yule fairy:</p>
+    <div class="pl-6">
+      <ul class="list-disc space-y-2">
+        {% for elfRaw in settings.elf_list.split(r/,|and/) %}
+          {% set elf = elfRaw.trim().substring(1) %}
+          <li><a href="https://bsky.app/profile/{{ elf }}" target="_blank">@{{ elf }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <p>The secretsanta.nz app is created and maintained by <a href="https://bsky.app/profile/orthanc.nz" target="_blank">@orthanc.nz</a> with words and editing by <a href="https://bsky.app/profile/witchnwords.bsky.social" target="_blank">@witchnwords.bsky.social</a>. With a lot of inspiration from the Twitter Secret Santa app created by <a href="https://twitter.com/inabeek" target="_blank">@inabeek</a> and encouragement and support from <a href="https://mastodon.philtanner.com/@Phil_Tanner" target="_blank">@Phil_Tanner@mastodon.philtanner.com</a></p>
+    <p>Secret santa artwork by <a href="https://bsky.app/profile/grantbuist.com" target="_blank">@grantbuist.com</a>.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>What do I need to play?</h2>
+    <div class="pl-6">
+      <ul class="list-disc space-y-2">
+        <li>An active Bluesky account.</li>
+        <li>To be based in Aotearoa and have a postal address.</li>
+        <li>
+          Follow <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> so
+          they can find you, match you, and send you messages
+        </li>
+        <li>
+          Make sure your DMs are set to allow messages from "Users I follow" or "Everyone". We will need to DM you your matches and other information.
+        </li>
+        <li>
+          Sign up for the game at <a href="https://secretsanta.nz">https://secretsanta.nz</a>.
+        </li>
+      </ul>
+      <div id="how-do-i-enable-dms"></div>
+    </div>
+  </div>
+  <div class="space-y-2">
+    <h2>How do I enable DMs?</h2>
+    <div class="pl-6">
+      <ul class="list-decimal space-y-2">
+        <li>Open the DM list in bluesky</li>
+        <li>Open the DM settings (top right, next to the blue new chart button)</li>
+        <li>Select <b>Users I follow</b> (or  Everyone if you'd prefer)</li>
+        <li>If it was already set to "Users I follow" change it and change it back</li>
+      </ul>
+    </div>
+  </div>
+  <div class="space-y-2">
+    <h2>Who else is playing?</h2>
+    <p>While we can't share the list of who is playing, the game is chocked full of good people who
+      love spreading a bit of cheer and a lot of joy in the world. Everyone with a Bluesky account
+      in Aotearoa is invited to play (though we reserve the right to ban anyone we consider disruptive
+      or not participating in the spirit of the game). Just make sure you hit all the points in
+      "What do I need to play?"</p>
+  </div>
+  <div class="space-y-2">
+    <h2>What are the important dates?</h2>
+    <div class="pl-6">
+      <ul class="list-disc space-y-2">
+        <li><b>{{ settings.signups_open_date | ssDate }}</b>: sign ups start!</li>
+        <li><b>{{ settings.signups_close_date | ssDate }}</b>: Last day for signing up.</li>
+        <li><b>{{ settings.signups_close_date | ssDate }}</b>: Also the last day to opt-out
+          without causing the Elves overtime! We get that life throws forks sometimes. If you can,
+          please let us know if you cannot play any longer.</li>
+        <li>
+          <b>{{ settings.matches_sent_date | ssDate }}</b>: All matches will be announced. You'll get a DM
+          when you're matched, or login to the App to find your Giftee's details!
+        </li>
+        <li>
+          <b>{{ settings.matches_sent_date | ssDate }}</b> to <b>{{ settings.send_by_date | ssDate }}</b>:
+          Sleuthing and shopping time! Post hints for your Secret Santa and find out about your Giftee's
+          favourite things. Send your gift!
+        </li>
+        <li><b>{{ settings.send_by_date | ssDate }}</b>: Last day for posting your presents.</li>
+        <li>
+          <b>{{ settings.opening_date | ssDate }}</b>: Opening Day! Giftees: open your gifts and post photos and
+          videos to tell your Secret Santa how much joy they brought you. Use the
+          hashtag <a
+          href="https://bsky.app/hashtag/{{ settings.hashtag.slice(1) }}"
+          target="_blank"
+          >{{ settings.hashtag }}</a
+        >.
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="space-y-2">
+    <h2>What's the hashtag this time around?</h2>
+    <p><a
+      href="https://bsky.app/hashtag/{{ settings.hashtag.substring(1) }}"
+      target="_blank"
+      >{{ settings.hashtag }}</a
+    ></p>
+  </div>
+  <div class="space-y-2">
+    <h2>Who do I talk to with questions?</h2>
+    <p>First, see if the answers are on this page, check the hashtag
+      <a
+      href="https://bsky.app/hashtag/{{ settings.hashtag.substring(1) }}"
+      target="_blank"
+      >{{ settings.hashtag }}</a
+    > or posts by Santa and the Elves
+      <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a>.
+      Couldn't find an answer? Please, send us a DM and we will get back to you ASAP.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>I signed up but can no longer play, how do I remove myself?</h2>
+    <p>If you need to opt-out, head over to About me and click the Opt out button. If you do this before
+      {{ settings.signups_close_date | ssDate }} then you don't need to do anything else. If it's after
+      {{ settings.signups_close_date | ssDate }}, the Elves really appreciate a heads-up via DM to
+      <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> so that we can
+      make sure your original Giftee gets a new Santa. We understand that life happens so please do not
+      hesitate to contact us as soon as you know circumstances have changed.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>Are you the same as Twitter Secret Santa?</h2>
+    <p>The most recent incarnation of the game, yes.</p>
+    <p><a href="https://websam.nz/">WebSam</a> started the NZ Twitter Secret Santa in 2010 and ran it for 3 years.
+      After that he handed it over to <a href="https://www.nzpost.co.nz/">NZ Post</a> who ran it until 2018.</p>
+    <p>Foxy and the crew picked up the baton in 2019 and ran <a href="https://twitter.com/SecretSantaNZ">@SecretSantaNZ</a>
+      until 2022.</p>
+    <p>Since most of us moved to Bluesky we're getting the band back together to carry on this Christmassy tradition.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>What are the rules?</h2>
+    <p><a href="/rules"
+      >The rules are simple!</a
+    ></p>
+  </div>
+  <div class="space-y-2">
+    <h2>What kind of info do you need over the course of the game?</h2>
+    <p>Your Bluesky handle (e.g. @secretsanta.nz), from which we grab your Bluesky account's DID.</p>
+    <p>A postal address where you can receive parcels (if you're a little nervous you can use your work
+      postal address or one that you feel comfortable providing.)</p>
+    <p>Tracking details of parcels that you send.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>What other information do you record?</h2>
+    <p>We keep track of any nudges you have sent through the Secret Santa app. Nudges are public posts
+      to your Giftee on Bluesky and are sent from the
+      <a href="https://bsky.app/profile/robosanta.secretsanta.nz" target="_blank">@robosanta.secretsanta.nz</a>
+      account, not from your own account.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>What will you do with my Bluesky account?</h2>
+    <p>We will only ever use your Bluesky account to get your Bluesky handle and DID. We do not have any
+      permissions to send post, follow people or see any information other than what someone looking at
+      your account can see.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>
+      What access do you have and what info will you share with other people?
+    </h2>
+    <p>Your Secret Santa will receive: Your Bluesky handle and the postal address you provide.</p>
+    <p>Your Giftee will receive: tracking details of the parcel you have sent.</p>
+    <p>We do not share your details with anyone else. We do not access, modify, or store any of
+      your private information. We do not have any access to your Bluesky account, nor can we post
+      on your behalf.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>What's the budget?</h2>
+    <p>There's no specific budget, put aroha into your gift and spend only what you can afford.
+      It's the thought that counts is very much the foundation and spirit of Secret Santa.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>Can I request a specific Giftee?</h2>
+    <p>You cannot, part of the joy of Secret Santa is the sleuthing! Getting to know your Giftee
+      and bringing joy to someone who is probably a complete stranger. It's pretty darn wholesome.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>How do I avoid being matched with a Giftee I don't like?</h2>
+    <p>The thrill of Secret Santa is that it's random, and for that reason we have a magical system
+      set up to assign Santas. We hope the assignments are embraced and people are keen to bring joy
+      to their Giftee. But we understand that sometimes the matches are not ideal, such as someone you
+      have blocked or have a real life history with. If there is no way you can continue to play with
+      your assigned Giftee, please DM <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a>
+      and let us know. We care about player safety and mental health.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>Should I wrap the present I send?</h2>
+    <p>Up to you! If you wrap the present in your style you can let your Giftee know this via a setting
+      when you submit the tracking details. This is useful because Giftees like to know if they can take
+      the outer packaging off or not.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>Do I need to say if the present is "naked" on the packaging?</h2>
+    <p>You don't have to, but if the present is unwrapped and you want to make absolutely sure that they
+      don't lay eyes on it early by mistake just pop a note on the packaging somewhere, and make sure you
+      let your Giftee know when you submit the tracking details.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>Should I include a card with the present I send?</h2>
+    <p>A note from Santa can be magical, so we will say: yes, if you can! For many players, getting a card
+      with kind or wise words is one of the best parts of the game. But there is no pressure, it's entirely
+      personal preference.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>Do I reveal who I am at the end?</h2>
+    <p>It's not really in the spirit of <b>Secret</b> Santa, is it? But some Giftees ask for their Santa
+      to reveal themselves and it's totally ok to make a new friend this way. But we would recommend you
+      let your Giftee be the one the request it, and then it is totally up to you to reveal or remain
+      mysterious.</p>
+  </div>
+  <div class="space-y-2">
+    <h2>How can I update my delivery address?</h2>
+    <p>You can do this under About me up until your address has been sent to your Santa. After that,
+      you cannot change your address. If it's an absolute emergency, you can DM the Elves for help
+      <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a>.
+    </p>
+  </div>
+  <div class="space-y-2">
+    <h2>Can I play from overseas?</h2>
+    <p>No, we have to draw the line somewhere and part of what makes Secret Santa NZ work is that it's
+      somewhat local. If you want Secret Santa game for your country this app is open source. Contact
+      <a href="https://bsky.app/profile/orthanc.nz" target="_blank">@orthanc.nz</a> for details.</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/form-fields.njk" import activitySpinner %}
+{% from "./partials/match-player.njk" import matchPlayer %}
+{% block body %}
+<div class="w-full px-12"
+  x-data="{ tracking: {{ tracking | dump }}, showConfirm: ''}"
+  x-init="pager = $pager({
+    handle: '',
+    showQueued: true,
+    showSent: true,
+    showError: true,
+  }, function(filters) {
+    const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
+    return tracking.filter((tracking) => 
+      (!cleanHandleFilter || tracking.santa_handle.toLowerCase().includes(cleanHandleFilter) || tracking.giftee_handle.toLowerCase().includes(cleanHandleFilter))
+      && (filters.showQueued || tracking.tracking_status !== 'queued')
+      && (filters.showSent || tracking.tracking_status !== 'sent')
+      && (filters.showError || !tracking.tracking_status.startsWith('error'))
+    );
+  })"
+  @ss:tracking:deactivated.window="tracking = tracking.filter((tracking) => tracking.tracking_id !== event.detail.tracking_id)"
+  @ss:tracking:updated.window="
+    let index = tracking.findIndex((tracking) => tracking.tracking_id !== event.detail.tracking_id);
+    if (index != -1) {
+      tracking.splice(index, 1, event.detail);
+    } else {
+      tracking.push(event.detail);
+    }
+  "
+>
+  <div class="flex space-x-8 items-center mb-2 flex-col lg:flex-row">
+    <h1>Tracking</h1>
+    <div>
+      <select x-model="pager.pageSelect">
+        <template x-for="{key, display} of pager.pages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
+    <div>
+      <input type="checkbox" id="show-queued" name="show-queued" x-model="pager.filters.showQueued"/>
+      <label for="show-queued">Queued</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-sent" name="show-sent" x-model="pager.filters.showSent"/>
+      <label for="show-sent">Sent</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-error" name="show-error" x-model="pager.filters.showError"/>
+      <label for="show-error">Error</label>
+    </div>
+  </div>
+  <div class="w-full mb-2">
+    <input type="text" x-model="pager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
+  <div class="grid-cols-8 lg:space-x-4 hidden lg:grid">
+    <div class="flex justify-center"><b>Santa</b></div>
+    <div class="flex justify-center"><b>Giftee</b></div>
+    <div class="flex justify-center"><b>Shipped</b></div>
+    <div class="flex justify-center"><b>Carrier</b></div>
+    <div class="flex justify-center"><b>Tracking</b></div>
+    <div class="flex justify-center"><b>Wrapped</b></div>
+    <div class="flex justify-center"><b>Status</b></div>
+    <div class="flex justify-center"><b>Action</b></div>
+  </div>
+  <template x-for="tracking in pager.pageData">
+    <div class="grid lg:grid-cols-8 lg:space-x-4 border-b py-2">
+      {{ matchPlayer(rowProp='tracking', description='Santa', side='santa') }}
+      {{ matchPlayer(rowProp='tracking', description='Giftee', side='giftee') }}
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Sent:</div>
+        <div x-date="tracking.shipped_date"></div>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Carrier:</div>
+        <div x-text="tracking.carrier"></div>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Tracking:</div>
+        <div x-text="tracking.tracking_number"></div>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Wrapped:</div>
+        <div x-text="tracking.giftwrap_status ? 'Y' : 'N'"></div>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Status:</div>
+        <div x-text="tracking.tracking_status"></div>
+      </div>
+      <div class="lg:flex lg:items-center lg:justify-center lg:space-x-4">
+        <form x-target="_none" x-bind:action="'/admin/tracking/' + tracking.tracking_id + '/' + (tracking.missing ? 'arrived' : 'missing' )" method="post">
+          {{ activitySpinner() }}
+          <button class="htmx-request:hidden flex lg:justify-center items-center hover:text-sky-500 rounded-xs drop-shadow-lg focus:text-sky-500 focus:ring-3 ring-sky-500 outline-hidden">
+            <div x-bind:class="'mr-1 size-6 ' + (tracking.missing ? 'i-mdi-package-outline' : 'i-mdi-package-off-outline')"></div>
+            <div class="lg:hidden" x-text="tracking.missing ? 'Report arrived' : 'Report missing'"></div>
+          </button>
+          <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+        </form>
+        <a x-target="modal-content" @ajax:before="$dispatch('modal:open')" x-bind:href="'/admin/tracking/' + tracking.tracking_id" class="flex items-center rounded-xs">
+          <div class="flex lg:justify-center items-center">
+            <div class="i-mdi-pencil size-10"></div>
+            <div class="lg:hidden"><b>Edit tracking</b></div>
+          </div>
+        </a>
+        <form x-target="_none" x-bind:x-target.error="'deactivate-tracking-' + tracking.tracking_id" x-bind:id="'deactivate-tracking-' + tracking.tracking_id" x-bind:action="'/admin/tracking/' + tracking.tracking_id + '/deactivate'" method="post" class="flex items-center sm:justify-center sm:col-span-1">
+          <button x-show="`tracking-${tracking.tracking_id}` !== showConfirm" @click.prevent.stop="showConfirm = `tracking-${tracking.tracking_id}`">
+            <div class="flex lg:justify-center items-center ">
+              <div class="i-mdi-trash-can-outline size-10"></div>
+              <div class="lg:hidden"><b>Delete tracking</b></div>
+            </div>
+          </button>
+          {{ activitySpinner() }}
+          <input x-show="`tracking-${tracking.tracking_id}` === showConfirm" type="submit" name="save" value="Delete tracking" class="htmx-request:hidden rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+          <button x-show="`tracking-${tracking.tracking_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+            <div class="i-mdi-close size-10 text-gray-400"></div>
+          </button>
+          <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+        </form>
+      </div>
+    </div>
+  </template>
+</div>
+{% endblock %}

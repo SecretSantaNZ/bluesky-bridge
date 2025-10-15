@@ -1,0 +1,190 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/form-fields.njk" import activitySpinner %}
+{% from "./partials/match-player.njk" import matchPlayer %}
+{% from "./partials/player-link.njk" import playerLink %}
+{% block body %}
+<script>
+  function mergeTooManyGifteeMatches(tooManyGifteeMatches, updatedMatches) {
+    const newMatches = [];
+    let currentDid = undefined;
+    for (const match of tooManyGifteeMatches) {
+      if (!updatedMatches[match.did]) {
+        newMatches.push(match);
+      } else if (currentDid !== match.did) {
+        newMatches.push(...updatedMatches[match.did]);
+      }
+      currentDid = match.did;
+    }
+    return newMatches;
+  }
+</script>
+<div class="grid xl:grid-cols-3" x-data="{showConfirm: ''}">
+  <div class="xl:col-span-2 pr-4">
+    {% if brokenMatches.length > 0 %}
+    <div class="mb-12">
+      <h1>Broken matches</h1>
+      <p>These matches have been broken by a player deactivating, either opting out or us booting them out.</p>
+      <p>We will need to delete the match and assign new santa / giftee as appropraite.</p>
+      <p>This is not done automatically as we need to communicate with players when this happens</p>
+      <div class="grid-cols-4 space-x-4 hidden sm:grid">
+        <div class="flex justify-center"><b>Santa</b></div>
+        <div class="flex justify-center"><b>Giftee</b></div>
+        <div class="flex justify-center"><b>Status</b></div>
+        <div class="flex justify-center"><b>Delete</b></div>
+      </div>
+      {% for match in brokenMatches %}
+      <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2" x-data="{match: {{ match | dump }} }">
+        {{ matchPlayer(description='Santa', side='santa') }}
+        {{ matchPlayer(description='Giftee', side='giftee') }}
+        <div class="flex sm:justify-center items-center text-lg">
+          <div class="italic sm:hidden mr-2">Status:</div>
+          <div>{{ match.match_status }}{{ ' (SUPER)' if match.super_santa_match }}</div>
+        </div>
+        <form x-target="page-body" action="/admin/match/{{ match.match_id }}/deactivate" method="post" class="flex items-center sm:justify-center">
+          <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">
+            <div class="flex sm:justify-center items-center ">
+              <div class="i-mdi-trash-can-outline size-10"></div>
+              <div class="sm:hidden"><b>Delete match</b></div>
+            </div>
+          </button>
+          {{ activitySpinner() }}
+          <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+          <button x-show="`match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+            <div class="i-mdi-close size-10 text-gray-400"></div>
+          </button>
+          <input type="hidden" name="return_to" value="fix-matches" />
+          <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if tooManyGifteeMatches.length > 0 %}
+    <div class="mb-12">
+      <h1>Players with too many Giftees</h1>
+      <p>These players have more Giftees assigned than they signed up for. We probably want to assign a different Santa to these Giftees to balance things out.</p>
+      <div class="grid-cols-4 space-x-4 hidden sm:grid">
+        <div class="flex justify-center"><b>Santa</b></div>
+        <div class="flex justify-center"><b>Giftee</b></div>
+        <div class="flex justify-center"><b>Status</b></div>
+        <div class="flex justify-center"><b>Action</b></div>
+      </div>
+      {% for match in tooManyGifteeMatches %}
+        <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2" x-data="{match: {{ match | dump }} }">
+          {{ matchPlayer(description='Santa', side='santa') }}
+          {{ matchPlayer(description='Giftee', side='giftee') }}
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Status:</div>
+            <div>{{ match.match_status }}{{ ' (SUPER)' if match.super_santa_match }}</div>
+          </div>
+          <div class="flex flex-col sm:justify-center items-start sm:items-center">
+            <a x-target="modal-content" @ajax:before="$dispatch('modal:open')" href="/admin/player/{{ match.santa_id }}/game-mode?return_to=fix-matches" class="rounded-xs underline">Change game mode</a>
+            <a x-target="modal-content" @ajax:before="$dispatch('modal:open')" href="/admin/match/{{ match.match_id }}/reassign" class="rounded-xs underline">Reassign giftee</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if needsSantaAssigned.length > 0 %}
+    <div class="mb-12">
+      <h1>Players needing a Santa</h1>
+      <p>These players have no Santa assigned to them. By default the search will only find people who have less giftee's than they've signed up to do.</p>
+      <div class="grid-cols-2 space-x-4 hidden sm:grid">
+        <div class="flex justify-center"><b>Player</b></div>
+        <div class="flex justify-center"><b>Action</b></div>
+      </div>
+      {% for player in (needsSantaAssigned | batch(15))[0] %}
+        <div class="grid sm:grid-cols-2 sm:space-x-4 border-b py-2" x-data="{player: {{ player | dump }} }">
+          {{ playerLink() }}
+          <div class="flex flex-col justify-center items-center">
+            <a x-target="modal-content" @ajax:before="$dispatch('modal:open')" href="/admin/player/{{ player.id }}/assign-santa" class="rounded-xs underline">Assign santa</a>
+          </div>
+        </div>
+      {% endfor %}
+      {% if needsSantaAssigned.length > 15 %}
+      <div>... and {{ needsSantaAssigned.length - 15 }} more</div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if multipleGifteeMatches.length > 0 %}
+    <div class="mb-12">
+      <h1>Players with multiple giftees</h1>
+      <p>These players have multiple Giftees assigned. If we're not assigning super santas yet that's probably not right</p>
+      <div class="grid-cols-4 space-x-4 hidden sm:grid">
+        <div class="flex justify-center"><b>Santa</b></div>
+        <div class="flex justify-center"><b>Giftee</b></div>
+        <div class="flex justify-center"><b>Status</b></div>
+        <div class="flex justify-center"><b>Action</b></div>
+      </div>
+      {% for match in multipleGifteeMatches %}
+        <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2" x-data="{match: {{ match | dump }} }">
+          {{ matchPlayer(description='Santa', side='santa') }}
+          {{ matchPlayer(description='Giftee', side='giftee') }}
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Status:</div>
+            <div x-text="match.match_status + (match.super_santa_match ? ' (SUPER)' : '')"></div>
+          </div>
+          <form x-target="page-body" action="/admin/match/{{ match.match_id }}/deactivate" method="post" class="flex items-center sm:justify-center">
+            <button x-show="`multi-giftee-match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `multi-giftee-match-${match.match_id}`">
+              <div class="flex sm:justify-center items-center ">
+                <div class="i-mdi-trash-can-outline size-10"></div>
+                <div class="sm:hidden"><b>Delete match</b></div>
+              </div>
+            </button>
+            {{ activitySpinner() }}
+            <input x-show="`multi-giftee-match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+            <button x-show="`multi-giftee-match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+              <div class="i-mdi-close size-10 text-gray-400"></div>
+            </button>
+            <input type="hidden" name="return_to" value="fix-matches" />
+            <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+          </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if tooManySantasMatches.length > 0 %}
+    <div class="mb-12">
+      <h1>Players with multiple santas</h1>
+      <p>These players have more than one Santa assigne to them. We probably want to clean these up so that there's only one Santa for each player.</p>
+      <div class="grid-cols-4 space-x-4 hidden sm:grid">
+        <div class="flex justify-center"><b>Giftee</b></div>
+        <div class="flex justify-center"><b>Santa</b></div>
+        <div class="flex justify-center"><b>Status</b></div>
+        <div class="flex justify-center"><b>Delete</b></div>
+      </div>
+      {% for match in tooManySantasMatches %}
+        <div class="grid sm:grid-cols-4 sm:space-x-4 border-b py-2" x-data="{match: {{ match | dump }} }">
+          {{ matchPlayer(description='Giftee', side='giftee') }}
+          {{ matchPlayer(description='Santa', side='santa') }}
+          <div class="flex sm:justify-center items-center text-lg">
+            <div class="italic sm:hidden mr-2">Status:</div>
+            <div x-text="match.match_status + (match.super_santa_match ? ' (SUPER)' : '')"></div>
+          </div>
+          <form x-target="page-body" action="/admin/match/{{ match.match_id }}/deactivate" method="post" class="flex items-center sm:justify-center">
+            <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">
+              <div class="flex sm:justify-center items-center ">
+                <div class="i-mdi-trash-can-outline size-10"></div>
+                <div class="sm:hidden"><b>Delete match</b></div>
+              </div>
+            </button>
+            {{ activitySpinner() }}
+            <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+            <button x-show="`match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+              <div class="i-mdi-close size-10 text-gray-400"></div>
+            </button>
+            <input type="hidden" name="return_to" value="fix-matches" />
+            <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% include "admin/partials/players-available-to-santa.njk" %}
+</div>
+{% endblock %}

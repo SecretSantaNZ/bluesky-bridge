@@ -1,0 +1,235 @@
+{% extends "common/page-layout.njk" %}
+{% from 'admin/partials/player-link.njk' import playerLink %}
+{% from "common/form-fields.njk" import activitySpinner, dropdown, inputText, inputSubmitWithActivity %}
+{% from "common/error.njk" import errorPanel %}
+{% block body %}
+<div class="w-full px-12"
+    x-data="{{ {players: players, showConfirm: '', initialFilter: initialFilter} | dump }}"
+    x-init="activePlayersPager = $pager({
+      handle: initialFilter,
+      showSignupComplete: true,
+      showSignupIncomplete: true,
+      sortBy: 'weighted',
+    }, function(filters) {
+      const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
+      return players.filter(player =>
+        !player.deactivated && (player.signup_complete ? filters.showSignupComplete : filters.showSignupIncomplete) && (!cleanHandleFilter || player.handle.toLowerCase().includes(cleanHandleFilter))
+      ).sort((a,b) => {
+        if (filters.sortBy === 'post-count') {
+          const recentPostsDiff = a.post_count_since_signup - b.post_count_since_signup;
+          return recentPostsDiff !== 0 ? recentPostsDiff : (a.post_count - b.post_count);
+        } else if (filters.sortBy === 'weighted') {
+          return (a.post_count_since_signup * 10 + a.post_count) - (b.post_count_since_signup * 10 + b.post_count);
+        } else {
+          return a.id - b.id;
+        }
+      });
+    });
+    inactivePlayersPager = $pager({
+      handle: initialFilter,
+    }, function(filters) {
+      const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
+      return players.filter(player => player.deactivated && (!cleanHandleFilter || player.handle.toLowerCase().includes(cleanHandleFilter)));
+    });"
+    @ss:player:updated.window="
+      let index = players.findIndex((player) => player.did === event.detail.did);
+      if (index != -1) {
+        players.splice(index, 1, event.detail);
+      } else {
+        players.push(event.detail);
+      }
+    "
+  >
+  <div class="flex items-center mb-2">
+    <div class="flex space-x-8 items-center flex-col sm:flex-row grow">
+      <h1>Active players</h1>
+      <div>
+        <select x-model="activePlayersPager.pageSelect">
+          <template x-for="{key, display} of activePlayersPager.pages">
+            <option x-bind:value="key" x-text="display"></option>
+          </template>
+        </select>
+      </div>
+      <div>
+        <input type="checkbox" id="show-signup-complete" name="show-signup-complete" x-model="activePlayersPager.filters.showSignupComplete"/>
+        <label for="show-signup-complete">Signup complete</label>
+      </div>
+      <div>
+        <input type="checkbox" id="show-signup-incomplete" name="show-signup-incomplete" x-model="activePlayersPager.filters.showSignupIncomplete" />
+        <label for="show-signup-incomplete">Signup incomplete</label>
+      </div>
+      <div class="grow"></div>
+      <div>
+        <label for="sort-active-players">Sort:</label>
+        <select id="sort-active-players" x-model="activePlayersPager.filters.sortBy">
+          <option value="sign-up">Sign up</option>
+          <option value="post-count">Post count</option>
+          <option value="weighted">Weighted</option>
+        </select>
+      </div>
+    </div>
+
+    <button @click="$dispatch('modal:open', {templateId: 'new-player-modal-content'})"
+      >
+      <div class="i-mdi-add size-10"></div>
+    </button>
+  </div>
+  <div class="w-full mb-2">
+    <input type="text" x-model="activePlayersPager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
+  <div class="grid-cols-7 space-x-4 hidden sm:grid">
+    <div class="flex justify-center"><b>Player</b></div>
+    <div class="flex justify-center"><b>Following santa</b></div>
+    <div class="flex justify-center"><b>Has address</b></div>
+    <div class="flex justify-center"><b>Game mode</b></div>
+    <div class="flex justify-center"><b>DMs sent</b></div>
+    <div class="flex justify-center"><b>Badges</b></div>
+    <div class="flex justify-center"><b>Remove player</b></div>
+  </div>
+  <template x-for="player in activePlayersPager.pageData">
+    <div class="grid sm:grid-cols-7 space-x-4 border-b py-2">
+      {{ playerLink(showPostCount=true) }}
+      <form x-target="_none" x-bind:action="'/admin/player/' + player.id + '/refresh-following'" method="post" class="flex items-center sm:justify-center">
+        {{ activitySpinner() }}
+        <button class="htmx-request:hidden">
+          <div class="flex sm:justify-center items-center">
+            <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="player.player_type === 'mastodon' && !player.following_santa_uri && !player.mastodon_following_santa"></div>
+            <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="player.player_type !== 'mastodon' && !player.following_santa_uri"></div>
+            <img src="/public/bluesky-77733e6f-9e9b-404a-a264-0ae6eb82e0e8.svg" class="size-12 block pr-2 absolute" x-show="player.player_type === 'mastodon' && !player.following_santa_uri && player.mastodon_following_santa"/>
+            <img src="/public/mastodon-f00810b7-0560-4f93-999f-f6e5501d2648.svg" class="size-12 block pr-2 absolute" x-show="player.player_type === 'mastodon' && player.following_santa_uri && !player.mastodon_following_santa"/>
+            <div class="i-mdi-circle-off-outline size-12" x-show="player.player_type === 'mastodon' && (!player.following_santa_uri || !player.mastodon_following_santa) && !(!player.following_santa_uri && !player.mastodon_following_santa)"></div>
+            <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.following_santa_uri && (player.player_type !== 'mastodon' || player.mastodon_following_santa)"></div>
+            <div class="sm:hidden"><b>Following santa</b> <span class="italic">(Click to recheck)</span></div>
+          </div>
+          <div class="italic hidden sm:block">Click to recheck</div>
+        </button>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+      </form>
+      <a x-bind:href="'/admin/player/' + player.id + '/address'" x-target="modal-content" @ajax:before="$dispatch('modal:open')" class="flex flex-col justify-center items-center">
+        <div class="flex sm:justify-center items-center">
+          <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.address"></div>
+          <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.address"></div>
+          <div class="sm:hidden"><b>Has address</b> <span class="italic">(Click to edit)</span></div>
+        </div>
+        <div class="italic hidden sm:block">Click to edit</div>
+      </a>
+      <a x-bind:href="'/admin/player/' + player.id + '/game-mode'" x-target="modal-content" @ajax:before="$dispatch('modal:open')" class="flex flex-col justify-center items-center">
+        <div class="flex sm:justify-center items-center">
+          <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.game_mode"></div>
+          <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.game_mode"></div>
+          <div class="sm:hidden"><b>Game mode</b> <span class="italic">(Click to edit)</span></div>
+        </div>
+        <div class="italic hidden sm:block">Click to edit</div>
+      </a>
+      <div class="text-center" x-show="!player.player_dm_status.startsWith('error:')">
+        <div class="flex sm:justify-center items-center">
+          <div class="i-mdi-queue-first-in-last-out size-12" x-show="player.player_dm_status !== 'sent'"></div>
+          <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.player_dm_status === 'sent'"></div>
+          <div class="sm:hidden"><b>DMs sent</b></div>
+        </div>
+        <div class="italic hidden sm:block" x-text="player.player_dm_status"></div>
+      </div>
+      <form x-target="_none" x-bind:action="'/admin/player/' + player.id + '/retry-dm'" method="post" class="flex items-center sm:justify-center" x-show="player.player_dm_status.startsWith('error:')">
+        {{ activitySpinner() }}
+        <button class="htmx-request:hidden" x-bind:title="player.player_dm_status">
+          <div class="flex sm:justify-center items-center">
+            <div class="i-mdi-cross-circle-outline text-red-600 size-12"></div>
+            <div class="sm:hidden"><b>DMs sent</b> <span class="italic">(Click to retry)</span></div>
+          </div>
+        <div class="italic hidden sm:block" x-text="player.player_dm_status"></div>
+        <div class="italic hidden sm:block">Click to retry</div>
+        </button>
+        <input type="hidden" name="player_did" x-bind:value="player.did"/>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+      </form>
+      <div class="flex items-center sm:justify-center">
+        <a x-target="modal-content" @ajax:before="$dispatch('modal:open')" x-bind:href="'/admin/player/' + player.id + '/badges'" class="flex pl-4 items-center">
+          <div x-text="player.badge_count" class="text-4xl"></div><div class="font-semibold ml-3 sm:hidden">Badges</div>
+        </a>
+      </div>
+      <form x-target="_none" x-bind:action="'/admin/player/' + player.id + '/boot'" method="post" class="flex items-center sm:justify-center">
+        <button x-show="`remove-${player.did}` !== showConfirm" @click.prevent.stop="showConfirm = `remove-${player.did}`">
+          <div class="flex sm:justify-center items-center ">
+            <div class="i-mdi-trash-can-outline size-12"></div>
+            <div class="sm:hidden"><b>Remove player</b></div>
+          </div>
+        </button>
+        {{ activitySpinner() }}
+        <input x-show="`remove-${player.did}` === showConfirm" type="submit" name="opt_out" value="Opt out" class="htmx-request:hidden rounded-lg px-8 py-2 bg-bsky dark:disabled:bg-gray-600 disabled:bg-gray-400 hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+        <input x-show="`remove-${player.did}` === showConfirm" type="submit" name="boot" value="Boot player" class="htmx-request:hidden rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+        <button x-show="`remove-${player.did}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+          <div class="i-mdi-close size-12 text-gray-400"></div>
+        </button>
+        <input type="hidden" name="player_did" x-bind:value="player.did"/>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+      </form>
+    </div>
+  </template>
+
+  <div class="flex space-x-8 items-center mt-12 mb-2 flex-col sm:flex-row">
+    <h1>Deactivated players</h1>
+    <div>
+      <select x-model="inactivePlayersPager.pageSelect">
+        <template x-for="{key, display} of inactivePlayersPager.pages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
+  </div>
+  <div class="w-full mb-2">
+    <input type="text" x-model="inactivePlayersPager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
+  <div class="grid-cols-3 space-x-4 hidden sm:grid">
+    <div class="flex justify-center"><b>Player</b></div>
+    <div class="flex justify-center"><b>Type</b></div>
+    <div class="flex justify-center"><b>Reactivate player</b></div>
+  </div>
+  <template x-for="player in inactivePlayersPager.pageData">
+    <div class="grid sm:grid-cols-3 space-x-4 border-b py-2">
+      {{ playerLink() }}
+      <div class="flex justify-center items-center">
+        <span x-text="player.booted ? 'Booted out' : 'Opted out'"></span>
+      </div>
+      <form x-target="_none" x-bind:action="'/admin/player/' + player.id + '/restore'" method="post" class="flex items-center sm:justify-center">
+        <button x-show="`restore-${player.did}` !== showConfirm" @click.prevent.stop="showConfirm = `restore-${player.did}`">
+          <div class="flex sm:justify-center items-center ">
+            <div class="i-mdi-restore size-12"></div>
+            <div class="sm:hidden"><b>Restore player</b></div>
+          </div>
+        </button>
+        {{ activitySpinner() }}
+        <input x-show="`restore-${player.did}` === showConfirm" type="submit" name="save" value="Restore player" class="htmx-request:hidden rounded-lg px-8 py-2 bg-green-600 hover:bg-green-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+        <button x-show="`restore-${player.did}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+          <div class="i-mdi-close size-12 text-gray-400"></div>
+        </button>
+        <input type="hidden" name="player_did" x-bind:value="player.did"/>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+      </form>
+    </div>
+  </template>
+</div>
+<template id="new-player-modal-content">
+  <form x-target="_none" x-target.error="new-player-error" @ajax:success="$dispatch('modal:close')" action="/admin/player" method="post" id="new-player" @ss-address-changed="address = $event.detail.address;"
+    x-data="{address: '', player_type: 'bluesky'}"
+    x-init="initAutocompletes();"
+  >
+  <div class="space-y-8">
+    <h1>Add player</h1>
+    {{ dropdown(id='player_type', label='Player type', xModel='player_type', options=[
+      {id: 'bluesky', text: 'Bluesky'},
+      {id: 'mastodon', text: 'Mastodon'}
+    ]) }}
+    <div>
+      {{ inputText(id='new_player_handle', name='handle', label='Handle', placeholder='coolplayer.bsky.social', attributes={
+        'x-search-handles': "player_type === 'bluesky'"
+      }) }}
+    </div>
+    {{ inputText(id='new_player_address', name='address', label='Address', placeholder='123 Candy Cane Lane, North Pole', xModel='address', inputType='address') }}
+    {{ inputText(id='new_player_delivery_instructions', name='delivery_instructions', label='Delivery instructions', placeholder='Leave by back door') }}
+    {{ errorPanel(errorMessage, 'new-player-error') }}
+    {{ inputSubmitWithActivity() }}
+  </div>
+  <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+</form>
+</template>
+{% endblock %}

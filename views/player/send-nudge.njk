@@ -1,0 +1,14 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% block body %}
+<div class="w-full flex justify-center">
+  {% call card() %}
+<form x-target="nudges-ive-sent-card my-giftee-card" x-target.error="send-nudge-error" @ajax:success="$dispatch('modal:close')" method="post" action="/nudge"
+    x-data="{{ nudgeOptions | dump }}"
+    id="modal-content"
+  >
+  {% include "player/partials/send-nudge.njk" %}
+</form>
+  {% endcall %}
+</div>
+{% endblock %}

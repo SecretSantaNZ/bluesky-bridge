@@ -1,0 +1,15 @@
+{% extends "player/home.njk" %}
+{% from "common/card.njk" import card %}
+{% block modalContent %}
+  <div class="space-y-8" id="modal-content" x-init="informationalModal = true">
+    <h1>{{ badge.title }}</h1>
+    <p>{{ badge.description }}</p>
+    <div class="flex flex-col justify-center">
+      <img
+        class="block grow shrink object-contain drop-shadow-lg"
+        src="{{ badge.image_url }}"
+      />
+    </div>
+  </div>
+  <div @modal:close.window="window.location = '/'"></div>
+{% endblock %}

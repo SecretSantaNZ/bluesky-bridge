@@ -1,0 +1,15 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% block body %}
+<div class="w-full flex justify-center">
+  {% call card() %}
+    <form 
+      x-target="modal-content" x-target.error="address-error" @ajax:success="$dispatch('modal:close')"
+      action="/admin/player/{{ player.id }}/address" method="post" id="modal-content" @ss-address-changed="address = $event.detail.address;"  x-data="{{ {address: player.address, delivery_instructions: player.delivery_instructions } | dump }}"
+    >
+      {% include "player/partials/address.njk" %}
+    </form>
+    {% if not hideClose %}<a href="/" class="text-gray-400 no-underline absolute bottom-8 left-8">Close</a>{% endif %}
+  {% endcall %}
+</div>
+{% endblock %}

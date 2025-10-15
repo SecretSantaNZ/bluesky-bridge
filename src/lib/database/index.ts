@@ -28,3 +28,4 @@ export const migrateToLatest = async (db: Database) => {
 export * from './tracking.js';
 export * from './match.js';
 export * from './nudge.js';
+export * from './loadPlayersWhoCanHaveMoreGifees.js';

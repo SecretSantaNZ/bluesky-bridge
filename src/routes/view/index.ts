@@ -34,17 +34,16 @@ export async function returnLoginView(
     settings,
     ...reply.locals,
   };
-  return reply.view(
-    'auth/login-card.ejs',
-    {
-      requestId,
-      returnToken,
-      replaceUrl: returnUrl,
-    },
-    {
-      layout: 'layouts/base-layout.ejs',
-    }
-  );
+  if (locals.errorMessage) {
+    reply.status(400);
+  } else {
+    reply.status(401);
+  }
+  return reply.view('auth/login', {
+    requestId,
+    returnToken,
+    replaceUrl: returnUrl,
+  });
 }
 
 export const view: FastifyPluginAsync = async (app) => {
@@ -60,6 +59,20 @@ export const view: FastifyPluginAsync = async (app) => {
       });
     }
     request.log.error(error);
+
+    const triggerId = request.headers['hx-trigger'];
+    const elementId =
+      request.headers['x-ssnz-error-target'] ??
+      (request.headers['x-alpine-target'] as string | undefined)?.split(
+        ' '
+      )[0] ??
+      (triggerId ? triggerId + '-error' : undefined);
+
+    // @ts-expect-error can't be bothered typing to http error
+    return reply.status(error.status ?? 500).view('common/error', {
+      errorMessage: error.message || 'Unknown Error',
+      elementId,
+    });
   });
 
   await app.register(playerHome);

@@ -6,6 +6,7 @@ export function queryFullMatch(db: Database) {
     .innerJoin('player as santa', 'santa.id', 'match.santa')
     .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
     .select([
+      'santa.id as santa_id',
       'santa.did as santa_did',
       'santa.handle as santa_handle',
       'santa.address_location as santa_address_location',
@@ -13,6 +14,7 @@ export function queryFullMatch(db: Database) {
       'santa.avatar_url as santa_avatar_url',
       'santa.note_count as santa_note_count',
       'santa.booted as santa_booted',
+      'giftee.id as giftee_id',
       'giftee.did as giftee_did',
       'giftee.handle as giftee_handle',
       'giftee.address_location as giftee_address_location',

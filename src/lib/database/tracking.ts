@@ -9,6 +9,7 @@ export function queryTracking(db: Database) {
       'tracking.shipped_date',
       'tracking.tracking_number',
       'tracking.tracking_status',
+      'carrier.id as carrier_id',
       'carrier.text as carrier',
       'tracking.giftwrap_status',
       'tracking.missing',
@@ -24,6 +25,7 @@ export function queryTrackingWithGiftee(db: Database) {
   return queryTrackingWithMatch(db)
     .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
     .select([
+      'giftee.id as giftee_id',
       'giftee.did as giftee_did',
       'giftee.handle as giftee_handle',
       'giftee.avatar_url as giftee_avatar_url',
@@ -34,6 +36,7 @@ export function queryTrackingWithGifteeAndSanta(db: Database) {
   return queryTrackingWithGiftee(db)
     .innerJoin('player as santa', 'santa.id', 'match.santa')
     .select([
+      'santa.id as santa_id',
       'santa.did as santa_did',
       'santa.handle as santa_handle',
       'santa.avatar_url as santa_avatar_url',

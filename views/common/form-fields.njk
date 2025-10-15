@@ -1,0 +1,46 @@
+{% macro inputText(id, label, name='', placeholder='', inputType='text', xShow='', xModel='', attributes={}) %}
+<div class="group" {% if xShow %}x-show="{{ xShow }}"{% endif %}>
+  <label for="{{ id }}" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300 scheme-light dark:scheme-dark">{{ label }}</label>
+  <input {% if xModel %}x-model="{{ xModel }}" {% endif %}type="{{ inputType }}" id="{{ id }}" name="{{ name if name else id }}" placeholder="{{ placeholder }}" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"{% for key, value in attributes %} {{ key }}="{{ value }}"{% endfor %}/>
+</div>
+{% endmacro %}
+
+{% macro inputCheckbox(id, label, name='', xModel='') %}
+<div class="group p-2 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full has-focus:ring-3 ring-sky-500 outline-hidden has-disabled:opacity-50">
+  <input {% if xModel %}x-model="{{ xModel }}" {% endif %}type="checkbox" id="{{ id }}" name="{{ name if name else id }}"/>
+  <label for="{{ id }}" class="text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300 scheme-light dark:scheme-dark">{{ label }}</label>
+</div>
+{% endmacro %}
+
+{% macro inputSubmitWithActivity(label='', xBindDisabled=false) %}
+<div class="flex items-center">
+  <div class="grow"></div>
+  {{ activitySpinner() }}
+  <input type="submit" name="save" value="{{ label if label else 'Save' }}" x-bind:disabled="{{ xBindDisabled }}" class="rounded-lg px-8 py-2 bg-bsky dark:disabled:bg-gray-600 disabled:bg-gray-400 hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+</div>
+{% endmacro %}
+
+{% macro dropdown(id, label, xModel='', options=null, optionsExp=null) %}
+<div class="group">
+  <div class="rounded-lg p-2 border-slate-300 border bg-slate-50 dark:bg-slate-950 group-focus-within:ring-3 ring-sky-500 outline-hidden">
+    <label for="{{ id }}" class="block mb-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300">{{ label }}</label>
+    <select {% if xModel %}x-model="{{ xModel }}" {% endif %}id="{{ id }}" name="{{ id }}"
+      class="p-2 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full outline-hidden disabled:opacity-50"
+      />
+      {% if options %}
+      {% for val in options %}
+        <option value="{{ val.id }}">{{ val.text }}</option>
+      {% endfor %}
+      {% elif optionsExp %}
+        <template x-for="opt in {{ optionsExp }}">
+          <option x-bind:value="opt.id" x-text="opt.text"></option>
+        </template>
+      {% endif %}
+    </select>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro activitySpinner() %}
+<div class="hidden htmx-request:block border-4 border-r-transparent animate-spin rounded-full border-solid dark:border-gray-600 dark:border-r-transparent border-gray-400 size-6 mr-4"><span class="sr-only">Saving</span></div>
+{% endmacro %}

@@ -13,11 +13,9 @@ export const logout: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function handler(request, reply) {
-      return reply
-        .clearCookie('session')
-        .code(204)
-        .header('HX-Refresh', 'true')
-        .send();
+      return reply.clearCookie('session').view('common/server-events', {
+        reload: true,
+      });
     }
   );
 };

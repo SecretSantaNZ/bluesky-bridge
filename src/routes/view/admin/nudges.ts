@@ -1,43 +1,41 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { queryFullNudge } from '../../../lib/database/nudge.js';
+import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import z from 'zod';
 
-export const nudges: FastifyPluginAsync = async (app) => {
+export const nudges: FastifyPluginAsync = async (rawApp) => {
+  const app = rawApp.withTypeProvider<ZodTypeProvider>();
   app.get('/nudges', async function (request, reply) {
     const { db } = this.blueskyBridge;
     const [nudges] = await Promise.all([
-      db
-        .selectFrom('nudge')
-        .innerJoin('match', 'match.id', 'nudge.match')
-        .innerJoin('player as santa', 'santa.id', 'match.santa')
-        .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
-        .innerJoin('nudge_type', 'nudge_type.id', 'nudge.nudge_type')
-        .select([
-          'santa.did as santa_did',
-          'santa.handle as santa_handle',
-          'santa.avatar_url as santa_avatar_url',
-          'santa.note_count as santa_note_count',
-          'giftee.did as giftee_did',
-          'giftee.handle as giftee_handle',
-          'giftee.avatar_url as giftee_avatar_url',
-          'giftee.note_count as giftee_note_count',
-          'nudge_type.name as nudge_type',
-          'nudge.id as nudge_id',
-          'nudge.created_at',
-          'nudge_status',
-        ])
-        .orderBy('nudge.id', 'desc')
-        .execute(),
+      queryFullNudge(db).orderBy('nudge.id', 'desc').execute(),
     ]);
-    const pageData = {
+    return reply.view('admin/nudges', {
       nudges,
-    };
-    return reply.view(
-      'admin/nudges.ejs',
-      {
-        pageData,
-      },
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+    });
   });
+
+  app.post(
+    '/nudges/:nudge_id/delete',
+    {
+      schema: {
+        params: z.object({
+          nudge_id: z.coerce.number(),
+        }),
+        body: z.object({}),
+      },
+    },
+    async function handler(request, reply) {
+      const { db } = app.blueskyBridge;
+
+      await db
+        .deleteFrom('nudge')
+        .where('id', '=', request.params.nudge_id)
+        .execute();
+
+      return reply.view('common/server-events', {
+        nudgeEvents: [{ deleted: { nudge_id: request.params.nudge_id } }],
+      });
+    }
+  );
 };

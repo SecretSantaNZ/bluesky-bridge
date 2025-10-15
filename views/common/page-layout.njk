@@ -1,0 +1,132 @@
+{% from './avatar.njk' import avatar %}
+{% from "common/card.njk" import card %}
+{% from "common/form-fields.njk" import activitySpinner %}
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Secret Santa NZ</title>
+    {{ newrelic.getBrowserTimingHeader() | safe }}
+    <link href="/public/{{ indexCss }}" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/public/5a2dfbb7-e9f1-45b7-995a-9e2c861e02e2.png">
+    <style>[x-cloak] { display: none !important; }</style>
+    <script defer src="/public/{{ indexJs }}"></script>
+    <meta name="htmx-config" content='{"selfRequestsOnly":false}'>
+  </head>
+  <body
+    class="scheme-light dark:scheme-dark bg-slate-300 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+    @keyup.escape="$dispatch('ss-close-modal')"
+    x-data="{userMenuOpen: false, isMobileWidth: window.ssIsMobileWidth}"
+    @click="userMenuOpen = false"
+    @ss-is-mobile-width-changed.window="isMobileWidth = event.detail"
+  >
+    <div class="flex flex-col">
+      <div class="sticky top-0 bg-bsky text-white drop-shadow-lg mb-8 z-50">
+        <div class="flex items-center p-4 gap-4">
+          <h1><a href="/" class="font-semibold">Secret Santa NZ</a></h1>
+          {% if admin %}
+            <div><a href="/admin" class="font-semibold">Elf tools</a></div>
+            <div><a href="/admin/settings" class="font-semibold">Game setup</a></div>
+          {% endif %}
+          <div class="grow"></div>
+          <div class="grow-0 shrink-0">
+            <a href="#" id="shielded-logo">
+              <img alt="shielded" src="https://shielded.co.nz/img/custom-logo.png" height="40" width="40">
+            </a>
+          </div>
+          {% if player %}
+            <script>
+              newrelic?.setUserId({{ player.handle | dump | safe }});
+            </script>
+            <div class="relative text-slate-800 dark:text-slate-200" x-data x-cloak>
+              {% if player.admin or not player.booted %}
+                <button @click.stop.prevent="userMenuOpen = !userMenuOpen" class="rounded-full shrink-0">
+                  {{ avatar(player.avatar_url) }}
+                  <span class="sr-only">Open menu</span>
+                </button>
+                <div x-show="userMenuOpen" class="absolute top-10 right-0 min-w-48  border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
+                  <ul>
+                    <li>
+                      <form x-target="_none" action="/player/logout?csrfToken={{ csrfToken }}" method="post">
+                        <button type="submit" class="p-2 w-full text-left shrink-0">Logout</button>
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+                <div class="hidden" x-init="setInterval(() => $ajax('/session-keep-alive', {target: '_none'}), 60000)"></div>
+              {% else %}
+                {{ avatar(player.avatar_url) }}
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="grow p-4 justify-items-center" x-data x-cloak id="page-body">
+        {% block body %}{% endblock %}
+      </div>
+    </div>
+    <script>
+      function initAutocompletes() {
+        if (!window.google) return;
+        const addressInputs = document.querySelectorAll('input[type="address"]')
+        for (const input of addressInputs) {
+          input.setAttribute('type', 'text');
+          const addressAutocomplete = new google.maps.places.Autocomplete(input, {
+            componentRestrictions: {
+              country: 'nz'
+            }
+          });
+          addressAutocomplete.addListener("place_changed", () => {
+            const place = addressAutocomplete.getPlace();
+            input.dispatchEvent(new CustomEvent('ss-address-changed', {detail: {address: place.formatted_address}}))
+          });
+        }
+        window.initMap && window.initMap();
+      }
+    </script>
+    <script async
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBN9m5sRKCu9Ra1rjBd2hnKqrGMm5xLjoM&loading=async&libraries=places&callback=initAutocompletes">
+    </script>
+    <script src="https://staticcdn.co.nz/embed/embed.js"></script>
+    <script>
+        (function () {
+            window.onload = function(){
+                var frameName = new ds07o6pcmkorn({
+                    openElementId: "#shielded-logo",
+                    modalID: "modal",
+                });
+                frameName.init();
+            }
+        })();
+    </script>
+    <div x-data="{showModal: {{ openModal | default(false) }}, informationalModal: false }" @modal:open.window="
+        const contentElement = document.getElementById('modal-content');
+        contentElement.innerHTML = '';
+        contentElement.appendChild(
+          document.getElementById(event.detail.templateId || 'default-modal-content').content.cloneNode(true)
+        );
+        informationalModal = false;
+        showModal = true;
+    " @modal:close.window="showModal = false;">
+      <div x-show="showModal" x-cloak>
+        <div class="fixed h-dvh w-dvw top-0 left-0 z-50 bg-slate-700 opacity-80">
+        </div>
+        <div class="fixed h-dvh w-dvw top-0 left-0 z-50 flex justify-evenly items-center flex-wrap p-4">
+          {% call card() %}
+          <div class="relative">
+            {% block modalContent %}<div id="modal-content"></div>{% endblock %}
+            <button x-show="!informationalModal" class="absolute text-gray-400 bottom-0 left-0" @click="$dispatch('modal:close')">Close</button>
+          </div>
+          <button class="absolute text-gray-400 top-4 right-4 i-mdi-close size-8" @click="$dispatch('modal:close')"><span class="sr-only">Close</span></button>
+          {% endcall %}
+        </div>
+      </div>
+    </div>
+    <template id="default-modal-content">
+      <div data-fetching="true" class="my-16 flex justify-around">
+        {{ activitySpinner() }}
+      </div>
+    </template>
+    {% include "common/server-events.njk" %}
+  </body>
+</html>

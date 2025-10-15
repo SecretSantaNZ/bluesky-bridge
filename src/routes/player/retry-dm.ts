@@ -8,6 +8,6 @@ export const retryDm: FastifyPluginAsync = async (rawApp) => {
     const { playerService } = app.blueskyBridge;
     await playerService.retryPlayerDms(playerDid);
 
-    return reply.header('HX-Refresh', 'true').code(204).send();
+    return reply.redirect('/', 303);
   });
 };

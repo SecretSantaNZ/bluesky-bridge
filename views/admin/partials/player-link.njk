@@ -1,0 +1,45 @@
+{% macro playerLink(showPostCount=false) %}
+<div x-data="{expandPostCount: false}" x-bind:class="'flex justify-center ' + (expandPostCount ? 'items-start' : 'items-center')">
+  <div class="size-10 block shrink-0 rounded-full overflow-hidden">
+    <template x-if="player.avatar_url">
+      <img x-bind:src="player.avatar_url" alt="" />
+    </template>
+    <template x-if="!player.avatar_url">
+      <svg viewBox="0 0 24 24" fill="none" stroke="none" title="">
+        <circle cx="12" cy="12" r="12" fill="#0070ff"></circle>
+        <circle cx="12" cy="9.5" r="3.5" fill="#fff"></circle>
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="#fff"
+          d="M 12.058 22.784 C 9.422 22.784 7.007 21.836 5.137 20.262 C 5.667 17.988 8.534 16.25 11.99 16.25 C 15.494 16.25 18.391 18.036 18.864 20.357 C 17.01 21.874 14.64 22.784 12.058 22.784 Z"
+        ></path>
+      </svg>
+    </template>
+  </div>
+  <div class="ml-2 flex flex-col items-center">
+    <a
+      x-bind:href="'https://bsky.app/profile/' + encodeURIComponent(player.handle)"
+      x-text="'@' + player.handle"
+      target="_blank"
+      class="text-lg font-semibold block"
+    ></a>
+    {% if showPostCount %}
+    <div @click="expandPostCount = !expandPostCount" class="whitespace-nowrap cursor-pointer">
+      <div x-show="!expandPostCount"><span x-text="player.post_count_since_signup"></span> / <span x-text="player.post_count"></span></div>
+      <div x-show="expandPostCount">Posts since sign up: <b><span x-text="player.post_count_since_signup"></span></b></div>
+      <div x-show="expandPostCount">Total posts sign up: <b><span x-text="player.post_count"></span></b></div>
+      <div x-show="expandPostCount">As of <b><span x-datetime="player.last_checked_post_count"></span></b></div>
+    </div>
+    {% endif %}
+  </div>
+  <a x-target="modal-content" @ajax:before="$dispatch('modal:open')" x-bind:href="'/admin/player/' + player.id + '/notes'">
+    <template x-if="player.note_count">
+      <div class="i-mdi-comment-text-multiple size-6"></div>
+    </template>
+    <template x-if="!player.note_count">
+      <div class="i-mdi-comment-add-outline size-6"></div>
+    </template>
+  </a>
+</div>
+{% endmacro %}

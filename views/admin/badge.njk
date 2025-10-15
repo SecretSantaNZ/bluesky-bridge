@@ -1,0 +1,46 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/form-fields.njk" import activitySpinner, inputText, dropdown%}
+{% block body %}
+<div class="space-y-8 w-full max-w-lg" x-data="{{ badge | dump }}">
+  <div class="flex justify-center" x-data="{file: null, preview_url: '', pending_url: null}">
+    <img x-bind:src="image_url" class="block size-62" x-show="image_url"/>
+    <div x-show="!image_url">
+      <form x-target="_none" id="upload-form" enctype="multipart/form-data" x-data="{url:''}" x-bind:action="url" method="post"
+        x-effect="url && $el.requestSubmit()"
+        @ajax:success="image_url = pending_url"
+      >
+        <div id="presigned-fields"></div>
+        <input id="file-upload" type="file" name="file" @change="
+          file = $event.target.files[0] || null;
+          preview_url = file == null ? '' : URL.createObjectURL(file);
+        "/>
+      </form>
+      <form action="/admin/badges/presign-upload" method="post" x-target="presigned-fields">
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+        <input type="hidden" name="filename" x-bind:value="file && file.name"/>
+        <input type="hidden" name="content_type" x-bind:value="file && file.type"/>
+        {{ activitySpinner() }}
+        <input type="submit" name="upload" value="Upload" class="htmx-request:hidden rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+      </form>
+      <img x-show="preview_url" x-bind:src="preview_url" class="block size-62" />
+    </div>
+  </div>
+  <form hx-boost="true" method="post" action="/admin/badges{{ ('/' + badge.id) if badge.id }}" class="space-y-8">
+    {{ inputText(id='title', label='Title', xModel='title') }}
+    {{ inputText(id='description', label='Description', xModel='description') }}
+    {{ inputText(id='image_url', label='Image url', xModel='image_url') }}
+    {{ dropdown(id='assigned_for_type', xModel='assigned_for_type', label='Assigned for', options=[
+      {id: 'nothing', text: 'Nothing'},
+      {id: 'current_game', text: 'Current game'},
+      {id: 'sent_present', text: 'Sending gift'},
+      {id: 'super_santa', text: 'Super santa'},
+      {id: 'by_elf', text: 'By elf'},
+      {id: 'posting', text: 'Posting'}
+    ]) }}
+    {{ inputText(id='assigned_by_hashtag', label='Hashtag', placeholder='#hashtag', xModel='assigned_by_hashtag', xShow='assigned_for_type === "by_elf" || assigned_for_type === "posting"') }}
+    <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+    {{ activitySpinner() }}
+    <input type="submit" name="save" value="Save" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+  </form>
+</div>
+{% endblock %}

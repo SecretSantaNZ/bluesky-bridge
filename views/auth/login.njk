@@ -1,0 +1,111 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% from "common/error.njk" import errorPanel %}
+{% from "common/form-fields.njk" import activitySpinner %}
+{% block body %}
+<div class="w-full flex flex-col items-center space-y-8">
+  <div 
+    class="max-w-xl min-w-80 w-full flex flex-col"
+  >
+    <img class="rounded-xl" src="https://secretsantanz.imgix.net/elves-banner-2881b545-9291-4120-8d23-161cd6d0d2dd?w=576&h144&auto=format" alt="" width="576px" height="144px">
+  </div>
+  {% call card() %}
+    <form x-target x-target.error="login-error" method="post" action="/start-login" id="login" @ajax:missing="event.preventDefault();" x-data="{
+        signupsOpen: {{ settings.signups_open | default("false") }},
+        defaultMode: {{ mode | default(null) | dump }},
+        localMode: null,
+        accountType: {{ "$persist('bluesky')" if settings.mastodon_players else "'bluesky'" }},
+        get mode() {
+          if (!this.signupsOpen) return 'login';
+          if (this.localMode != null) return this.localMode;
+          if (this.defaultMode != null) return this.defaultMode;
+          return 'choose';
+        },
+        set mode(mode) {
+          this.localMode = mode;
+        },
+      }"
+        @submit="newrelic && newrelic.addPageAction('login_started', {mode, handle: handle.value, accountType})"
+      >
+      <input type="hidden" name="requestId" value="{{ requestId }}"/>
+      <input type="hidden" name="returnToken" value="{{ returnToken }}"/>
+      <input type="hidden" name="accountType" x-bind:value="accountType"/>
+      {% if settings.mastodon_players %}
+        <div class="flex -mt-8 -mx-8 mb-8">
+          <button type="button" x-bind:class="(accountType === 'bluesky' ? '' : 'border-b ') + 'w-1/2 rounded-none border-slate-500 border-r p-4 flex items-center justify-center focus:ring-0'" @click="accountType = 'bluesky'">
+            <img src="/public/bluesky-77733e6f-9e9b-404a-a264-0ae6eb82e0e8.svg" class="size-8 block pr-2"/>
+            <div x-bind:class="accountType === 'bluesky' ? 'font-semibold' : ''">Bluesky</div>
+          </button>
+          <button type="button" x-bind:class="(accountType === 'mastodon' ? '' : 'border-b ') + 'w-1/2 rounded-none border-slate-500 border-l p-4 flex items-center justify-center focus:ring-0'" @click="accountType = 'mastodon'">
+            <img src="/public/mastodon-f00810b7-0560-4f93-999f-f6e5501d2648.svg" class="size-8 block pr-2"/>
+            <div x-bind:class="accountType === 'mastodon' ? 'font-semibold' : ''">Mastodon</div>
+          </button>
+        </div>
+      {% endif %}
+      <div class="flex space-x-8" x-show="mode === 'choose'">
+        <button type="button" @click.prevent="mode = 'signup'" class="grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden">Sign up</button>
+        <button type="button" @click.prevent="mode = 'login'" class="grow rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden">Login</button>
+      </div>
+      <div class="space-y-8" x-show="mode !== 'choose'">
+        <h1 x-text="mode === 'login' ? 'Login' : 'Sign up'"></h1>
+        <div x-show="mode === 'signup'" class="space-y-2">
+          <p>To sign up:</p>
+          <div class="pl-6">
+            <ol class="list-decimal space-y-2">
+              <li x-show="accountType === 'bluesky'"><b>Enter your handle below</b></li>
+              <li x-show="accountType === 'mastodon'"><b>Enter your Mastodon instance below</b></li>
+              <li x-show="accountType === 'bluesky'"><b>Login with your Bluesky password</b><br/>
+                NB: you are entering your password into Bluesky, not the Secret Santa app.
+                We do not have access to your password or any access to your Bluesky account.</li>
+              <li x-show="accountType === 'mastodon'"><b>Login to your Mastodon instance</b><br/>
+                NB: you are entering your password into your Mastodon instance, not the Secret Santa app.
+                We do not have access to your password or any access to your Mastodon account.</li>
+              <li><b>Fill out your address and preferences</b></li>
+            </ol>
+          </div>
+        </div>
+        <div>
+          <div class="group">
+            <label for="handle" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300 scheme-light dark:scheme-dark">Handle</label>
+            <input
+              type="text"
+              id="handle"
+              name="handle"
+              x-bind:placeholder="accountType === 'bluesky' ? 'coolplayer.bsky.social' : 'coolplayer@secretsanta.nz'"
+              class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"
+              x-search-handles="accountType === 'bluesky'"
+            />
+          </div>
+          <div x-show="mode === 'login' && accountType === 'bluesky'" class="mt-2">
+            You will be sent to Bluesky to login with your Bluesky password.
+          </div>
+          <div x-show="mode === 'login' && accountType === 'mastodon'" class="mt-2">
+            You will be sent to your Mastodon instance to login with your Mastodon account.
+          </div>
+        </div>
+        {{ errorPanel(errorMessage, "login-error") }}
+        <input type="hidden" name="mode" x-bind:value="mode"/>
+        <div class="flex justify-center items-center">
+          <button type="button" x-show="signupsOpen" @click.prevent="mode = 'choose'" class="text-gray-400">Back</button>
+          <div class="grow"></div>
+          {{ activitySpinner() }}
+          <div x-bind:class="(signupsOpen ? 'w-48' : 'w-full') + ' flex flex-col justify-center space-y-2'">
+            <input type="submit" name="login" x-bind:value="mode === 'login' ? 'Login' : 'Sign up'" class="w-full rounded-lg px-8 py-2 bg-bsky hover:bg-sky-500 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden dark:disabled:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed" />
+            <button type="submit" name="otpLogin" value="true" x-show="mode === 'login' && accountType === 'bluesky'" class="w-full text-gray-400 disabled:cursor-not-allowed">Login with DM Code</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  {% endcall %}
+  {% call card() %}
+    {% include "public/partials/what-is-secret-santa.njk" %}
+    <p class="mt-2">For more information check out:</p>
+    <div class="mt-2 pl-6">
+      <ul class="list-disc space-y-2">
+        <li><a href="/rules">The rules</a></li>
+        <li><a href="/faq">Frequently asked questions</a></li>
+      </ul>
+    </div>
+  {% endcall %}
+</div>
+{% endblock %}

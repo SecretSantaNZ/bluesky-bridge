@@ -1,0 +1,124 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/form-fields.njk" import activitySpinner %}
+{% from "./partials/match-player.njk" import matchPlayer %}
+{% block body %}
+<div class="w-full px-12"
+  x-data="{matches: [], showConfirm: ''}"
+  x-init="pager = $pager({
+    handle: '',
+    showWithPresentUpdates: true,
+    showContacted: true,
+    showSuper: true,
+    showResolved: false,
+    showHasGift: false,
+  }, function(filters) {
+    const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
+    return matches.filter((match) => 
+      (!cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter))
+      && (filters.showWithPresentUpdates || match.nudge_present_update_count === 0)
+      && (filters.showContacted || !match.contacted)
+      && (filters.showSuper || !match.super_santa_match)
+      && (filters.showResolved || !match.followup_action)
+      && (filters.showHasGift || (match.tracking_count === 0 || match.tracking_missing_count > 0))
+    );
+  })"
+  @ss:match:deactivated.window="matches = $removeMatch(matches, event.detail.match_id)"
+  @ss:match:updated.window="matches = $replaceMatch(matches, event.detail)"
+  @ss:matches:refresh.window="matches = event.detail.matches"
+>
+  <div id="refresh-matches" class="hidden" x-sync x-init="$dispatch('ss:matches:refresh', {matches: {{ matches | dump}} })"></div>
+  <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
+    <h1>People without gifts</h1>
+    <div>
+      <select x-model="pager.pageSelect">
+        <template x-for="{key, display} of pager.pages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
+    <div>
+      <input type="checkbox" id="show-with-present-updates" name="show-with-present-updates" x-model="pager.filters.showWithPresentUpdates"/>
+      <label for="show-with-present-updates">Has sent update</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-contacted" name="show-contacted" x-model="pager.filters.showContacted" />
+      <label for="show-contacted">Contacted</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-super" name="show-super" x-model="pager.filters.showSuper" />
+      <label for="show-super">Super-santas</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-resolved" name="show-resolved" x-model="pager.filters.showResolved" />
+      <label for="show-resolved">Resolved</label>
+    </div>
+    <div>
+      <input type="checkbox" id="show-has-gift" name="show-has-gift" x-model="pager.filters.showHasGift" />
+      <label for="show-has-gift">Has gift</label>
+    </div>
+  </div>
+  <div class="w-full mb-2">
+    <input type="text" x-model="pager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
+  <div class="grid-cols-6 lg:space-x-4 hidden lg:grid">
+    <div class="flex justify-center"><b>Santa</b></div>
+    <div class="flex justify-center"><b>Giftee</b></div>
+    <div class="flex justify-center"><b>Category</b></div>
+    <div class="flex justify-center"><b>Present updates sent</b></div>
+    <div class="flex justify-center"><b>Contacted</b></div>
+    <div class="flex justify-center"><b>Action</b></div>
+  </div>
+  <template x-for="match in pager.pageData">
+    <div class="grid sm:grid-cols-3 lg:grid-cols-6 lg:space-x-4 border-b py-2">
+      {{ matchPlayer(description='Santa', side='santa') }}
+      {{ matchPlayer(description='Giftee', side='giftee') }}
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Category:</div>
+        <div x-text="match.super_santa_match ? 'Super santa' : match.tracking_count === 0 ? 'No tracking' : 'Present missing'"></div>
+      </div>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Present updates sent:</div>
+        <div x-text="match.nudge_present_update_count"></div>
+      </div>
+      <form x-target="_none" x-bind:action="'/admin/match/' + match.match_id + '/mark-contacted'" method="post" class="flex items-center sm:justify-center lg:col-span-1">
+        <div class="italic lg:hidden mr-2">Contacted:</div>
+        <div>
+          <div x-datetime="match.contacted"></div>
+          {{ activitySpinner() }}
+          <button type="submit" class="flex items-center rounded-xs"><div class="i-mdi-message-bubble mr-1 size-5"></div><div>Mark contacted</div></button>
+          <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
+          <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+        </div>
+      </form>
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Action:</div>
+        <div x-show="match.followup_action" x-text="match.followup_action"></div>
+        <div x-show="!match.followup_action">
+          <a x-target="modal-content" @ajax:before="$dispatch('modal:open')" x-bind:href="'/admin/match/' + match.match_id + '/reassign?super_santa_match=true'" class="flex items-center rounded-xs">
+            <div class="i-mdi-rotate-3d-variant mr-1 size-5"></div>
+            <div>Assign super santa</div>
+          </a>
+          <form x-target="_none" x-bind:action="'/admin/match/' + match.match_id + '/mark-sorted'" method="post">
+            {{ activitySpinner() }}
+            <button type="submit" class="htmx-request:hidden flex items-center rounded-xs"><div class="i-mdi-tick mr-1 size-5"></div><div>Mark sorted</div></button>
+            <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+          </form>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <div class="mt-12 grid sm:grid-cols-3 space-y-12">
+    <div class="sm:col-span-2" id="players-available-to-santa-list" x-sync>
+      {% include "admin/partials/players-available-to-santa.njk" %}
+    </div>
+    <div class="flex items-start justify-center">
+      <form x-target="poke-without-gifts-form" x-sync action="/admin/without-gifts/poke" method="post" class="flex items-center" id="poke-without-gifts-form">
+        <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 border-bsky h-full">Poke {{ toMessageCount }} inactive Santas</button>
+        {{ activitySpinner() }}
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

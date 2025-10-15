@@ -1,0 +1,29 @@
+<div
+  @click="isMobileWidth && (cardExpanded = !cardExpanded)"
+  class="flex -ml-4 lg:ml-0 items-start"
+>
+  <div x-show="isMobileWidth" x-bind:class="'size-10 shrink-0 grow-0 ' + (cardExpanded ? 'i-mdi-chevron-down' : 'i-mdi-chevron-right')"></div>
+  <div class="grow shrink">
+    <h1>Presents for me</h1>
+    {% if myGifts.length === 0 %}
+      <p>Once your Santa has sent a present it will show up here. Don't worry, we'll also DM you</p>
+    {% else %}
+      <p>{{ myGifts.length | ssPlur('gift') }} {{ 'are on their' if myGifts.length > 1 else "is on it's" }} way!</p>
+    {% endif %}
+  </div>
+  <div class="size-10 shrink-0 grow-0 i-mdi-gift"></div>
+</div>
+<div x-show="!isMobileWidth || cardExpanded">
+  {% for receivedTracking in myGifts %}
+    <div class="mt-8 flex flex-col items-center" id="tracking-details-{{ receivedTracking.tracking_id }}">
+      <p>
+        Sent {{ receivedTracking.shipped_date | ssDate }} with {{ receivedTracking.carrier }} <b>{{ receivedTracking.tracking_number }}</b>. {{ 'Gifts are wrapped.' if receivedTracking.giftwrap_status else  'Gifts are naked (do not remove postal wrapper / box).' }}
+      </p>
+      <form x-target="tracking-details-{{ receivedTracking.tracking_id }}" action="/tracking/{{ receivedTracking.tracking_id }}/{{ 'arrived' if receivedTracking.missing else 'missing' }}" method="post" class="mt-2">
+        {{ activitySpinner() }}
+        <button class="htmx-request:hidden flex items-center hover:text-sky-500 rounded-xs drop-shadow-lg focus:text-sky-500 focus:ring-3 ring-sky-500 outline-hidden"><div class="{{ 'i-mdi-package-outline' if receivedTracking.missing else 'i-mdi-package-off-outline' }} mr-1 size-5"></div><div>{{ 'Report arrived' if receivedTracking.missing else 'Report missing' }}</div></button>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+      </form>
+    </div>
+  {% endfor %}
+</div>

@@ -2,19 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { validateAuth } from '../../util/validateAuth.js';
 import { BadRequestError } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
-import { updateAddress } from './update-address.js';
-import { updateGameMode } from './update-game-mode.js';
-import { optIn } from './opt-in.js';
-import { optOut } from './opt-out.js';
-import { sendNudge } from './send-nudge.js';
-import { addTracking } from './add-tracking.js';
-import { tracking } from './tracking.js';
 import { logout } from './logout.js';
-import { refreshFollowing } from './refresh-following.js';
-import { bootPlayer } from './boot-player.js';
-import { restorePlayer } from './restore-player.js';
-import { newPlayer } from './new-player.js';
-import { assignSanta } from './assign-santa.js';
 import { retryDm } from './retry-dm.js';
 
 export const player: FastifyPluginAsync = async (rawApp) => {
@@ -50,27 +38,22 @@ export const player: FastifyPluginAsync = async (rawApp) => {
 
   app.setErrorHandler(async function (error, request, reply) {
     request.log.error(error);
+
     const triggerId = request.headers['hx-trigger'];
-    return reply.view('partials/error.ejs', {
+    const elementId =
+      request.headers['x-ssnz-error-target'] ??
+      (request.headers['x-alpine-target'] as string | undefined)?.split(
+        ' '
+      )[0] ??
+      (triggerId ? triggerId + '-error' : undefined);
+
+    // @ts-expect-error can't be bothered typing to http error
+    return reply.status(error.status ?? 500).view('common/error', {
       errorMessage: error.message || 'Unknown Error',
-      elementId: triggerId ? triggerId + '-error' : undefined,
+      elementId,
     });
   });
 
   await app.register(logout);
-  await app.register(updateAddress);
-  await app.register(updateGameMode);
-  await app.register(refreshFollowing);
-  await app.register(optOut);
-  await app.register(optIn);
-  await app.register(sendNudge);
   await app.register(retryDm);
-  await app.register(addTracking);
-  await app.register(tracking);
-  await app.register(bootPlayer);
-
-  // admin only
-  await app.register(restorePlayer);
-  await app.register(newPlayer);
-  await app.register(assignSanta);
 };

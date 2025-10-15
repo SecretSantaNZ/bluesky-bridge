@@ -1,0 +1,31 @@
+{% from "common/card.njk" import card %}
+{% call card() %}
+<div class="flex flex-col space-y-4 text-left">
+  <h1>Published matches</h1>
+  <div class="flex justify-center">
+    <div class="flex flex-col items-center">
+      <p class="text-3xl">{{ sharedMatches }}</p>
+      <p class="text-sm">Shared matches</p>
+    </div>
+    <div class="text-3xl mx-2"></div>
+    <div class="flex flex-col items-center">
+      <p class="text-3xl">{{ lockedMatches }}</p>
+      <p class="text-sm">Locked matches</p>
+    </div>
+  </div>
+  <p class="text-center text-xl">
+    <a href="/admin/published-matches">Published matches</a>
+  </p>
+  <p>
+    Find someone's Giftee or Santa to help players with sleuthing and other
+    issues during the game
+  </p>
+  <div class="pl-6">
+    <ul class="list-disc space-y-2">
+      <li>Check and add nudges</li>
+      <li>Find tracking numbers sent to players</li>
+      <li>Check and add tracking for players</li>
+    </ul>
+  </div>
+</div>
+{% endcall %}

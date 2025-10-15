@@ -1,0 +1,43 @@
+<div x-sync id="server-event" class="hidden" x-init="
+  {%- if reload -%}
+    window.location.reload();
+  {%- endif -%}
+  {%- if redirectTo -%}
+    window.location = {{ redirectTo | dump }};
+  {%- endif -%}
+  {%- if replaceUrl -%}
+    window.history.replaceState(null, '', {{ replaceUrl | dump }});
+  {%- endif -%}
+  {%- if startRequestFrom -%}
+    $startRequest({{ startRequestFrom | dump }});
+  {%- endif -%}
+  {%- for event in playerEvents | default([]) -%}
+    {%- if event.updated -%}
+      $dispatch('ss:player:updated', {{ event.updated | dump }});
+    {%- endif -%}
+  {%- endfor -%}
+  {%- for event in matchEvents | default([]) -%}
+    {%- if event.updated -%}
+      $dispatch('ss:match:updated', {{ event.updated | dump }});
+    {%- endif -%}
+    {%- if event.deactivated -%}
+      $dispatch('ss:match:deactivated', {{ event.deactivated | dump }});
+    {%- endif -%}
+  {%- endfor -%}
+  {%- for event in nudgeEvents | default([]) -%}
+    {%- if event.updated -%}
+      $dispatch('ss:nudge:updated', {{ event.updated | dump }});
+    {%- endif -%}
+    {%- if event.deleted -%}
+      $dispatch('ss:nudge:deleted', {{ event.deleted | dump }});
+    {%- endif -%}
+  {%- endfor -%}
+  {%- for event in trackingEvents | default([]) -%}
+    {%- if event.updated -%}
+      $dispatch('ss:tracking:updated', {{ event.updated | dump }});
+    {%- endif -%}
+    {%- if event.deactivated -%}
+      $dispatch('ss:tracking:deactivated', {{ event.deactivated | dump }});
+    {%- endif -%}
+  {%- endfor -%}
+"></div>

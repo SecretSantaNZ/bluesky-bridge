@@ -1,0 +1,25 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% from "common/error.njk" import errorPanel %}
+{% from "common/form-fields.njk" import activitySpinner %}
+{% block body %}
+<div class="w-full flex justify-center">
+{% call card() %}
+<form x-target="page-body" x-target.error="opt-out-error" @ajax:success="$dispatch('modal:close')" action="/opt-out" method="post" id="modal-content">
+  <div class="space-y-8">
+    <h1>Opt out</h1>
+    <p>You can opt out at any time, life happens sometimes and we'd rather you told us than ghost us,</p>
+    <p>If you opt out after the Giftees are assigned you will not be able to opt back in so make sure you are sure.</p>
+    {{ errorPanel(errorMessage, 'opt-out-error') }}
+    <div class="flex items-center">
+      <div class="grow"></div>
+      {{ activitySpinner() }}
+      <input type="submit" name="save" value="Opt out" class="rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+    </div>
+  </div>
+  <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+</form>
+<a href="/" class="text-gray-400 no-underline absolute bottom-8 left-8">Close</a>
+{% endcall %}
+</div>
+{% endblock %}

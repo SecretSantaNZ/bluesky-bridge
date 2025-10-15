@@ -1,0 +1,78 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% block body %}
+<div class="grow p-4 justify-items-center grid gap-8 lg:grid-cols-2 xl:grid-cols-3" id="player-home">
+{% if player.player_type === 'bluesky' %}
+  {% if not player.following_santa %}
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+      <div class="shrink-0 grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="shrink grow">
+        <h1>You must follow @secretsanta.nz</h1>
+        <p>You need to follow <a href="https://bsky.app/profile/secretsanta.nz" target="_blank">@secretsanta.nz</a> to complete your registration.</p>
+      </div>
+    </div>
+  {% endif %}
+  {% if player.player_dm_status.startsWith('error:') %}
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+      <div class="shrink-0 grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="shrink grow">
+        <h1>@secretsanta.nz could not DM you</h1>
+        <p>Make sure you <a href="/faq#how-do-i-enable-dms">enable DMs from people you follow</a>.</p>
+        <form x-target="page-body" x-target.error="retry-dm-form" action="/player/retry-dm" method="post" id="retry-dm-form">
+          <button class="mt-4"><div class="flex items-center"><div class="i-mdi-email-refresh-outline mr-2 size-6"></div>Retry...</div></button>
+          <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+{% elif player.player_type === 'mastodon' %}
+  {% if not player.following_santa %}
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+      <div class="shrink-0 grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="shrink grow">
+        <h1>You must follow @secretsanta.nz@bsky.brid.gy</h1>
+        <p>You need to follow <a href="https://{{ player.mastodon_host }}/@secretsanta.nz@bsky.brid.gy" target="_blank">@secretsanta.nz@bsky.brid.gy</a> to complete your registration.</p>
+      </div>
+    </div>
+  {% endif %}
+  {% if not player.mastodon_following_santa %}
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+      <div class="shrink-0 grow-0 i-mdi-error-outline size-16 mr-4 text-red-600"></div>
+      <div class="shrink grow">
+        <h1>You must follow @{{ santaMastodonHandle }}</h1>
+        <p>You need to follow <a href="https://{{ player.mastodon_host }}/@{{ santaMastodonUsername }}{{ ('@' + santaMastodonHost) if player.mastodon_host != santaMastodonHost }}" target="_blank">@{{ santaMastodonHandle }}</a> to complete your registration.</p>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+{% if settings.show_badges and badges.length > 0%}
+  <div id="my-badges-card" class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg">
+    <div class="flex">
+      <div class="grow shrink">
+        <h1>My badges</h1>
+      </div>
+      <div class="size-10 shrink-0 grow-0 i-mdi-star"></div>
+    </div>
+    {% set gridClasses = {
+      '2': 'grid-cols-2',
+      '3': 'grid-cols-3',
+      '4': 'grid-cols-4',
+      '5': 'grid-cols-5'
+    } %}
+    <div class="grid justify-items-center {{ gridClasses[badges.length | string] or '' }}">
+      {% for badge in badges %}
+        <a href="/badge/{{ badge.id }}" x-target="modal-content" @ajax:before="$dispatch('modal:open')" class="block shrink">
+          <img src="{{ badge.image_url }}" alt="{{ badge.title }}" class="object-contain mx-2 max-h-16 drop-shadow-lg"/>
+        </a> 
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+{% call card() %}{% include "./home/key-information.njk" %}{% endcall %}
+{% call card('my-details-card') %}{% include "./home/my-details.njk" %}{% endcall %}
+{% call card('my-giftee-card') %}{% include "./home/my-giftee.njk" %}{% endcall %}
+{% call card() %}{% include "./home/presents-for-me.njk" %}{% endcall %}
+{% call card('presents-ive-sent-card') %}{% include "./home/presents-ive-sent.njk" %}{% endcall %}
+{% call card('nudges-ive-sent-card') %}{% include "./home/nudges-ive-sent.njk" %}{% endcall %}
+</div>
+{% endblock %}

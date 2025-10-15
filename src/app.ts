@@ -11,7 +11,7 @@ import fastifyFormBody from '@fastify/formbody';
 import fastifyView from '@fastify/view';
 import fastifyCookie from '@fastify/cookie';
 import fastifyStatic from '@fastify/static';
-import ejs from 'ejs';
+import nunjucks, { Environment } from 'nunjucks';
 
 import type { TokenManager } from './lib/TokenManager.js';
 
@@ -24,11 +24,11 @@ import type { NodeOAuthClient } from '@atproto/oauth-client-node';
 import { at_oauth } from './routes/at_oauth/index.js';
 import type { DidResolver } from '@atproto/identity';
 import type { Agent } from '@atproto/api';
-import { match } from './routes/match/index.js';
-import { nudge } from './routes/nudge/index.js';
 import { xrpc } from './routes/xrpc/index.js';
 import { mastodon } from './routes/mastodon/index.js';
 import type { SelectedSettings } from './lib/settings.js';
+import { formatDate, formatDatetime } from './lib/dates.js';
+import plur from 'plur';
 
 declare module 'fastify' {
   export interface FastifyInstance {
@@ -84,17 +84,44 @@ export const build = async (
   await app.register(fastifyHttpErrorsEnhanced);
   await app.register(fastifyView, {
     engine: {
-      ejs,
+      nunjucks,
     },
     root: path.join(process.cwd(), 'views'),
     defaultContext: {
       newrelic,
+      indexCss: process.env.INDEX_CSS_NAME ?? 'index.css',
+      indexJs: process.env.INDEX_JS_NAME ?? 'index.js',
+    },
+    viewExt: 'njk',
+    options: {
+      noCache: process.env.NODE_ENV !== 'production',
+      onConfigure: (env: Environment) => {
+        env.addFilter('ssDate', formatDate);
+        env.addFilter('ssDatetime', (isoDatetime) =>
+          env.getFilter('safe')(
+            isoDatetime
+              ? `<span x-datetime="${env.getFilter('escape')(JSON.stringify(isoDatetime))}">${env.getFilter('escape')(formatDatetime(isoDatetime))}</span>`
+              : ''
+          )
+        );
+        env.addFilter('ssEscapeUri', encodeURIComponent);
+        env.addFilter(
+          'ssPlur',
+          (num: number, qualifier: string) => `${num} ${plur(qualifier, num)}`
+        );
+      },
     },
   });
 
   await app.register(fastifyStatic, {
     prefix: '/public/',
     root: path.join(process.cwd(), 'public'),
+    ...(process.env.NODE_ENV === 'production'
+      ? {
+          immutable: true,
+          maxAge: '30d',
+        }
+      : undefined),
   });
 
   // Add schema validator and serializer
@@ -102,8 +129,6 @@ export const build = async (
   app.setSerializerCompiler(serializerCompiler);
 
   await app.register(player, { prefix: '/player' });
-  await app.register(match, { prefix: '/match' });
-  await app.register(nudge, { prefix: '/nudge' });
   await app.register(at_oauth);
   await app.register(view);
   await app.register(xrpc);

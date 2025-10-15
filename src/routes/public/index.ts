@@ -1,5 +1,4 @@
 import type { FastifyPluginAsync } from 'fastify';
-import * as dateUtils from '../../lib/dates.js';
 import { validateAuth } from '../../util/validateAuth.js';
 import { UnauthorizedError } from 'http-errors-enhanced';
 
@@ -33,7 +32,6 @@ export const publicContent: FastifyPluginAsync = async (app) => {
 
     reply.locals = {
       ...reply.locals,
-      ...dateUtils,
       csrfToken: request.tokenData?.csrfToken,
       player,
       settings,
@@ -41,22 +39,10 @@ export const publicContent: FastifyPluginAsync = async (app) => {
   });
 
   app.get('/faq', async function (request, reply) {
-    return reply.view(
-      'public/faq.ejs',
-      {},
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+    return reply.view('public/faq', {});
   });
 
   app.get('/rules', async function (request, reply) {
-    return reply.view(
-      'public/rules.ejs',
-      {},
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+    return reply.view('public/rules', {});
   });
 };

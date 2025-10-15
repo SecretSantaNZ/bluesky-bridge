@@ -1,0 +1,111 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/form-fields.njk" import activitySpinner %}
+{% from "./partials/match-player.njk" import matchPlayer %}
+{% block body %}
+<div class="w-full px-12"
+  x-data="{...{{ pageData | dump }},
+    showConfirm: '',
+    validDraftMatchesCount: 0,
+    get validDraftMatchesCount() {
+      return this.draftMatches.filter((match) => !match.invalid_player).length;
+    },
+  }"
+  x-init="pager = $pager({
+    handle: ''
+  }, function(filters) {
+    const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
+    return draftMatches.filter((match) => !cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter));
+  })"
+  @ss:match:deactivated.window="draftMatches = $removeMatch(draftMatches, event.detail.match_id)"
+  @ss:match:updated.window="draftMatches = $replaceMatch(draftMatches, event.detail)"
+>
+  <div class="grid sm:grid-cols-2 sm:space-x-4 space-y-4 sm:space-y-0 mb-8">
+    <button x-show="criticalMatchIssues > 0" @click="window.open('/admin/fix-matches')">
+      <div class="text-3xl text-red-600 font-semibold" x-text="criticalMatchIssues"></div>
+      <div class="text-sm">Critical match issues</div>
+    </button>
+    <button x-show="warnMatchIssues > 0" @click="window.open('/admin/fix-matches')">
+      <div class="text-3xl text-orange-400 font-semibold" x-text="warnMatchIssues"></div>
+      <div class="text-sm">Match issues</div>
+    </button>
+  </div>
+  <div class="grid sm:grid-cols-4 sm:space-x-4 space-y-4 sm:space-y-0 justify-center mb-8">
+    <form x-show="countNeedsSantaAssigned > 0" x-target="page-body" x-target.error="auto-match" id="auto-match" action="/admin/match/auto-match" method="post" class="flex flex-col items-stretch sm:justify-center">
+      <div class="flex items-end">
+        <div class="group grow">
+          <label for="max_post_count_since_signup" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300">Max recent posts</label>
+          <input type="number" id="max_post_count_since_signup" name="max_post_count_since_signup" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"/>
+        </div>
+        <div class="group grow">
+          <label for="max_post_count_and" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300">Max total posts</label>
+          <input type="number" id="max_post_count_and" name="max_post_count_and" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"/>
+        </div>
+        <div class="group grow">
+          <label for="max_post_count_threshold" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300">Posts threshold</label>
+          <input type="number" id="max_post_count_threshold" name="max_post_count_threshold" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"/>
+        </div>
+      </div>
+      <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 border-bsky h-full">Auto-match <span x-text="countNeedsSantaAssigned"></span> players</button>
+      {{ activitySpinner() }}
+      <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+    </form>
+    <form x-show="draftMatches.length > 0" x-target="page-body" x-target.error="delete-draft-matches" id="delete-draft-matches" action="/admin/match/delete-drafts" method="post" class="flex items-center justify-center" @ajax:before="confirm('Are you sure?') || (() => {$event.preventDefault(); $event.stopPropagation();})()">
+      <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 bg-red-600 hover:bg-red-400 h-full">Delete <span x-text="draftMatches.length"></span> matches</button>
+      {{ activitySpinner() }}
+      <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+    </form>
+    <form x-show="validDraftMatchesCount > 0" x-target="page-body" x-target.error="publish-to-shared" id="publish-to-shared" action="/admin/match/publish" method="post" class="flex items-center justify-center">
+      <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 border-bsky h-full">Publish <span x-text="validDraftMatchesCount"></span> matches</button>
+      {{ activitySpinner() }}
+      <input type="hidden" name="current_status" value="draft"/>
+      <input type="hidden" name="target_status" value="shared"/>
+      <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+    </form>
+    <form x-show="validDraftMatchesCount > 0"  x-target="page-body" x-target.error="publish-to-locked" id="publish-to-locked" action="/admin/match/publish" method="post" class="flex items-center justify-center">
+      <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 border-bsky h-full">Publish <span x-text="validDraftMatchesCount"></span> matches<br/>(with address)</button>
+      {{ activitySpinner() }}
+      <input type="hidden" name="current_status" value="draft"/>
+      <input type="hidden" name="target_status" value="locked"/>
+      <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+    </form>
+  </div>
+  <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
+    <h1>Draft matches</h1>
+    <div>
+      <select x-model="pager.pageSelect">
+        <template x-for="{key, display} of pager.pages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
+  </div>
+  <div class="w-full mb-2">
+    <input type="text" x-model="pager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
+  <div class="grid-cols-3 sm:space-x-4 hidden sm:grid">
+    <div class="flex justify-center"><b>Santa</b></div>
+    <div class="flex justify-center"><b>Giftee</b></div>
+    <div class="flex justify-center"><b>Delete</b></div>
+  </div>
+  <template x-for="match in pager.pageData">
+    <div class="grid sm:grid-cols-3 sm:space-x-4 border-b py-2">
+      {{ matchPlayer(description='Santa', side='santa') }}
+      {{ matchPlayer(description='Giftee', side='giftee') }}
+      <form x-target="_none" x-bind:action="'/admin/match/' + match.match_id + '/deactivate'" method="post" class="flex items-center sm:justify-center">
+        <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">
+          <div class="flex sm:justify-center items-center ">
+            <div class="i-mdi-trash-can-outline size-10"></div>
+            <div class="sm:hidden"><b>Delete match</b></div>
+          </div>
+        </button>
+        {{ activitySpinner() }}
+        <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+        <button x-show="`match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+          <div class="i-mdi-close size-10 text-gray-400"></div>
+        </button>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+      </form>
+    </div>
+  </template>
+</div>
+{% endblock %}

@@ -27,6 +27,7 @@ async function startAtOauth(
   mode: string,
   otpLogin: boolean
 ) {
+  let returnUrl = '/';
   try {
     const client = blueskyBridge.atOauthClient;
     let handle = rawHandle
@@ -39,10 +40,9 @@ async function startAtOauth(
     }
     const fullPerms = blueskyBridge.fullScopeHandles.has(handle.toLowerCase());
 
-    const {
-      subject: requestId,
-      data: { returnUrl },
-    } = await blueskyBridge.returnTokenManager.validateToken(returnToken);
+    const { subject: requestId, data } =
+      await blueskyBridge.returnTokenManager.validateToken(returnToken);
+    returnUrl = data.returnUrl;
 
     if (otpLogin) {
       const resolveResult = await unauthenticatedAgent.resolveHandle({
@@ -84,7 +84,7 @@ async function startAtOauth(
         markError: (errorText) => Promise.reject(new Error(errorText)),
       });
 
-      return reply.view('auth/otp-login.ejs', {
+      return reply.view('auth/partials/otp-login', {
         key,
         returnToken,
       });
@@ -104,13 +104,22 @@ async function startAtOauth(
         : 'atproto',
     });
 
-    return reply.code(204).header('HX-Redirect', url.href).send();
+    if (request.headers['x-alpine-request']) {
+      return reply.view('common/server-events', {
+        redirectTo: url,
+        startRequestFrom: '#login',
+      });
+    } else {
+      return reply.redirect(url.href, 303).send();
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     request.log.error(e);
-    return reply.view('partials/error.ejs', {
-      elementId: 'login-error',
+
+    return returnLoginView(blueskyBridge, reply, returnUrl, {
       errorMessage: 'message' in e ? e.message : 'Unknown error',
+      mode,
+      handle: rawHandle,
     });
   }
 }
@@ -163,26 +172,19 @@ export async function finishLogin(
         'at://',
         ''
       );
-      return reply.view(
-        'player/signups-closed-card.ejs',
-        {
-          replaceUrl: '/',
-          player: undefined,
-          player_handle,
-          player_display_handle:
-            player_type === 'mastodon'
-              ? attributes.mastodon_account
-              : player_handle,
-        },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
+      return reply.view('player/signups-closed', {
+        replaceUrl: '/',
+        player: undefined,
+        player_handle,
+        player_display_handle:
+          player_type === 'mastodon'
+            ? attributes.mastodon_account
+            : player_handle,
+      });
     } else if (player.booted && !admin) {
       return reply.view(
-        'player/booted-out-card.ejs',
+        'player/booted-out',
         {
-          hideClose: true,
           replaceUrl: '/',
           player,
           player_display_handle:
@@ -216,8 +218,11 @@ export async function finishLogin(
       maxAge: 24 * 60 * 60,
     });
 
-    if (request.headers['hx-request']) {
-      return reply.header('HX-Refresh', 'true').code(204).send();
+    if (request.headers['x-alpine-request']) {
+      return reply.view('common/server-events', {
+        redirectTo: returnUrl ?? '/',
+        startRequestFrom: '#login',
+      });
     }
     return reply.redirect(returnUrl ?? '/', 303);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -326,9 +331,10 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       ...request.body,
     });
     request.log.error({ url: request.url, error, body: request.body });
-    return reply.view('partials/error.ejs', {
+    return returnLoginView(app.blueskyBridge, reply, request.url, {
       errorMessage: error.message || 'Unknown Error',
-      elementId: 'login-error',
+      mode: (request.body as Record<string, string>).mode,
+      handle: (request.body as Record<string, string>).handle,
     });
   });
 

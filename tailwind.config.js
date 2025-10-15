@@ -4,7 +4,7 @@ import { iconsPlugin } from '@egoist/tailwindcss-icons';
 
 export default {
   // darkMode: 'selector',
-  content: ['./views/**/*.ejs'],
+  content: ['./views/**/*.njk'],
   theme: {
     extend: {
       colors: {
@@ -15,7 +15,12 @@ export default {
   plugins: [
     iconsPlugin(),
     plugin(function ({ addVariant }) {
-      addVariant('htmx-request', ['&.htmx-request', '.htmx-request &']);
+      addVariant('htmx-request', [
+        '&.htmx-request',
+        '.htmx-request &',
+        '&[data-fetching]',
+        '[data-fetching] &',
+      ]);
     }),
   ],
 };

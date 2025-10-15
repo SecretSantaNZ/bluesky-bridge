@@ -1,0 +1,22 @@
+{% macro errorPanel(errorMessage = '', elementId = '') %}
+  {% if errorMessage %}
+    <div
+      {% if elementId %}
+        id="{{ elementId }}"
+      {% endif %}
+      class="w-full border-solid border rounded-xl border-red-600 bg-red-100 dark:bg-slate-900 p-4 drop-shadow-lg flex items-center"
+    >
+      <div
+        class="shrink-0 grow-0 i-mdi-error-outline size-10 mr-4 text-red-600"
+      ></div>
+      <div class="shrink grow dark:text-red-400">{{ errorMessage }}</div>
+    </div>
+  {% else %}
+    <div
+      {% if elementId %}
+        id="{{ elementId }}"
+      {% endif %}
+    ></div>
+  {% endif %}
+{% endmacro %}
+{{ errorPanel(errorMessage, elementId) if errorMessage }}

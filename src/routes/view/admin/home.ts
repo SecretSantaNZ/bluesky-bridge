@@ -120,27 +120,21 @@ export const adminHome: FastifyPluginAsync = async (app) => {
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
         .executeTakeFirstOrThrow(),
     ]);
-    return reply.view(
-      'admin/home.ejs',
-      {
-        signupCompleteCount,
-        registeredPlayersCount,
-        criticalMatchIssues: brokenMatchCount + tooManyGifteesCount,
-        warnMatchIssues: tooManySantasCount + multipleGifteesCount,
-        playersNeedingMatchesCount,
-        unsentMatches,
-        sharedMatches,
-        lockedMatches,
-        sentNudgeCount,
-        nudgeCount,
-        sentTrackingCount,
-        trackingCount,
-        presentsToFollowUpCount,
-        playersHaventPostedOnOpeningDay,
-      },
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+    return reply.view('admin/home', {
+      signupCompleteCount,
+      registeredPlayersCount,
+      criticalMatchIssues: brokenMatchCount + tooManyGifteesCount,
+      warnMatchIssues: tooManySantasCount + multipleGifteesCount,
+      playersNeedingMatchesCount,
+      unsentMatches,
+      sharedMatches,
+      lockedMatches,
+      sentNudgeCount,
+      nudgeCount,
+      sentTrackingCount,
+      trackingCount,
+      presentsToFollowUpCount,
+      playersHaventPostedOnOpeningDay,
+    });
   });
 };

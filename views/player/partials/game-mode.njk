@@ -1,0 +1,24 @@
+{% from "common/form-fields.njk" import dropdown, inputSubmitWithActivity %}
+{% from "common/error.njk" import errorPanel %}
+<div class="space-y-8" x-data="{
+  ...{{ {_game_mode: player.game_mode or 'Regular', max_giftees: player.max_giftees } | dump }},
+  get game_mode() {
+    return this._game_mode;
+  },
+  set game_mode(game_mode) {
+    this._game_mode = game_mode;
+    if (game_mode === 'Super Santa' && this.max_giftees < 2) {
+      this.max_giftees = 2;
+    }
+  }
+}">
+  <p>As a regular player, you send one and receive one gift. As a Super Santa, you send multiple and receive one gift.</p>
+  {{ dropdown(id='game_mode', label='Game mode', xModel='game_mode', options=gameModeOptions) }}
+  <div class="group" x-show="game_mode === 'Super Santa' || game_mode === 'Santa Only'">
+    <label for="max_giftees" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300">How many giftees would you buy for?</label>
+    <input x-model="max_giftees" type="number" id="max_giftees" name="max_giftees" x-bind:min="game_mode === 'Super Santa' ? 2 : game_mode === 'Santa Only' ? 1 : 0" max="5" class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"/>
+  </div>
+  {{ errorPanel(errorMessage, 'game-mode-error') }}
+  {{ inputSubmitWithActivity() }}
+</div>
+<input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>

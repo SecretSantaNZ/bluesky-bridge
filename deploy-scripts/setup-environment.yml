@@ -61,6 +61,10 @@
         - dist/
         - views/
         - public/
+    - name: Copy Client Env
+      ansible.builtin.copy:
+        src: ../.env.client.prod
+        dest: /opt/{{ service_name }}/.env.client
     - name: Copy Package
       ansible.builtin.copy:
         src: ../{{ item }}

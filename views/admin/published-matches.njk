@@ -1,0 +1,87 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/form-fields.njk" import activitySpinner %}
+{% from "./partials/match-player.njk" import matchPlayer %}
+{% block body %}
+<div class="w-full px-12"
+  x-data="{...{{ pageData | dump }},
+    showConfirm: '',
+    get sharedMatchesCount() {
+      return this.publishedMatches.filter((match) => match.match_status === 'shared').length;
+    },
+  }"
+  x-init="pager = $pager({
+    handle: ''
+  }, function(filters) {
+    const cleanHandleFilter = filters.handle.replace(/@/g, '').toLowerCase();
+    return publishedMatches.filter((match) => !cleanHandleFilter || match.santa_handle.toLowerCase().includes(cleanHandleFilter) || match.giftee_handle.toLowerCase().includes(cleanHandleFilter));
+  })"
+  @ss:match:deactivated.window="publishedMatches = $removeMatch(publishedMatches, event.detail.match_id)"
+  @ss:match:updated.window="publishedMatches = $replaceMatch(publishedMatches, event.detail)"
+>
+  <div class="grid sm:grid-cols-2 md:grid-cols-3 sm:space-x-4 space-y-4 sm:space-y-0 justify-center mb-8">
+    <form x-show="sharedMatchesCount > 0" x-target="page-body" x-target.error="publish-to-shared" id="publish-to-shared" action="/admin/match/publish" method="post" class="flex items-center justify-center">
+      <button type="submit" class="htmx-request:hidden px-8 py-2 border-4 border-bsky h-full">Publish <span x-text="sharedMatchesCount"></span> addresses</button>
+      {{ activitySpinner() }}
+      <input type="hidden" name="current_status" value="shared"/>
+      <input type="hidden" name="target_status" value="locked"/>
+      <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+    </form>
+  </div>
+  <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
+    <h1>Published matches</h1>
+    <div>
+      <select x-model="pager.pageSelect">
+        <template x-for="{key, display} of pager.pages">
+          <option x-bind:value="key" x-text="display"></option>
+        </template>
+      </select>
+    </div>
+  </div>
+  <div class="w-full mb-2">
+    <input type="text" x-model="pager.filters.handle" placeholder="coolplayer.bsky.social" class="w-full p-1 rounded-lg border"/>
+  </div>
+  <div class="grid-cols-6 lg:space-x-4 hidden lg:grid">
+    <div class="flex justify-center"><b>Santa</b></div>
+    <div class="flex justify-center"><b>Giftee</b></div>
+    <div class="flex justify-center"><b>Status</b></div>
+    <div class="flex justify-center"><b>Nudges</b></div>
+    <div class="flex justify-center"><b>Tracking</b></div>
+    <div class="flex justify-center"><b>Delete</b></div>
+  </div>
+  <template x-for="match in pager.pageData">
+    <div class="grid sm:grid-cols-3 lg:grid-cols-6 lg:space-x-4 border-b py-2">
+      {{ matchPlayer(description='Santa', side='santa') }}
+      {{ matchPlayer(description='Giftee', side='giftee') }}
+      <div class="flex lg:justify-center items-center text-lg">
+        <div class="italic lg:hidden mr-2">Status:</div>
+        <div x-text="match.match_status"></div>
+      </div>
+      <a x-show="match.match_status === 'locked'" x-target="modal-content" @ajax:before="$dispatch('modal:open')" x-bind:href="'/admin/match/' + match.match_id + '/nudges'" class="flex lg:justify-center items-center text-lg underline">
+        <div class="italic lg:hidden mr-2">Nudges:</div>
+        <div x-text="match.nudge_count"></div>
+      </a>
+      <div x-show="match.match_status !== 'locked'" class="col-span-2"></div>
+      <div class="hidden sm:block lg:hidden"></div>
+      <a x-show="match.match_status === 'locked'" x-target="modal-content" @ajax:before="$dispatch('modal:open')" x-bind:href="'/admin/match/' + match.match_id + '/tracking'" class="flex lg:justify-center items-center text-lg underline">
+        <div class="italic lg:hidden mr-2">Tracking:</div>
+        <div x-text="match.tracking_count"></div>
+      </a>
+      <form x-target="_none" x-bind:action="'/admin/match/' + match.match_id + '/deactivate'" method="post" class="flex items-center sm:justify-center  sm:col-span-3 lg:col-span-1">
+        <button x-show="`match-${match.match_id}` !== showConfirm" @click.prevent.stop="showConfirm = `match-${match.match_id}`">
+          <div class="flex lg:justify-center items-center ">
+            <div class="i-mdi-trash-can-outline size-10"></div>
+            <div class="lg:hidden"><b>Delete match</b></div>
+          </div>
+        </button>
+        {{ activitySpinner() }}
+        <input x-show="`match-${match.match_id}` === showConfirm" type="submit" name="save" value="Delete match" class="htmx-request:hidden rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+        <button x-show="`match-${match.match_id}` === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+          <div class="i-mdi-close size-10 text-gray-400"></div>
+        </button>
+        <input type="hidden" name="match_id" x-bind:value="match.match_id"/>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+      </form>
+    </div>
+  </template>
+</div>
+{% endblock %}

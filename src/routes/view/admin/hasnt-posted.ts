@@ -47,23 +47,11 @@ export const hasntPosted: FastifyPluginAsync = async (rawApp) => {
   app.get('/hasnt-posted', async function (request, reply) {
     const { db } = this.blueskyBridge;
     const settings = await loadSettings(db);
-    console.log(
-      await buildHasntPostedQuery(db, settings.opening_date).compile()
-    );
     const [matches] = await Promise.all([
       buildHasntPostedQuery(db, settings.opening_date).execute(),
     ]);
-    const pageData = {
+    return reply.view('admin/hasnt-posted', {
       matches,
-    };
-    return reply.view(
-      'admin/hasnt-posted.ejs',
-      {
-        pageData,
-      },
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+    });
   });
 };

@@ -25,16 +25,10 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
       db.selectFrom('badge').selectAll().orderBy('id', 'desc').execute(),
       db.selectFrom('settings').selectAll().executeTakeFirstOrThrow(),
     ]);
-    return reply.view(
-      'admin/badges.ejs',
-      {
-        badges,
-        settings,
-      },
-      {
-        layout: 'layouts/base-layout.ejs',
-      }
-    );
+    return reply.view('admin/badges', {
+      badges,
+      settings,
+    });
   });
 
   app.get(
@@ -80,17 +74,9 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
           assigned_for_type = 'posting';
         }
       }
-      return reply.view(
-        'admin/badge.ejs',
-        {
-          badge,
-          assigned_for_type,
-          settings,
-        },
-        {
-          layout: 'layouts/base-layout.ejs',
-        }
-      );
+      return reply.view('admin/badge', {
+        badge: { ...badge, assigned_for_type },
+      });
     }
   );
 
@@ -122,7 +108,7 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
         Expires: 300,
       });
 
-      return reply.view('admin/upload-form.ejs', {
+      return reply.view('admin/upload-form', {
         url,
         fields,
         image_url: `https://secretsantanz.imgix.net/${name}?w=386&w386&format=auto`,
@@ -220,7 +206,7 @@ export const badges: FastifyPluginAsync = async (rawApp) => {
       }
       settingsChanged(settings);
 
-      return reply.code(204).header('HX-Redirect', '/admin/badges').send();
+      return reply.redirect('/admin/badges', 303);
     }
   );
 };
