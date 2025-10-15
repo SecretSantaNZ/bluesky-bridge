@@ -64,26 +64,18 @@
             </ol>
           </div>
         </div>
-        <div x-data="{term: {{ handle | default("") | dump }}, actors: []}">
+        <div>
           <div class="group">
             <label for="handle" class="block -mb-8 mt-2 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300 scheme-light dark:scheme-dark">Handle</label>
             <input
-              x-model="term"
               type="text"
               id="handle"
               name="handle"
               x-bind:placeholder="accountType === 'bluesky' ? 'coolplayer.bsky.social' : 'coolplayer@secretsanta.nz'"
               class="p-2 pt-10 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50"
-              x-bind:list="accountType === 'bluesky' ? 'handle_suggestions' : ''"
-              autocomplete="false"
-              @keypress.debounce="accountType === 'bluesky' ? (actors = JSON.parse(await $fetch('https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=' + encodeURIComponent(term.replace(/^@/, '').trim().toLowerCase()))).actors) : undefined"
+              x-search-handles="accountType === 'bluesky'"
             />
           </div>
-          <datalist id="handle_suggestions"> 
-            <template x-for="item in (actors || [])">
-              <option x-bind:value="(term.startsWith('@') ? '@' : '') + item.handle"></option>
-            </template>
-          </datalist>
           <div x-show="mode === 'login' && accountType === 'bluesky'" class="mt-2">
             You will be sent to Bluesky to login with your Bluesky password.
           </div>

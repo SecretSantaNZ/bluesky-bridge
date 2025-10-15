@@ -210,26 +210,19 @@
 </div>
 <template id="new-player-modal-content">
   <form x-target="_none" x-target.error="new-player-error" @ajax:success="$dispatch('modal:close')" action="/admin/player" method="post" id="new-player" @ss-address-changed="address = $event.detail.address;"
-    x-data="{term: '', actors: [], address: ''}"
+    x-data="{address: '', player_type: 'bluesky'}"
     x-init="initAutocompletes();"
   >
   <div class="space-y-8">
     <h1>Add player</h1>
-    {{ dropdown(id='player_type', label='Player type', options=[
+    {{ dropdown(id='player_type', label='Player type', xModel='player_type', options=[
       {id: 'bluesky', text: 'Bluesky'},
       {id: 'mastodon', text: 'Mastodon'}
     ]) }}
     <div>
-      {{ inputText(id='new_player_handle', name='handle', label='Handle', placeholder='coolplayer.bsky.social', xModel='term', attributes={
-        list: 'new_player_handles',
-        autocomplete: 'false',
-        '@keypress.debounce': "actors = JSON.parse(await $fetch('https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=' + encodeURIComponent(term.replace(/^@/, '').trim().toLowerCase()))).actors"
+      {{ inputText(id='new_player_handle', name='handle', label='Handle', placeholder='coolplayer.bsky.social', attributes={
+        'x-search-handles': "player_type === 'bluesky'"
       }) }}
-      <datalist id="new_player_handles"> 
-        <template x-for="item in (actors || [])">
-          <option x-bind:value="(term.startsWith('@') ? '@' : '') + item.handle"></option>
-        </template>
-      </datalist>
     </div>
     {{ inputText(id='new_player_address', name='address', label='Address', placeholder='123 Candy Cane Lane, North Pole', xModel='address', inputType='address') }}
     {{ inputText(id='new_player_delivery_instructions', name='delivery_instructions', label='Delivery instructions', placeholder='Leave by back door') }}

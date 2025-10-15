@@ -24,6 +24,64 @@ Alpine.magic('startRequest', () => (startRequestFrom) => {
   startRequest(document.querySelector(startRequestFrom));
 });
 Alpine.directive(
+  'search-handles',
+  (el, { expression }, { effect, evaluateLater, cleanup, Alpine }) => {
+    let isEnabled = false;
+    const inputElement = el as Alpine.ElementWithXAttributes<HTMLInputElement>;
+    const elementId = el.getAttribute('id');
+    const datalistId = elementId
+      ? `${elementId}_autocomplete_handles`
+      : crypto.randomUUID();
+    const datalist = document.createElement('datalist');
+    datalist.setAttribute('id', datalistId);
+
+    inputElement.parentNode?.appendChild(datalist);
+    inputElement.autocomplete = 'off';
+
+    const getEnabled = evaluateLater(expression);
+    effect(() => {
+      getEnabled((enabled) => {
+        isEnabled = Boolean(enabled);
+        if (enabled) {
+          inputElement.setAttribute('list', datalistId);
+        } else {
+          inputElement.removeAttribute('list');
+        }
+      });
+    });
+    inputElement.setAttribute('list', datalistId);
+
+    const listener = Alpine.debounce(async () => {
+      if (!isEnabled) return;
+      const term = inputElement.value || '';
+      const cleanTerm = term.replace(/^@/, '').trim().toLowerCase();
+      const result = await fetch(
+        `https://public.api.bsky.app/xrpc/app.bsky.actor.searchActorsTypeahead?q=${encodeURIComponent(cleanTerm)}`
+      );
+      if (!result.ok) {
+        console.error(
+          `Error fetching matching handles: ${result.status}: ${await result.text()}`
+        );
+      }
+      const { actors = [] } = await result.json();
+      const prefix = term.startsWith('@') ? '@' : '';
+      const handles = actors.map((item) => prefix + item.handle);
+      datalist.innerHTML = '';
+      for (const handle of handles) {
+        const option = document.createElement('option');
+        option.innerText = handle;
+        datalist.appendChild(option);
+      }
+    });
+    el.addEventListener('keydown', listener);
+    cleanup(() => {
+      el.removeEventListener('keydown', listener);
+      inputElement.parentNode?.removeChild(datalist);
+    });
+  }
+);
+
+Alpine.directive(
   'datetime',
   (el, { expression }, { evaluateLater, effect }) => {
     const getIsoDatetime = evaluateLater(expression);
