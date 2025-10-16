@@ -10,7 +10,8 @@ import persist from '@alpinejs/persist';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 
 setOptions({
-  key: 'AIzaSyBN9m5sRKCu9Ra1rjBd2hnKqrGMm5xLjoM',
+  // @ts-expect-error global isn't defined
+  key: window.CLIENT_GOOGLE_API_KEY,
   v: 'weekly',
 });
 

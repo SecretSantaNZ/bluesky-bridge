@@ -52,6 +52,15 @@ export const view: FastifyPluginAsync = async (app) => {
     validateAuth(({ authTokenManager }) => authTokenManager, 'session')
   );
 
+  app.addHook('preHandler', async function (request, reply) {
+    if (request.method === 'GET') {
+      reply.locals = {
+        ...reply.locals,
+        CLIENT_GOOGLE_API_KEY: process.env.CLIENT_GOOGLE_API_KEY,
+      };
+    }
+  });
+
   app.setErrorHandler(async function (error, request, reply) {
     if (error instanceof UnauthorizedError) {
       return await returnLoginView(this.blueskyBridge, reply, request.url, {

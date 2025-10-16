@@ -26,6 +26,7 @@
           AWS_ACCESS_KEY_ID={{ app_access_key }}
           AWS_SECRET_ACCESS_KEY={{ app_secret_access_key }}
           SERVER_GOOGLE_API_KEY={{ server_google_api_key }}
+          CLIENT_GOOGLE_API_KEY={{ client_google_api_key }}
         service_credentials_path: /home/{{ service_name }}/{{ service_name }}-creds.cred
       no_log: true
     - name: Set service credentials fact hashs
