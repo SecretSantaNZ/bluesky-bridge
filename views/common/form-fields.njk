@@ -5,6 +5,13 @@
 </div>
 {% endmacro %}
 
+{% macro inputAddress(id, label, name='') %}
+<div class="group h-[72px] rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50" x-address-autocomplete @focus="console.log('focus')" @blur="console.log('blur')">
+<label class="block mt-2 -mb-7 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300 scheme-light dark:scheme-dark">{{ label }}</label>
+<input type="hidden" name="{{ name if name else id }}" x-model="address" />
+</div>
+{% endmacro %}
+
 {% macro inputCheckbox(id, label, name='', xModel='') %}
 <div class="group p-2 rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full has-focus:ring-3 ring-sky-500 outline-hidden has-disabled:opacity-50">
   <input {% if xModel %}x-model="{{ xModel }}" {% endif %}type="checkbox" id="{{ id }}" name="{{ name if name else id }}"/>

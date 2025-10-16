@@ -98,19 +98,21 @@ Alpine.directive('address-autocomplete', (el, { value }, { Alpine }) => {
   }
 
   importLibrary('places').then((places) => {
-    const addressAutocomplete = new places.Autocomplete(
-      el as HTMLInputElement,
-      {
-        componentRestrictions: {
-          country: 'nz',
-        },
-      }
+    //@ts-expect-error not sure why it's not present
+    const placeAutocomplete = new places.PlaceAutocompleteElement({
+      includedRegionCodes: ['nz'],
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    placeAutocomplete.addEventListener('gmp-select', async (e: any) => {
+      const place = e.placePrediction.toPlace();
+      await place.fetchFields({ fields: ['formattedAddress'] });
+      Alpine.$data(el)[dataAttribute] = place.formattedAddress;
+    });
+    placeAutocomplete.setAttribute(
+      'class',
+      'bg-slate-50 dark:bg-slate-950 rounded-lg'
     );
-    function listener() {
-      const place = addressAutocomplete.getPlace();
-      Alpine.$data(el)[dataAttribute] = place.formatted_address;
-    }
-    addressAutocomplete.addListener('place_changed', listener);
+    el.appendChild(placeAutocomplete);
   });
 });
 
