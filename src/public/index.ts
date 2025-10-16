@@ -82,6 +82,115 @@ Alpine.directive(
 );
 
 Alpine.directive(
+  'address-autocomplete',
+  (el, { value }, { cleanup, Alpine }) => {
+    const dataAttribute = value || 'address';
+    let elementId = el.getAttribute('id');
+    if (!elementId) {
+      elementId = crypto.randomUUID();
+      el.setAttribute('id', elementId);
+    }
+
+    function register() {
+      window.removeEventListener('ss:google:maps:loaded', register);
+      // @ts-expect-error google global is not defined
+      const addressAutocomplete = new window.google.maps.places.Autocomplete(
+        el,
+        {
+          componentRestrictions: {
+            country: 'nz',
+          },
+        }
+      );
+      function listener() {
+        const place = addressAutocomplete.getPlace();
+        Alpine.$data(el)[dataAttribute] = place.formatted_address;
+      }
+      addressAutocomplete.addListener('place_changed', listener);
+    }
+    // @ts-expect-error google global is not defined
+    if (window.google?.maps?.places?.Autocomplete) {
+      register();
+    } else {
+      window.addEventListener('ss:google:maps:loaded', register);
+      cleanup(() => {
+        window.removeEventListener('ss:google:maps:loaded', register);
+      });
+    }
+  }
+);
+
+Alpine.directive(
+  'reassign-map',
+  (el, { expression }, { cleanup, evaluate }) => {
+    let elementId = el.getAttribute('id');
+    if (!elementId) {
+      elementId = crypto.randomUUID();
+      el.setAttribute('id', elementId);
+    }
+    async function init() {
+      window.removeEventListener('ss:google:maps:loaded', init);
+      // @ts-expect-error google global is not defined
+      const { Map } = await google.maps.importLibrary('maps');
+      const { AdvancedMarkerElement, PinElement } =
+        // @ts-expect-error google global is not defined
+        await google.maps.importLibrary('marker');
+
+      const map = new Map(document.getElementById(elementId as string), {
+        mapId: elementId,
+      });
+
+      const { giftee, santas } = evaluate(expression) as {
+        giftee: { handle: string; address_location: string };
+        santas: Array<{ handle: string; address_location: string }>;
+      };
+      for (const santa of santas) {
+        if (!santa.address_location) continue;
+        const santaMarker = new AdvancedMarkerElement({
+          map,
+          position: JSON.parse(santa.address_location),
+          title: santa.handle,
+        });
+        santaMarker.addEventListener('click', () => {
+          window.dispatchEvent(
+            new CustomEvent('ss:santa:selected', {
+              detail: { santa_handle: santa.handle },
+            })
+          );
+        });
+      }
+
+      if (giftee.address_location) {
+        const gifteeLocation = JSON.parse(giftee.address_location);
+        const gifteePin = new PinElement({
+          background: '#0000FF',
+          glyphColor: '#6666FF',
+        });
+        new AdvancedMarkerElement({
+          map,
+          content: gifteePin.element,
+          position: gifteeLocation,
+          title: giftee.handle,
+        });
+
+        map.setCenter(gifteeLocation);
+        map.setZoom(10);
+      }
+    }
+
+    // @ts-expect-error google global is not defined
+    if (window.google?.maps?.importLibrary) {
+      init();
+    } else {
+      window.addEventListener('ss:google:maps:loaded', init);
+      cleanup(() => {
+        window.removeEventListener('ss:google:maps:loaded', init);
+      });
+    }
+  }
+);
+
+Alpine.directive(
   'datetime',
   (el, { expression }, { evaluateLater, effect }) => {
     const getIsoDatetime = evaluateLater(expression);

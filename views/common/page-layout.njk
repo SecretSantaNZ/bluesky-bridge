@@ -66,26 +66,12 @@
       </div>
     </div>
     <script>
-      function initAutocompletes() {
-        if (!window.google) return;
-        const addressInputs = document.querySelectorAll('input[type="address"]')
-        for (const input of addressInputs) {
-          input.setAttribute('type', 'text');
-          const addressAutocomplete = new google.maps.places.Autocomplete(input, {
-            componentRestrictions: {
-              country: 'nz'
-            }
-          });
-          addressAutocomplete.addListener("place_changed", () => {
-            const place = addressAutocomplete.getPlace();
-            input.dispatchEvent(new CustomEvent('ss-address-changed', {detail: {address: place.formatted_address}}))
-          });
-        }
-        window.initMap && window.initMap();
+      function googleMapsLoaded() {
+        window.dispatchEvent(new CustomEvent('ss:google:maps:loaded'));
       }
     </script>
     <script async
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBN9m5sRKCu9Ra1rjBd2hnKqrGMm5xLjoM&loading=async&libraries=places&callback=initAutocompletes">
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBN9m5sRKCu9Ra1rjBd2hnKqrGMm5xLjoM&loading=async&libraries=places&callback=googleMapsLoaded">
     </script>
     <script src="https://staticcdn.co.nz/embed/embed.js"></script>
     <script>
