@@ -1,8 +1,10 @@
 {% from "common/form-fields.njk" import inputText, inputSubmitWithActivity %}
 {% from "common/error.njk" import errorPanel %}
-<div class="space-y-8" x-init="initAutocompletes()">
+<div class="space-y-8">
   <h1>Enter address for @{{ player_display_handle }}</h1>
-  {{ inputText(id='address', label='Address', placeholder='123 Candy Cane Lane, North Pole', xModel='address', inputType='address') }}
+  {{ inputText(id='address', label='Address', placeholder='123 Candy Cane Lane, North Pole', xModel='address', attributes={
+    'x-address-autocomplete': true
+  }) }}
   {{ inputText(id='delivery_instructions', label='Delivery instructions', placeholder='Leave by back door', xModel='delivery_instructions') }}
   {{ errorPanel(errorMessage, 'address-error') }}
   {{ inputSubmitWithActivity(xBindDisabled='!address') }}

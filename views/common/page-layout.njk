@@ -10,6 +10,7 @@
     <link href="/public/{{ indexCss }}" rel="stylesheet">
     <link rel="icon" type="image/png" href="/public/5a2dfbb7-e9f1-45b7-995a-9e2c861e02e2.png">
     <style>[x-cloak] { display: none !important; }</style>
+    {% if CLIENT_GOOGLE_API_KEY %}<script>window.CLIENT_GOOGLE_API_KEY = {{ CLIENT_GOOGLE_API_KEY | dump | safe }};</script>{% endif %}
     <script defer src="/public/{{ indexJs }}"></script>
     <meta name="htmx-config" content='{"selfRequestsOnly":false}'>
   </head>
@@ -65,28 +66,6 @@
         {% block body %}{% endblock %}
       </div>
     </div>
-    <script>
-      function initAutocompletes() {
-        if (!window.google) return;
-        const addressInputs = document.querySelectorAll('input[type="address"]')
-        for (const input of addressInputs) {
-          input.setAttribute('type', 'text');
-          const addressAutocomplete = new google.maps.places.Autocomplete(input, {
-            componentRestrictions: {
-              country: 'nz'
-            }
-          });
-          addressAutocomplete.addListener("place_changed", () => {
-            const place = addressAutocomplete.getPlace();
-            input.dispatchEvent(new CustomEvent('ss-address-changed', {detail: {address: place.formatted_address}}))
-          });
-        }
-        window.initMap && window.initMap();
-      }
-    </script>
-    <script async
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBN9m5sRKCu9Ra1rjBd2hnKqrGMm5xLjoM&loading=async&libraries=places&callback=initAutocompletes">
-    </script>
     <script src="https://staticcdn.co.nz/embed/embed.js"></script>
     <script>
         (function () {

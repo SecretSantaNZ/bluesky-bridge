@@ -7,6 +7,14 @@ import morph from '@alpinejs/morph';
 import ajax from '@imacrayon/alpine-ajax';
 import persist from '@alpinejs/persist';
 
+import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
+
+setOptions({
+  // @ts-expect-error global isn't defined
+  key: window.CLIENT_GOOGLE_API_KEY,
+  v: 'weekly',
+});
+
 declare global {
   interface Window {
     Alpine: typeof Alpine;
@@ -80,6 +88,87 @@ Alpine.directive(
     });
   }
 );
+
+Alpine.directive('address-autocomplete', (el, { value }, { Alpine }) => {
+  const dataAttribute = value || 'address';
+  let elementId = el.getAttribute('id');
+  if (!elementId) {
+    elementId = crypto.randomUUID();
+    el.setAttribute('id', elementId);
+  }
+
+  importLibrary('places').then((places) => {
+    const addressAutocomplete = new places.Autocomplete(
+      el as HTMLInputElement,
+      {
+        componentRestrictions: {
+          country: 'nz',
+        },
+      }
+    );
+    function listener() {
+      const place = addressAutocomplete.getPlace();
+      Alpine.$data(el)[dataAttribute] = place.formatted_address;
+    }
+    addressAutocomplete.addListener('place_changed', listener);
+  });
+});
+
+Alpine.directive('reassign-map', (el, { expression }, { evaluate }) => {
+  let elementId = el.getAttribute('id');
+  if (!elementId) {
+    elementId = crypto.randomUUID();
+    el.setAttribute('id', elementId);
+  }
+
+  importLibrary('maps').then(async ({ Map }) => {
+    const { AdvancedMarkerElement, PinElement } = await importLibrary('marker');
+
+    const map = new Map(
+      document.getElementById(elementId as string) as HTMLElement,
+      {
+        mapId: elementId,
+      }
+    );
+
+    const { giftee, santas } = evaluate(expression) as {
+      giftee: { handle: string; address_location: string };
+      santas: Array<{ handle: string; address_location: string }>;
+    };
+    for (const santa of santas) {
+      if (!santa.address_location) continue;
+      const santaMarker = new AdvancedMarkerElement({
+        map,
+        position: JSON.parse(santa.address_location),
+        title: santa.handle,
+      });
+      santaMarker.addEventListener('click', () => {
+        window.dispatchEvent(
+          new CustomEvent('ss:santa:selected', {
+            detail: { santa_handle: santa.handle },
+          })
+        );
+      });
+    }
+
+    if (giftee.address_location) {
+      const gifteeLocation = JSON.parse(giftee.address_location);
+      const gifteePin = new PinElement({
+        background: '#0000FF',
+        glyphColor: '#6666FF',
+      });
+      new AdvancedMarkerElement({
+        map,
+        content: gifteePin.element,
+        position: gifteeLocation,
+        title: giftee.handle,
+      });
+
+      map.setCenter(gifteeLocation);
+      map.setZoom(10);
+    }
+  });
+});
 
 Alpine.directive(
   'datetime',
