@@ -16,8 +16,8 @@ Environment=ROBOT_BLUESKY_HANDLE={{ robot_bluesky_handle }}
 Environment=ENSURE_ELF_HANDLES={{ elf_bluesky_handles | join(',') }}
 Environment=SANTA_MASTODON_HANDLE={{ santa_mastodon_handle }}
 Environment=ACTION_USERNAME={{ action_username }}
-Environment=TOKEN_ISSUER={{ inventory_hostname }}
-Environment=PUBLIC_BASE_URL=https://{{ inventory_hostname }}
+Environment=TOKEN_ISSUER={{ external_hostname }}
+Environment=PUBLIC_BASE_URL=https://{{ external_hostname }}
 Environment=IMAGE_BUCKET={{ image_bucket }}
 Environment=IMAGE_BUCKET_REGION={{ image_bucket_region }}
 Environment=IMAGE_KEY_PREFIX={{ image_key_prefix }}

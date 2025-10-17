@@ -1,6 +1,7 @@
 {{ inventory_hostname }} {
   tls {{ tls_contact_email }}
 
+  header ?Cache-Control "no-store, max-age=0, must-revalidate"
   reverse_proxy http://localhost:3000
 }
 

@@ -1,0 +1,90 @@
+service: secretsanta-redirects
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  stage: ${opt:stage, 'development'}
+  region: "ap-southeast-2"
+  memorySize: 512
+  timeout: 10
+  logRetentionInDays: 90
+  deploymentBucket:
+    name: ${ssm:deployment-artifacts-bucket}
+
+package:
+  excludeDevDependencies: false
+  patterns:
+    - "!**"
+
+custom:
+  certificateArn: ${ssm:/${sls:stage}/certificate-arn}
+  domainName: ${ssm:/${sls:stage}/domain-name}
+  hostedZoneName: ${ssm:/${sls:stage}/hosted-zone/name}
+
+resources:
+  Resources:
+    CloudFrontDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Aliases:
+            - "${self:custom.domainName}"
+          Enabled: True
+          PriceClass: PriceClass_All
+          ViewerCertificate:
+            AcmCertificateArn: "${self:custom.certificateArn}"
+            MinimumProtocolVersion: TLSv1.2_2021
+            SslSupportMethod: sni-only
+          Origins:
+            - Id: ContentBucket
+              DomainName: ${ssm:content-bucket-regional-domain-name}
+              OriginPath: /secretsanta.nz/${sls:stage}
+              S3OriginConfig:
+                OriginAccessIdentity: ${ssm:content-bucket-access-identity}
+            - Id: Backend
+              DomainName: ${ssm:/${sls:stage}/backend-origin-domain}
+              CustomOriginConfig:
+                IpAddressType: ipv4
+                OriginProtocolPolicy: https-only
+                OriginSSLProtocols:
+                  - TLSv1.2
+          DefaultCacheBehavior:
+            ViewerProtocolPolicy: redirect-to-https
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad #Caching Disabled
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac #AllViewerExceptHostHeader
+            Compress: True
+            TargetOriginId: Backend
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - PATCH
+              - POST
+              - DELETE
+          CacheBehaviors:
+            - PathPattern: /public/*
+              ViewerProtocolPolicy: redirect-to-https
+              CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 #Caching Optimized
+              Compress: True
+              TargetOriginId: ContentBucket
+
+    IpV4DnsAlias:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        Name: "${self:custom.domainName}"
+        AliasTarget:
+          DNSName: !GetAtt CloudFrontDistribution.DomainName
+          HostedZoneId: Z2FDTNDATAQYW2
+        HostedZoneName: "${self:custom.hostedZoneName}."
+        Type: A
+
+    IpV6DnsAlias:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        Name: "${self:custom.domainName}"
+        AliasTarget:
+          DNSName: !GetAtt CloudFrontDistribution.DomainName
+          HostedZoneId: Z2FDTNDATAQYW2
+        HostedZoneName: "${self:custom.hostedZoneName}."
+        Type: AAAA

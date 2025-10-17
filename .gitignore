@@ -6,6 +6,7 @@
 /.env
 /.env.*
 /bluesky-bridge-creds.creds
+/distribution/.serverless/*
 
 *.swp
 *.sqlite
