@@ -1,6 +1,12 @@
 - name: Setup Environment
   hosts: secretsanta
   tasks:
+    - name: upload assets
+      ansible.builtin.command:
+        cmd: |
+          aws s3 sync --region {{ image_bucket_region }} public s3://{{ image_bucket }}/secretsanta.nz/production/public --cache-control 'Cache-Control: max-age=31536000, immutable'
+        chdir: '..'
+      delegate_to: localhost
     - name: Add service user
       ansible.builtin.user:
         name: '{{ service_name }}'
