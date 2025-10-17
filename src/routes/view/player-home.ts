@@ -127,7 +127,9 @@ export const renderPlayerHome = async (
   const badges = [
     ...(sentBadge && giftsIveSent.length > 0 ? [sentBadge] : []),
     ...playerBadges,
-  ].filter((badge) => badge.id !== settings.current_game_badge_id);
+  ].filter(
+    (badge) => badge.id !== settings.current_game_badge_id && badge.image_url
+  );
   return reply.view(view, {
     giftees,
     myGifts,
