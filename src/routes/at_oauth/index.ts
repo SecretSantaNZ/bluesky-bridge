@@ -106,7 +106,7 @@ async function startAtOauth(
 
     if (request.headers['x-alpine-request']) {
       return reply.view('common/server-events', {
-        redirectTo: url,
+        redirectTo: url.href,
         startRequestFrom: '#login',
       });
     } else {
@@ -406,10 +406,6 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         ({ authTokenManager }) => authTokenManager,
         'session'
       ),
-      onError: function (request, reply, error) {
-        request.log.error(error);
-        return reply.code(204).header('HX-Refresh', 'true').send();
-      },
     },
     async function (request, reply) {
       const startedAt = request.tokenData?.startedAt as string;
@@ -418,16 +414,15 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       if (isBefore(startedAt, addHours(new Date(), -12))) {
         return reply
           .clearCookie('session')
-          .code(204)
-          .header('HX-Refresh', 'true')
-          .send();
+          .code(401)
+          .view('common/server-events', { reload: true });
       }
       const playerDid = request.tokenSubject as string;
       const player =
         await this.blueskyBridge.playerService.getPlayer(playerDid);
       // If player is unknown or booted, refresh to show the error screen
       if (player == null || (player.booted && !player.admin)) {
-        return reply.code(204).header('HX-Refresh', 'true').send();
+        return reply.code(401).view('common/server-events', { reload: true });
       }
 
       const sessionToken =

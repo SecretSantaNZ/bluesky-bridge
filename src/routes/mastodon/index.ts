@@ -231,7 +231,14 @@ export async function startMastodonOauth(
   authorizeUrl.searchParams.set('code_challenge_method', 'S256');
   authorizeUrl.searchParams.set('login_hint', handle);
 
-  return reply.code(204).header('HX-Redirect', authorizeUrl.href).send();
+  if (request.headers['x-alpine-request']) {
+    return reply.view('common/server-events', {
+      redirectTo: authorizeUrl.href,
+      startRequestFrom: '#login',
+    });
+  } else {
+    return reply.redirect(authorizeUrl.href, 303).send();
+  }
 }
 
 export const mastodon: FastifyPluginAsync = async (rawApp) => {

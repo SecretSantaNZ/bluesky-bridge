@@ -69,13 +69,12 @@ export const view: FastifyPluginAsync = async (app) => {
     }
     request.log.error(error);
 
-    const triggerId = request.headers['hx-trigger'];
     const elementId =
       request.headers['x-ssnz-error-target'] ??
       (request.headers['x-alpine-target'] as string | undefined)?.split(
         ' '
       )[0] ??
-      (triggerId ? triggerId + '-error' : undefined);
+      undefined;
 
     // @ts-expect-error can't be bothered typing to http error
     return reply.status(error.status ?? 500).view('common/error', {

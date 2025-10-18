@@ -54,7 +54,7 @@
                     </li>
                   </ul>
                 </div>
-                <div class="hidden" x-init="setInterval(() => $ajax('/session-keep-alive', {target: '_none'}), 60000)"></div>
+                <div class="hidden" x-init="setInterval(() => $ajax('/session-keep-alive', {target: '_none', sync: true}), 60000)"></div>
               {% else %}
                 {{ avatar(player.avatar_url) }}
               {% endif %}

@@ -30,12 +30,6 @@ export const managePlayers: FastifyPluginAsync = async (rawApp) => {
     async function (request, reply) {
       const { db } = this.blueskyBridge;
       const baseQuery = baseAdminPlayerQuery(db).orderBy('id', 'asc');
-      if (request.query.player_did && request.headers['hx-request']) {
-        const player = await baseQuery
-          .where('player.did', '=', request.query.player_did)
-          .executeTakeFirstOrThrow();
-        return reply.send(player);
-      }
       const players = await baseQuery.execute();
       return reply.view('admin/manage-players', {
         players,
