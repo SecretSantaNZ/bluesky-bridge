@@ -12,7 +12,6 @@
     <style>[x-cloak] { display: none !important; }</style>
     {% if CLIENT_GOOGLE_API_KEY %}<script>window.CLIENT_GOOGLE_API_KEY = {{ CLIENT_GOOGLE_API_KEY | dump | safe }};</script>{% endif %}
     <script defer src="/public/{{ indexJs }}"></script>
-    <meta name="htmx-config" content='{"selfRequestsOnly":false}'>
   </head>
   <body
     class="scheme-light dark:scheme-dark bg-slate-300 text-slate-800 dark:bg-slate-800 dark:text-slate-200"

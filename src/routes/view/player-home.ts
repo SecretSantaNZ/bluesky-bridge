@@ -169,7 +169,10 @@ export const playerHome: FastifyPluginAsync = async (app) => {
       }
       const hasAddress = Boolean(player.address && player.address.trim());
       if (!hasAddress) {
-        return reply.view('player/address', { hideClose: true });
+        return reply.view('player/address', {
+          CLIENT_GOOGLE_API_KEY: process.env.CLIENT_GOOGLE_API_KEY,
+          hideClose: true,
+        });
       }
       if (!player.game_mode) {
         return reply.view('player/game-mode', {
