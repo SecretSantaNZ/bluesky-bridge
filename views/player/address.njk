@@ -3,7 +3,7 @@
 {% block body %}
 <div class="w-full flex justify-center">
   {% call card() %}
-    <form x-target="my-details-card" x-target.error="address-error" @ajax:success="$dispatch('modal:close')" action="/address" method="post" id="modal-content" @ss-address-changed="address = $event.detail.address;"  x-data="{{ {address: player.address, delivery_instructions: player.delivery_instructions } | dump }}">
+    <form x-target="{{ 'page-body' if hideClose else 'my-details-card' }}" x-target.error="address-error" @ajax:success="$dispatch('modal:close')" action="/address" method="post" id="modal-content" @ss-address-changed="address = $event.detail.address;"  x-data="{{ {address: player.address, delivery_instructions: player.delivery_instructions } | dump }}">
       {% include "player/partials/address.njk" %}
     </form>
     {% if not hideClose %}<a href="/" class="text-gray-400 no-underline absolute bottom-8 left-8">Close</a>{% endif %}

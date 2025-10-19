@@ -3,7 +3,7 @@
 {% block body %}
 <div class="w-full flex justify-center">
   {% call card() %}
-    <form x-target="my-details-card" x-target.error="game-mode-error" @ajax:success="$dispatch('modal:close')" action="/game-mode" method="post" id="modal-content">
+    <form x-target="page-body" x-target.error="game-mode-error" @ajax:success="$dispatch('modal:close')" action="/game-mode" method="post" id="modal-content">
       <h1 class="mb-8">How do you want to play?</h1>
       {% include "./partials/game-mode.njk" %}
     </form>
