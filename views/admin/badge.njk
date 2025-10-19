@@ -25,7 +25,7 @@
       <img x-show="preview_url" x-bind:src="preview_url" class="block size-62" />
     </div>
   </div>
-  <form hx-boost="true" method="post" action="/admin/badges{{ ('/' + badge.id) if badge.id }}" class="space-y-8">
+  <form x-target="page-body" method="post" action="/admin/badges{{ ('/' + badge.id) if badge.id }}" class="space-y-8">
     {{ inputText(id='title', label='Title', xModel='title') }}
     {{ inputText(id='description', label='Description', xModel='description') }}
     {{ inputText(id='image_url', label='Image url', xModel='image_url') }}
