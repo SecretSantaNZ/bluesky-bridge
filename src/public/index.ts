@@ -107,6 +107,7 @@ Alpine.directive('address-autocomplete', (el, { value }, { Alpine }) => {
       const place = e.placePrediction.toPlace();
       await place.fetchFields({ fields: ['formattedAddress'] });
       Alpine.$data(el)[dataAttribute] = place.formattedAddress;
+      Alpine.$data(el)[dataAttribute + '_changed'] = true;
     });
     placeAutocomplete.setAttribute(
       'class',
