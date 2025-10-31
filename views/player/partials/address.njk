@@ -1,7 +1,10 @@
 {% from "common/form-fields.njk" import inputText, inputAddress, inputSubmitWithActivity %}
 {% from "common/error.njk" import errorPanel %}
 <div class="space-y-8">
-  <h1>Enter address for @{{ player_display_handle }}</h1>
+  <h1>Delivery address for @{{ player_display_handle }}</h1>
+  <p>Where should your Santa send your gift?</p>
+  <p>This address will be shared with your Santa. If you're a little nervous you can use your work
+  postal address or one that you feel comfortable providing.</p>
   {{ inputAddress(id='address', label='Address') }}
   {{ inputText(id='delivery_instructions', label='Delivery instructions', placeholder='Leave by back door', xModel='delivery_instructions') }}
   {{ errorPanel(errorMessage, 'address-error') }}
