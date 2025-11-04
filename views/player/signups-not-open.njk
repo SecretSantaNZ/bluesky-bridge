@@ -1,0 +1,15 @@
+{% extends "common/page-layout.njk" %}
+{% from "common/card.njk" import card %}
+{% block body %}
+<div class="w-full flex justify-center">
+  {% call card() %}
+    <div class="space-y-8">
+      <h1>Soon precious, soon</h1>
+      <p>
+        Sorry @{{ player_display_handle }}, signups don't open until {{ settings.signups_open_date | ssDate }}.
+      </p>
+      <p>The waiting is the hardest part....</p>
+    </div>
+  {% endcall %}
+</div>
+{% endblock %}

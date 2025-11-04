@@ -172,7 +172,8 @@ export async function finishLogin(
         'at://',
         ''
       );
-      return reply.view('player/signups-closed', {
+      return reply.view('player/signups-not-open', {
+        settings,
         replaceUrl: '/',
         player: undefined,
         player_handle,
