@@ -9,7 +9,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { randomBytes, randomInt, randomUUID, timingSafeEqual } from 'crypto';
 import { validateAuth } from '../../util/validateAuth.js';
-import { addHours, addMinutes, isBefore } from 'date-fns';
+import { addHours, addMinutes, isBefore, parseISO } from 'date-fns';
 import type { Player } from '../../lib/PlayerService.js';
 import { returnLoginView } from '../view/index.js';
 import { startMastodonOauth } from '../mastodon/index.js';
@@ -17,6 +17,7 @@ import type { DatabaseSchema } from '../../lib/database/schema.js';
 import type { InsertObject } from 'kysely';
 import { BadRequestError } from 'http-errors-enhanced';
 import { unauthenticatedAgent } from '../../bluesky.js';
+import { tz, TZDate } from '@date-fns/tz';
 
 async function startAtOauth(
   request: FastifyRequest,
@@ -172,16 +173,29 @@ export async function finishLogin(
         'at://',
         ''
       );
-      return reply.view('player/signups-not-open', {
-        settings,
-        replaceUrl: '/',
-        player: undefined,
-        player_handle,
-        player_display_handle:
-          player_type === 'mastodon'
-            ? attributes.mastodon_account
-            : player_handle,
-      });
+
+      const now = new TZDate(new Date(), 'Pacific/Auckland');
+      const signupsOpenDate = addHours(
+        parseISO(settings.signups_open_date, {
+          in: tz('Pacific/Auckland'),
+        }),
+        24
+      );
+      return reply.view(
+        isBefore(now, signupsOpenDate)
+          ? 'player/signups-not-open'
+          : 'player/signups-closed',
+        {
+          settings,
+          replaceUrl: '/',
+          player: undefined,
+          player_handle,
+          player_display_handle:
+            player_type === 'mastodon'
+              ? attributes.mastodon_account
+              : player_handle,
+        }
+      );
     } else if (player.booted && !admin) {
       return reply.view(
         'player/booted-out',
