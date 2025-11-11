@@ -9,6 +9,11 @@
     {{ newrelic.getBrowserTimingHeader() | safe }}
     <link href="/public/{{ indexCss }}" rel="stylesheet">
     <link rel="icon" type="image/png" href="/public/5a2dfbb7-e9f1-45b7-995a-9e2c861e02e2.png">
+    <meta name="og:image" content="https://secretsantanz.imgix.net/elves-banner-2881b545-9291-4120-8d23-161cd6d0d2dd?w=1200&h=630&auto=format&fit=clamp&txt64={{ settings.hashtag | ssBase64 }}&txt-size=62&txt-color=320C30&txt-align=center&txt-y=500"/>
+    <meta name="og:title" content="Secret Santa NZ"/>
+    <meta name="og:description" content="Sign up before {{ settings.signups_close_date | ssDate }}. Send by {{ settings.send_by_date | ssDate }}. Opening day {{ settings.opening_date | ssDate }}!"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
     <style>[x-cloak] { display: none !important; }</style>
     {% if CLIENT_GOOGLE_API_KEY %}<script>window.CLIENT_GOOGLE_API_KEY = {{ CLIENT_GOOGLE_API_KEY | dump | safe }};</script>{% endif %}
     <script defer src="/public/{{ indexJs }}"></script>

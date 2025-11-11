@@ -109,6 +109,9 @@ export const build = async (
           'ssPlur',
           (num: number, qualifier: string) => `${num} ${plur(qualifier, num)}`
         );
+        env.addFilter('ssBase64', (value) =>
+          Buffer.from(value, 'utf-8').toString('base64')
+        );
       },
     },
   });

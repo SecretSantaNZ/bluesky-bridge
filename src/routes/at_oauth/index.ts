@@ -121,6 +121,7 @@ async function startAtOauth(
       errorMessage: 'message' in e ? e.message : 'Unknown error',
       mode,
       handle: rawHandle,
+      isAlpineRequest: Boolean(request.headers['x-alpine-request']),
     });
   }
 }
@@ -252,6 +253,7 @@ export async function finishLogin(
       errorMessage: 'message' in e ? e.message : 'Unknown error',
       mode: appState.mode,
       handle,
+      isAlpineRequest: Boolean(request.headers['x-alpine-request']),
     });
   }
 }
@@ -350,6 +352,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       errorMessage: error.message || 'Unknown Error',
       mode: (request.body as Record<string, string>).mode,
       handle: (request.body as Record<string, string>).handle,
+      isAlpineRequest: Boolean(request.headers['x-alpine-request']),
     });
   });
 

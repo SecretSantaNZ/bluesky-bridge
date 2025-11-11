@@ -36,7 +36,7 @@ export async function returnLoginView(
   };
   if (locals.errorMessage) {
     reply.status(400);
-  } else {
+  } else if (locals.isAlpineRequest) {
     reply.status(401);
   }
   return reply.view('auth/login', {
@@ -53,9 +53,14 @@ export const view: FastifyPluginAsync = async (app) => {
   );
 
   app.addHook('preHandler', async function (request, reply) {
+    const settings = await this.blueskyBridge.db
+      .selectFrom('settings')
+      .selectAll()
+      .executeTakeFirstOrThrow();
     if (request.method === 'GET') {
       reply.locals = {
         ...reply.locals,
+        settings,
         CLIENT_GOOGLE_API_KEY: process.env.CLIENT_GOOGLE_API_KEY,
       };
     }
@@ -65,6 +70,7 @@ export const view: FastifyPluginAsync = async (app) => {
     if (error instanceof UnauthorizedError) {
       return await returnLoginView(this.blueskyBridge, reply, request.url, {
         handle: error.handle,
+        isAlpineRequest: Boolean(request.headers['x-alpine-request']),
       });
     }
     request.log.error(error);
