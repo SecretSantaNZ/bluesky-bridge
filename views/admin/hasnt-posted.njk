@@ -15,7 +15,7 @@
   <div class="flex space-x-8 items-center mb-2 flex-col sm:flex-row">
     <h1>People who haven't posted on opening day</h1>
     <div>
-      <select x-model="pager.pageSelect">
+      <select x-model="pager.pageSelect" class="dark:bg-slate-950">
         <template x-for="{key, display} of pager.pages">
           <option x-bind:value="key" x-text="display"></option>
         </template>

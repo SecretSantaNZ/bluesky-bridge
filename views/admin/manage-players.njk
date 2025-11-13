@@ -20,6 +20,8 @@
           return recentPostsDiff !== 0 ? recentPostsDiff : (a.post_count - b.post_count);
         } else if (filters.sortBy === 'weighted') {
           return (a.post_count_since_signup * 10 + a.post_count) - (b.post_count_since_signup * 10 + b.post_count);
+        } else if (filters.sortBy === 'note-count') {
+          return b.note_count - a.note_count;
         } else {
           return a.id - b.id;
         }
@@ -44,7 +46,7 @@
     <div class="flex space-x-8 items-center flex-col sm:flex-row grow">
       <h1>Active players</h1>
       <div>
-        <select x-model="activePlayersPager.pageSelect">
+        <select x-model="activePlayersPager.pageSelect" class="dark:bg-slate-950">
           <template x-for="{key, display} of activePlayersPager.pages">
             <option x-bind:value="key" x-text="display"></option>
           </template>
@@ -61,10 +63,11 @@
       <div class="grow"></div>
       <div>
         <label for="sort-active-players">Sort:</label>
-        <select id="sort-active-players" x-model="activePlayersPager.filters.sortBy">
+        <select id="sort-active-players" x-model="activePlayersPager.filters.sortBy" class="dark:bg-slate-950">
           <option value="sign-up">Sign up</option>
           <option value="post-count">Post count</option>
           <option value="weighted">Weighted</option>
+          <option value="note-count">Note count</option>
         </select>
       </div>
     </div>
@@ -169,7 +172,7 @@
   <div class="flex space-x-8 items-center mt-12 mb-2 flex-col sm:flex-row">
     <h1>Deactivated players</h1>
     <div>
-      <select x-model="inactivePlayersPager.pageSelect">
+      <select x-model="inactivePlayersPager.pageSelect" class="dark:bg-slate-950">
         <template x-for="{key, display} of inactivePlayersPager.pages">
           <option x-bind:value="key" x-text="display"></option>
         </template>
