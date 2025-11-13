@@ -15,7 +15,7 @@ import { returnLoginView } from '../view/index.js';
 import { startMastodonOauth } from '../mastodon/index.js';
 import type { DatabaseSchema } from '../../lib/database/schema.js';
 import type { InsertObject } from 'kysely';
-import { BadRequestError } from 'http-errors-enhanced';
+import { BadRequestError, UnauthorizedError } from 'http-errors-enhanced';
 import { unauthenticatedAgent } from '../../bluesky.js';
 import { tz, TZDate } from '@date-fns/tz';
 
@@ -350,8 +350,8 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
     request.log.error({ url: request.url, error, body: request.body });
     return returnLoginView(app.blueskyBridge, reply, request.url, {
       errorMessage: error.message || 'Unknown Error',
-      mode: (request.body as Record<string, string>).mode,
-      handle: (request.body as Record<string, string>).handle,
+      mode: (request.body as Record<string, string>)?.mode,
+      handle: (request.body as Record<string, string>)?.handle,
       isAlpineRequest: Boolean(request.headers['x-alpine-request']),
     });
   });
@@ -417,13 +417,25 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
     }
   );
 
+  const validateSessionCookie = validateAuth(
+    ({ authTokenManager }) => authTokenManager,
+    'session'
+  );
   app.get(
     '/session-keep-alive',
     {
-      onRequest: validateAuth(
-        ({ authTokenManager }) => authTokenManager,
-        'session'
-      ),
+      onRequest: async function (request, reply) {
+        try {
+          await validateSessionCookie.bind(this)(request);
+        } catch (err) {
+          if (err instanceof UnauthorizedError) {
+            return reply
+              .code(401)
+              .view('common/server-events', { reload: true });
+          }
+          throw err;
+        }
+      },
     },
     async function (request, reply) {
       const startedAt = request.tokenData?.startedAt as string;
