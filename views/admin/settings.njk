@@ -1,7 +1,8 @@
 {% extends "common/page-layout.njk" %}
 {% from "common/form-fields.njk" import inputText, inputCheckbox, activitySpinner %}
 {% block body %}
-<form x-target="page-body" action="/admin/settings" method="post" x-data="{{ settings | dump }}" class="space-y-8 w-full max-w-lg">
+<div class="max-w-lg w-full">
+<form x-target="page-body" action="/admin/settings" method="post" x-data="{{ settings | dump }}" class="space-y-8 w-full">
   <a href="/admin/badges">Badges</a>
   {{ inputCheckbox(id='signups_open', label='Signups open', xModel='signups_open') }}
   {{ inputCheckbox(id='mastodon_players', label='Allow mastodon players', xModel='mastodon_players') }}
@@ -30,4 +31,5 @@
   <input type="submit" name="reset-game" value="Reset all data" class="htmx-request:hidden rounded-lg w-full px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
   <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
 </form>
+</div>
 {% endblock %}
