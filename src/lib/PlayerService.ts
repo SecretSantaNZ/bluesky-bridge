@@ -414,10 +414,14 @@ export class PlayerService {
       ? relationships[0]
       : undefined;
 
+    const following_santa_uri =
+      relationship?.followedBy ??
+      (mastodonFollowing?.mastodon_following_santa ? 'mastodon' : null);
+
     const dbPlayer = await this.db
       .updateTable('player')
       .set({
-        following_santa_uri: relationship?.followedBy ?? null,
+        following_santa_uri,
         santa_following_uri: relationship?.following ?? null,
         ...mastodonFollowing,
       })
@@ -455,18 +459,24 @@ export class PlayerService {
     player_type: 'bluesky' | 'mastodon',
     attributes: Partial<InsertObject<DatabaseSchema, 'player'>> = {}
   ): Promise<Player> {
-    const [{ data: profile }, { relationships }] = await Promise.all([
-      unauthenticatedAgent.getProfile({
-        actor: player_did,
-      }),
-      fetchRelationships(this.santaAccountDid, player_did),
-    ]);
+    const [{ data: profile }, { relationships }, mastodonFollowing] =
+      await Promise.all([
+        unauthenticatedAgent.getProfile({
+          actor: player_did,
+        }),
+        fetchRelationships(this.santaAccountDid, player_did),
+        player_type === 'mastodon'
+          ? this.lookupMastodonFollowing(attributes.mastodon_account as string)
+          : undefined,
+      ]);
     const relationship = AppBskyGraphDefs.isRelationship(relationships[0])
       ? relationships[0]
       : undefined;
 
     const handle = profile.handle;
-    const following_santa_uri = relationship?.followedBy ?? null;
+    const following_santa_uri =
+      relationship?.followedBy ??
+      (mastodonFollowing?.mastodon_following_santa ? 'mastodon' : null);
     const allowIncoming =
       player_type === 'mastodon'
         ? 'following'
@@ -487,7 +497,7 @@ export class PlayerService {
       player_type,
       player_dm_status:
         allowIncoming === 'none' ? 'error: DMs Disabled' : 'queued',
-      ...attributes,
+      ...mastodonFollowing,
       post_count: profile.postsCount ?? 0,
       post_count_since_signup: 0,
       last_checked_post_count: new Date().toISOString(),

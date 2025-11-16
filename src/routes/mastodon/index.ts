@@ -359,14 +359,11 @@ export const mastodon: FastifyPluginAsync = async (rawApp) => {
             );
           }
 
-          const following =
-            await playerService.lookupMastodonFollowing(mastodon_account);
           return {
             did,
             attributes: {
               mastodon_account,
               mastodon_host: host,
-              ...following,
             },
           };
         }

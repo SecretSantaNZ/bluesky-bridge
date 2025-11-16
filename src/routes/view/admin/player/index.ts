@@ -50,12 +50,9 @@ export const player: FastifyPluginAsync = async (rawApp) => {
           instance as string
         );
         handle = getBridgedHandle(mastodon_account);
-        const following =
-          await playerService.lookupMastodonFollowing(mastodon_account);
         additionalAttributes = {
           mastodon_account,
           mastodon_host: host,
-          ...following,
         };
       } else if (handle.endsWith('.ap.brid.gy')) {
         throw new BadRequestError('Mastodon handle');
