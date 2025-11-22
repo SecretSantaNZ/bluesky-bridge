@@ -89,33 +89,48 @@ Alpine.directive(
   }
 );
 
-Alpine.directive('address-autocomplete', (el, { value }, { Alpine }) => {
-  const dataAttribute = value || 'address';
-  let elementId = el.getAttribute('id');
-  if (!elementId) {
-    elementId = crypto.randomUUID();
-    el.setAttribute('id', elementId);
-  }
+Alpine.directive(
+  'address-autocomplete',
+  (el, { value, expression }, { Alpine, evaluateLater, effect }) => {
+    const dataAttribute = value || 'address';
+    let elementId = el.getAttribute('id');
+    if (!elementId) {
+      elementId = crypto.randomUUID();
+      el.setAttribute('id', elementId);
+    }
 
-  importLibrary('places').then((places) => {
-    //@ts-expect-error not sure why it's not present
-    const placeAutocomplete = new places.PlaceAutocompleteElement({
-      includedRegionCodes: ['nz'],
+    importLibrary('places').then((places) => {
+      //@ts-expect-error not sure why it's not present
+      const placeAutocomplete = new places.PlaceAutocompleteElement({
+        includedRegionCodes: ['nz'],
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      placeAutocomplete.addEventListener('gmp-select', async (e: any) => {
+        const place = e.placePrediction.toPlace();
+        await place.fetchFields({ fields: ['formattedAddress'] });
+        Alpine.$data(el)[dataAttribute] = place.formattedAddress;
+        Alpine.$data(el)[dataAttribute + '_changed'] = true;
+      });
+      placeAutocomplete.setAttribute(
+        'class',
+        'bg-slate-50 dark:bg-slate-950 rounded-lg'
+      );
+
+      const getShowAutocomplete = evaluateLater(expression);
+      effect(() => {
+        getShowAutocomplete((showAutocomplete) => {
+          if (showAutocomplete) {
+            placeAutocomplete.removeAttribute('style');
+          } else {
+            placeAutocomplete.setAttribute('style', 'display: none');
+          }
+        });
+      });
+
+      el.appendChild(placeAutocomplete);
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    placeAutocomplete.addEventListener('gmp-select', async (e: any) => {
-      const place = e.placePrediction.toPlace();
-      await place.fetchFields({ fields: ['formattedAddress'] });
-      Alpine.$data(el)[dataAttribute] = place.formattedAddress;
-      Alpine.$data(el)[dataAttribute + '_changed'] = true;
-    });
-    placeAutocomplete.setAttribute(
-      'class',
-      'bg-slate-50 dark:bg-slate-950 rounded-lg'
-    );
-    el.appendChild(placeAutocomplete);
-  });
-});
+  }
+);
 
 Alpine.directive('reassign-map', (el, { expression }, { evaluate }) => {
   let elementId = el.getAttribute('id');

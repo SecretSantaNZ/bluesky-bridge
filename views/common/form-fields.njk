@@ -6,12 +6,15 @@
 {% endmacro %}
 
 {% macro inputAddress(id, label, name='') %}
-<div x-data="{address_changed: false}">
-  <div class="group h-[72px] rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50" x-address-autocomplete @focus="console.log('focus')" @blur="console.log('blur')">
-  <label class="block mt-2 -mb-7 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300 scheme-light dark:scheme-dark">{{ label }}</label>
-  <input type="hidden" name="{{ name if name else id }}" x-model="address" />
+<div x-data="{address_changed: false, address_mode: 'autocomplete'}">
+  <div class="group h-[72px] rounded-lg border-slate-300 border bg-slate-50 dark:bg-slate-950 w-full focus:ring-3 ring-sky-500 outline-hidden disabled:opacity-50" x-address-autocomplete="address_mode === 'autocomplete'">
+    <label class="block mt-2 -mb-7 relative pl-2 text-sm group-focus-within:text-blue-700 dark:group-focus-within:text-blue-300 scheme-light dark:scheme-dark">{{ label }}</label>
+    <input x-bind:type="address_mode === 'autocomplete' ? 'hidden' : 'text'" name="{{ name if name else id }}" x-model="address" class="p-2 pt-8 rounded-lg dark:bg-slate-950 w-full outline-hidden" />
   </div>
-  <p x-show="address && !address_changed" x-text="'Current address: ' + address" class="text-sm"></p>
+  <div class="flex justify-end" x-show="address_mode === 'autocomplete'">
+    <button class="text-sm underline" @click.prevent="address_mode = 'manual'">I can't find my address</button>
+  </div>
+  <p x-show="address && !address_changed && address_mode === 'autocomplete'" x-text="'Current address: ' + address" class="text-sm"></p>
 </div>
 {% endmacro %}
 
