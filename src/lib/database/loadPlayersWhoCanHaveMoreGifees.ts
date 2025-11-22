@@ -21,7 +21,10 @@ export async function loadPlayersWhoCanHaveMoreGifees(db: Database) {
       sql`giftee_count - (case when giftee_for_count > 0 then 1 else 0 end)`,
       'asc'
     )
-    .orderBy('giftee_count')
+    .orderBy(
+      sql`case when game_mode = 'Santa Only' and giftee_count = 0 then 1 else giftee_count end`,
+      'asc'
+    )
     .orderBy(sql`random()`)
     .execute();
 }
