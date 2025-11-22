@@ -108,7 +108,8 @@
         </button>
         <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
       </form>
-      <a x-bind:href="'/admin/player/' + player.id + '/address'" x-target="modal-content" @ajax:before="$dispatch('modal:open')" class="flex flex-col justify-center items-center">
+      <div x-show="player.game_mode == 'Santa Only'"></div>
+      <a x-show="player.game_mode != 'Santa Only'" x-bind:href="'/admin/player/' + player.id + '/address'" x-target="modal-content" @ajax:before="$dispatch('modal:open')" class="flex flex-col justify-center items-center">
         <div class="flex sm:justify-center items-center">
           <div class="i-mdi-cross-circle-outline text-red-600 size-12" x-show="!player.address"></div>
           <div class="i-mdi-tick-circle-outline text-green-600 size-12" x-show="player.address"></div>

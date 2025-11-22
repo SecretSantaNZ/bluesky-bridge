@@ -17,6 +17,7 @@
   {% else %}
     <a href="https://bsky.app/profile/{{ player.handle | ssEscapeUri }}" target="_blank">@{{ player.handle }}</a></div>
   {% endif %}
+  {% if player.game_mode != 'Santa Only' %}
   <div class="mt-4 flex items-start">
     <div class="grow shrink">
       <h2 class="text-md font-semibold">My address</h2>
@@ -29,6 +30,7 @@
       </a>
     {% endif %}
   </div>
+  {% endif %}
   <div class="mt-4 flex items-start">
     <div class="grow shrink">
       <h2 class="text-md font-semibold">My game</h2>

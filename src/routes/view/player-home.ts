@@ -168,7 +168,7 @@ export const playerHome: FastifyPluginAsync = async (app) => {
         return reply.view('player/opted-out');
       }
       const hasAddress = Boolean(player.address && player.address.trim());
-      if (!hasAddress) {
+      if (!hasAddress && player.game_mode !== 'Santa Only') {
         return reply.view('player/address', {
           CLIENT_GOOGLE_API_KEY: process.env.CLIENT_GOOGLE_API_KEY,
           hideClose: true,

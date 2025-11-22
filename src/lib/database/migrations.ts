@@ -2021,3 +2021,58 @@ migrations['029'] = {
   },
   async down() {},
 };
+
+migrations['030'] = {
+  async up(db: Kysely<unknown>) {
+    await sql`drop trigger player_update_profile_complete`.execute(db);
+    await sql`
+      create trigger player_update_profile_complete after update of address, game_mode on player for each row begin
+        update player set profile_complete = 1
+          where id = new.id
+          and (new.game_mode = 'Santa Only' or (new.address is not null and new.address <> ''))
+          and new.game_mode is not null
+          and old.profile_complete = 0;
+        update player set profile_complete = 0
+          where id = new.id
+          and not (
+            (new.game_mode = 'Santa Only' or (new.address is not null and new.address <> ''))
+            and new.game_mode is not null
+          ) and old.profile_complete = 1;
+      end;
+    `.execute(db);
+
+    await sql`drop trigger player_after_insert`.execute(db);
+    await sql`
+    create trigger player_after_insert after insert on player for each row begin
+      update player set profile_complete = 1
+        where id = new.id
+        and (new.game_mode = 'Santa Only' or (new.address is not null and new.address <> ''))
+        and new.game_mode is not null;
+
+      update player set giftee_count_status = 'can_have_more' where id = new.id and max_giftees is not null and giftee_count < max_giftees;
+      update player set giftee_count_status = 'full' where id = new.id and max_giftees is not null and giftee_count = max_giftees;
+      update player set giftee_count_status = 'too_many' where id = new.id and max_giftees is not null and giftee_count > max_giftees;
+    end;
+    `.execute(db);
+  },
+  async down(db: Kysely<unknown>) {
+    await sql`drop trigger player_update_profile_complete`.execute(db);
+    await sql`
+      create trigger player_update_profile_complete after update of address, game_mode on player for each row begin
+        update player set profile_complete = 1 where id = new.id and new.address is not null and new.address <> '' and new.game_mode is not null and old.profile_complete = 0;
+        update player set profile_complete = 0 where id = new.id and not (new.address is not null and new.address <> '' and new.game_mode is not null) and old.profile_complete = 1;
+      end;
+    `.execute(db);
+
+    await sql`drop trigger player_after_insert`.execute(db);
+    await sql`
+    create trigger player_after_insert after insert on player for each row begin
+      update player set profile_complete = 1 where id = new.id and new.address is not null and new.address <> '' and new.game_mode is not null;
+
+      update player set giftee_count_status = 'can_have_more' where id = new.id and max_giftees is not null and giftee_count < max_giftees;
+      update player set giftee_count_status = 'full' where id = new.id and max_giftees is not null and giftee_count = max_giftees;
+      update player set giftee_count_status = 'too_many' where id = new.id and max_giftees is not null and giftee_count > max_giftees;
+    end;
+    `.execute(db);
+  },
+};

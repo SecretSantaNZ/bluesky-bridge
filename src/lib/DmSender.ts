@@ -99,7 +99,14 @@ const signupComplete1DMQueue: DMQueue = async (db, settings) => {
 const signupComplete2DMQueue: DMQueue = async (db, settings) => {
   const player = await db
     .selectFrom('player')
-    .select(['id', 'handle', 'did', 'player_type', 'mastodon_account'])
+    .select([
+      'id',
+      'handle',
+      'did',
+      'player_type',
+      'mastodon_account',
+      'game_mode',
+    ])
     .where('player.signup_complete', '=', 1)
     .where('player.next_player_dm', '=', 'signup-complete-2')
     .where('player.next_player_dm_after', '<=', new Date().toISOString())
@@ -114,15 +121,19 @@ const signupComplete2DMQueue: DMQueue = async (db, settings) => {
     elf_list: settings.elf_list,
   });
 
-  const markSent = async () =>
-    db
-      .updateTable('player')
-      .set({
-        next_player_dm: 'signup-complete-3',
-        next_player_dm_after: addHours(new Date(), 18).toISOString(),
-      })
-      .where('id', '=', player.id)
-      .execute();
+  const markSent =
+    player.game_mode === 'Santa Only'
+      ? // Santa only players don't get an address dm because they don't need an address
+        () => markSignupComplete3DMSent(db, settings, player.id)
+      : async () =>
+          db
+            .updateTable('player')
+            .set({
+              next_player_dm: 'signup-complete-3',
+              next_player_dm_after: addHours(new Date(), 18).toISOString(),
+            })
+            .where('id', '=', player.id)
+            .execute();
 
   const markError = async (errorText: string) =>
     db
@@ -142,6 +153,31 @@ const signupComplete2DMQueue: DMQueue = async (db, settings) => {
     markSent,
     markError,
   };
+};
+
+const markSignupComplete3DMSent = async (
+  db: Database,
+  settings: TidySettings,
+  player_id: number
+) => {
+  const intervalDate = addHours(new Date(), 18);
+  const beforeMatchDay = subDays(
+    parseISO(settings.matches_sent_date + 'T00:00:00.000', {
+      in: tz('Pacific/Auckland'),
+    }),
+    1
+  );
+  const nextDmDate = isAfter(intervalDate, beforeMatchDay)
+    ? intervalDate
+    : beforeMatchDay;
+  await db
+    .updateTable('player')
+    .set({
+      next_player_dm: 'signup-complete-4',
+      next_player_dm_after: formatISO(nextDmDate, { in: tz('UTC') }),
+    })
+    .where('id', '=', player_id)
+    .execute();
 };
 
 const signupComplete3DMQueue: DMQueue = async (db, settings) => {
@@ -173,26 +209,7 @@ const signupComplete3DMQueue: DMQueue = async (db, settings) => {
     elf_list: settings.elf_list,
   });
 
-  const markSent = async () => {
-    const intervalDate = addHours(new Date(), 18);
-    const beforeMatchDay = subDays(
-      parseISO(settings.matches_sent_date + 'T00:00:00.000', {
-        in: tz('Pacific/Auckland'),
-      }),
-      1
-    );
-    const nextDmDate = isAfter(intervalDate, beforeMatchDay)
-      ? intervalDate
-      : beforeMatchDay;
-    await db
-      .updateTable('player')
-      .set({
-        next_player_dm: 'signup-complete-4',
-        next_player_dm_after: formatISO(nextDmDate, { in: tz('UTC') }),
-      })
-      .where('id', '=', player.id)
-      .execute();
-  };
+  const markSent = () => markSignupComplete3DMSent(db, settings, player.id);
 
   const markError = async (errorText: string) =>
     db
