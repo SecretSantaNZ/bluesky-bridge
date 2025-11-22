@@ -201,6 +201,7 @@ export async function finishLogin(
       return reply.view(
         'player/booted-out',
         {
+          settings,
           replaceUrl: '/',
           player,
           player_display_handle:
