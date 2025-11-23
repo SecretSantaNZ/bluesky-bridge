@@ -10,10 +10,7 @@ import { gameMode } from './game-mode.js';
 import { assignSanta } from './assign-santa.js';
 import type { InsertObject } from 'kysely';
 import type { DatabaseSchema } from '../../../../lib/database/schema.js';
-import {
-  getBridgedHandle,
-  resolveMastodonHandle,
-} from '../../../mastodon/index.js';
+import { resolveMastodonHandle } from '../../../mastodon/index.js';
 import { getLocation } from '../../../../lib/googlePlaces.js';
 
 export const player: FastifyPluginAsync = async (rawApp) => {
@@ -49,7 +46,14 @@ export const player: FastifyPluginAsync = async (rawApp) => {
           handle,
           instance as string
         );
-        handle = getBridgedHandle(mastodon_account);
+        const bskyHandle =
+          await playerService.lookupBridgedBlueskyHandle(mastodon_account);
+        if (bskyHandle == null) {
+          throw new Error(
+            `Unable to find Bluesky handle for account ${mastodon_account}. Have they set up bridgy fed?`
+          );
+        }
+        handle = bskyHandle;
         additionalAttributes = {
           mastodon_account,
           mastodon_host: host,

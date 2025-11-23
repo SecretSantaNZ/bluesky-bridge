@@ -12,6 +12,7 @@ import { InternalServerError } from 'http-errors-enhanced';
 import { safeFetchWrap } from '@atproto-labs/fetch-node';
 import wretch from 'wretch';
 import FormDataAddon from 'wretch/addons/formData';
+import * as cheerio from 'cheerio';
 
 import type {
   DatabaseSchema,
@@ -856,5 +857,20 @@ export class PlayerService {
         }
       );
     }
+  }
+
+  async lookupBridgedBlueskyHandle(mastodonHandle: string) {
+    const html = await w
+      .get(`https://fed.brid.gy/ap/${mastodonHandle}`)
+      .notFound(() => null)
+      .text();
+
+    if (html == null) {
+      return null;
+    }
+
+    const doc = cheerio.load(html);
+    const blueskyHandle = doc('a[rel="me"]').eq(1).text().trim();
+    return blueskyHandle;
   }
 }

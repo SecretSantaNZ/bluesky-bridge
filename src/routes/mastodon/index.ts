@@ -55,10 +55,6 @@ const webfingerSchema = z.object({
   ),
 });
 
-export function getBridgedHandle(mastodon_account: string) {
-  return `${mastodon_account.replace(/[_~]/g, '-').replace('@', '.')}.ap.brid.gy`;
-}
-
 const followOneRedirect = <T, C>(
   chain: C & WretchResponseChain<T, C, undefined>
 ): C & WretchResponseChain<T, C, undefined> => {
@@ -345,7 +341,13 @@ export const mastodon: FastifyPluginAsync = async (rawApp) => {
               .execute();
           }
 
-          const bskyHandle = getBridgedHandle(mastodon_account);
+          const bskyHandle =
+            await playerService.lookupBridgedBlueskyHandle(mastodon_account);
+          if (bskyHandle == null) {
+            throw new Error(
+              `Unable to find Bluesky handle for account ${mastodon_account}. Have you set up bridgy fed?`
+            );
+          }
           let did = '';
           try {
             const response = await unauthenticatedAgent.resolveHandle({
