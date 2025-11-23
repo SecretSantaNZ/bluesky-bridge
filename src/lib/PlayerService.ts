@@ -470,6 +470,12 @@ export class PlayerService {
           ? this.lookupMastodonFollowing(attributes.mastodon_account as string)
           : undefined,
       ]);
+
+    const mastodon_account =
+      player_type === 'bluesky'
+        ? await this.lookupBridgedMastodonHandle(profile.handle)
+        : attributes.mastodon_account;
+
     const relationship = AppBskyGraphDefs.isRelationship(relationships[0])
       ? relationships[0]
       : undefined;
@@ -498,7 +504,9 @@ export class PlayerService {
       player_type,
       player_dm_status:
         allowIncoming === 'none' ? 'error: DMs Disabled' : 'queued',
+      ...attributes,
       ...mastodonFollowing,
+      ...(mastodon_account != null ? { mastodon_account } : undefined),
       post_count: profile.postsCount ?? 0,
       post_count_since_signup: 0,
       last_checked_post_count: new Date().toISOString(),
@@ -857,6 +865,21 @@ export class PlayerService {
         }
       );
     }
+  }
+
+  async lookupBridgedMastodonHandle(blueskyHandle: string) {
+    const html = await w
+      .get(`https://fed.brid.gy/bsky/${blueskyHandle}`)
+      .notFound(() => null)
+      .text();
+
+    if (html == null) {
+      return null;
+    }
+
+    const doc = cheerio.load(html);
+    const mastodonHandle = doc('a[rel="me"]').eq(1).text().trim();
+    return mastodonHandle.replace(/^@/, '');
   }
 
   async lookupBridgedBlueskyHandle(mastodonHandle: string) {
