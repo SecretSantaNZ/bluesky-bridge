@@ -88,4 +88,32 @@ export const notes: FastifyPluginAsync = async (rawApp) => {
       return reply.redirect(`/admin/player/${player.id}/notes`);
     }
   );
+
+  app.post(
+    '/notes/:note_id/_delete',
+    {
+      schema: {
+        params: z.object({
+          player_id: z.coerce.number(),
+          note_id: z.coerce.number(),
+        }),
+      },
+    },
+    async function (request, reply) {
+      const player = await this.blueskyBridge.playerService.getPlayerById(
+        request.params.player_id
+      );
+      if (player == null) {
+        throw new NotFoundError();
+      }
+
+      await this.blueskyBridge.db
+        .deleteFrom('note')
+        .where('id', '=', request.params.note_id)
+        .where('player_did', '=', player.did)
+        .executeTakeFirstOrThrow();
+
+      return reply.redirect(`/admin/player/${player.id}/notes`);
+    }
+  );
 };

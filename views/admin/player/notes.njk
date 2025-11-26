@@ -5,7 +5,7 @@
 {% block body %}
 <div class="w-full flex justify-center">
   {% call card() %}
-<div class="space-y-8" id="modal-content" x-init="informationalModal = true">
+<div class="space-y-8" id="modal-content" x-init="informationalModal = true" x-data="{showConfirm: ''}">
   <h1>Notes about @{{ player.handle }}</h1>
   <p class="text-sm">Notes are only visible to the elves, use this to record anything we want to keep track of so other elves can be aware of it when dealing with the player.</p>
   <form x-target="modal-content" x-target.error="add-node-error" @ajax:success="$dispatch('modal:close')" action="/admin/player/{{ player.id }}/notes" method="post" id="add-note">
@@ -30,6 +30,24 @@
   </form>
   {% for note in notes %}
   <div class="mt-12 border-t">
+    <div class="float-end ml-4">
+      <form x-target="modal-content" action="/admin/player/{{ player.id }}/notes/{{ note.id }}/_delete" method="post" id="delete-note{{ note.id }}" class="flex items-center sm:justify-center">
+        <button x-show="'remove-note-{{ note.id }}' !== showConfirm" @click.prevent.stop="showConfirm = 'remove-note-{{ note.id }}'">
+          <div class="flex sm:justify-center items-center ">
+            <div class="i-mdi-trash-can-outline size-12"></div>
+            <div class="sm:hidden"><b>Remove note</b></div>
+          </div>
+        </button>
+        {{ activitySpinner() }}
+        <input x-show="'remove-note-{{ note.id }}' === showConfirm" type="submit" name="delete" value="Delete note" class="htmx-request:hidden rounded-lg px-8 py-2 bg-red-600 hover:bg-red-400 text-white drop-shadow-lg focus:ring-3 ring-sky-500 outline-hidden" />
+        <button x-show="'remove-note-{{ note.id }}' === showConfirm" @click.prevent.stop="showConfirm = ''" class="htmx-request:hidden">
+          <div class="i-mdi-close size-12 text-gray-400"></div>
+        </button>
+        <input type="hidden" name="player_did" value="{{ player.did }}"/>
+        <input type="hidden" name="note_id" value="{{ note.id }}"/>
+        <input type="hidden" name="csrfToken" value="{{ csrfToken }}"/>
+      </form>
+    </div>
     <div class="whitespace-pre-wrap">{{ note.text }}</div>
     <div class="flex">
       <div class="grow shrink"></div>
