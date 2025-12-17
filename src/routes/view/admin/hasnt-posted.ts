@@ -30,6 +30,7 @@ export function buildHasntPostedQuery(db: Database, openingDate: string) {
           .selectFrom('post')
           .select(eb.fn.countAll().as('cnt'))
           .whereRef('post.author', '=', 'giftee.did')
+          .where('post.hasHashtag', '=', 1)
           .where(
             'post.indexedAt',
             '>=',
