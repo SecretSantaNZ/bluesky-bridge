@@ -752,6 +752,8 @@ export class PlayerService {
       .select([
         'id',
         'handle',
+        'player_type',
+        'mastodon_account',
         'signup_complete',
         'giftee_count',
         'giftee_for_count',
@@ -808,7 +810,13 @@ export class PlayerService {
       }
       await this.db
         .updateTable('player')
-        .set({ handle: newHandle })
+        .set({
+          handle: newHandle,
+          ...(record.player_type === 'bluesky' &&
+          record.mastodon_account != null
+            ? { mastodon_account: `${newHandle}@bsky.brid.gy` }
+            : undefined),
+        })
         .where('did', '=', playerDid)
         .execute();
     }
