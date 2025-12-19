@@ -23,7 +23,7 @@ import ms from 'ms';
 import type { InsertObject, SelectType } from 'kysely';
 import type { DmSender } from './DmSender.js';
 import { z } from 'zod';
-import { addHours } from 'date-fns';
+import { addDays, addHours } from 'date-fns';
 import type { ProfileViewDetailed } from '@atproto/api/dist/client/types/app/bsky/actor/defs.js';
 
 type SelectedPlayer = {
@@ -190,6 +190,7 @@ export class PlayerService {
       .executeTakeFirstOrThrow();
     await this.settingsChanged(settings);
 
+    setInterval(this.refreshBlueskyBridging.bind(this), ms('1m'));
     setInterval(this.refreshMastodonFollowing.bind(this), ms('60m'));
     setInterval(this.refreshPostCounts.bind(this), ms('60m'));
   }
@@ -305,7 +306,7 @@ export class PlayerService {
       .select(['did', 'mastodon_id'])
       .where('player_type', '=', 'mastodon')
       .where('mastodon_following_santa', '=', 0)
-      .where('deactivated', 'is', null)
+      .where('deactivated', '=', 0)
       .orderBy('mastodon_follow_last_checked', 'asc')
       .limit(25)
       .execute();
@@ -327,6 +328,54 @@ export class PlayerService {
         .where('did', '=', player.did)
         .execute();
     }
+  }
+
+  private async refreshBlueskyBridging() {
+    const checkBefore = addDays(new Date(), -1).toISOString();
+    const playerToCheck = await this.db
+      .selectFrom('player')
+      .select(['did', 'handle'])
+      .where('player_type', '=', 'bluesky')
+      .where('mastodon_account', 'is', null)
+      .where('deactivated', '=', 0)
+      .where((eb) =>
+        eb.or([
+          eb('mastodon_follow_last_checked', 'is', null),
+          eb('mastodon_follow_last_checked', '<', checkBefore),
+        ])
+      )
+      .orderBy('mastodon_follow_last_checked', 'asc')
+      .limit(1)
+      .executeTakeFirst();
+    if (playerToCheck == null) {
+      console.log('No players to check bridging status');
+      return;
+    }
+
+    console.log(`Checking if ${playerToCheck.handle} is bridged`);
+    const mastodon_account = await this.lookupBridgedMastodonHandle(
+      playerToCheck.handle
+    );
+    if (mastodon_account == null) {
+      console.log(`${playerToCheck.handle} is not bridged`);
+
+      await this.db
+        .updateTable('player')
+        .set({ mastodon_follow_last_checked: new Date().toISOString() })
+        .where('did', '=', playerToCheck.did)
+        .execute();
+      return;
+    }
+
+    console.log(`${playerToCheck.handle} is bridged to ${mastodon_account}`);
+    await this.db
+      .updateTable('player')
+      .set({
+        mastodon_account,
+        mastodon_follow_last_checked: new Date().toISOString(),
+      })
+      .where('did', '=', playerToCheck.did)
+      .execute();
   }
 
   private async refreshPostCounts() {
@@ -400,17 +449,21 @@ export class PlayerService {
   async refreshFollowing(
     playerId: number
   ): Promise<SelectedPlayer | undefined> {
-    const { player_type, mastodon_account, did } = await this.db
+    const { player_type, mastodon_account, did, handle } = await this.db
       .selectFrom('player')
-      .select(['player_type', 'mastodon_account', 'did'])
+      .select(['player_type', 'mastodon_account', 'did', 'handle'])
       .where('id', '=', playerId)
       .executeTakeFirstOrThrow();
-    const [{ relationships }, mastodonFollowing] = await Promise.all([
-      fetchRelationships(this.santaAccountDid, did),
-      player_type === 'mastodon'
-        ? this.lookupMastodonFollowing(mastodon_account as string)
-        : undefined,
-    ]);
+    const [{ relationships }, mastodonFollowing, bridged_mastodon_account] =
+      await Promise.all([
+        fetchRelationships(this.santaAccountDid, did),
+        player_type === 'mastodon'
+          ? this.lookupMastodonFollowing(mastodon_account as string)
+          : undefined,
+        player_type === 'bluesky'
+          ? this.lookupBridgedMastodonHandle(handle)
+          : undefined,
+      ]);
     const relationship = AppBskyGraphDefs.isRelationship(relationships[0])
       ? relationships[0]
       : undefined;
@@ -425,6 +478,9 @@ export class PlayerService {
         following_santa_uri,
         santa_following_uri: relationship?.following ?? null,
         ...mastodonFollowing,
+        ...(bridged_mastodon_account != null
+          ? { mastodon_account: bridged_mastodon_account }
+          : undefined),
       })
       .where('id', '=', playerId)
       .returningAll()
