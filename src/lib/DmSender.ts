@@ -295,10 +295,13 @@ const matchHandleDMQueue: DMQueue = async (db, settings) => {
     .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
     .select([
       'giftee.handle as giftee_handle',
+      'giftee.player_type as giftee_player_type',
+      'giftee.mastodon_account as giftee_mastodon_account',
       'santa.did as santa_did',
       'santa.handle as santa_handle',
       'santa.player_type as santa_player_type',
       'santa.mastodon_account as santa_mastodon_account',
+      'santa.mastodon_host as santa_mastodon_host',
       'match.id as match_id',
     ])
     .where('match.deactivated', 'is', null)
@@ -310,10 +313,19 @@ const matchHandleDMQueue: DMQueue = async (db, settings) => {
 
   if (match == null) return undefined;
 
+  let giftee_handle = '@' + match.giftee_handle;
+  if (match.santa_player_type === 'mastodon') {
+    if (match.giftee_mastodon_account) {
+      giftee_handle = `@ ${match.giftee_mastodon_account} ( https://${match.santa_mastodon_host}/search?q=${encodeURIComponent(match.giftee_mastodon_account)}&type=accounts )`;
+    } else {
+      giftee_handle = `https://bsky.app/profile/${encodeURIComponent(match.giftee_handle)}`;
+    }
+  }
+
   const rawMessage = await getRandomMessage(db, 'dm-match-handle', {
     ...match,
     ...settings,
-    giftee_handle: '@' + match.giftee_handle,
+    giftee_handle,
   });
 
   const markSent = async () =>
@@ -350,6 +362,8 @@ const matchAddressDMQueue: DMQueue = async (db, settings) => {
     .innerJoin('player as giftee', 'giftee.id', 'match.giftee')
     .select([
       'giftee.handle as giftee_handle',
+      'giftee.player_type as giftee_player_type',
+      'giftee.mastodon_account as giftee_mastodon_account',
       'giftee.delivery_instructions as giftee_instructions',
       'giftee.address as giftee_address',
       'santa.did as santa_did',
@@ -367,10 +381,17 @@ const matchAddressDMQueue: DMQueue = async (db, settings) => {
 
   if (match == null) return undefined;
 
+  let giftee_handle = '@' + match.giftee_handle;
+  if (match.santa_player_type === 'mastodon') {
+    if (match.giftee_mastodon_account) {
+      giftee_handle = `@ ${match.giftee_mastodon_account}`;
+    }
+  }
+
   const rawMessage = await getRandomMessage(db, 'dm-match-address', {
     ...match,
     ...settings,
-    giftee_handle: '@' + match.giftee_handle,
+    giftee_handle,
     giftee_instructions: match.giftee_instructions
       ? match.giftee_instructions + '\n\n'
       : '',
