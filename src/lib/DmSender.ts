@@ -323,8 +323,7 @@ const matchHandleDMQueue: DMQueue = async (db, settings) => {
   }
 
   const rawMessage = await getRandomMessage(db, 'dm-match-handle', {
-    ...match,
-    ...settings,
+    hashtag: settings.hashtag,
     giftee_handle,
   });
 
@@ -389,12 +388,14 @@ const matchAddressDMQueue: DMQueue = async (db, settings) => {
   }
 
   const rawMessage = await getRandomMessage(db, 'dm-match-address', {
-    ...match,
-    ...settings,
     giftee_handle,
     giftee_instructions: match.giftee_instructions
       ? match.giftee_instructions + '\n\n'
       : '',
+    giftee_address: match.giftee_address,
+    send_by_date: formatDate(settings.send_by_date),
+    opening_date: formatDate(settings.opening_date),
+    hashtag: settings.hashtag,
   });
 
   const markSent = async () =>
@@ -451,8 +452,8 @@ const trackingDMQueue: DMQueue = async (db, settings) => {
 
   const preMessage = await getRandomMessage(db, 'dm-tracking-added', {
     ...tracking,
-    ...settings,
     date_shipped: formatDate(tracking.date_shipped),
+    hashtag: settings.hashtag,
   });
   const rawMessage =
     preMessage +
