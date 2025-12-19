@@ -31,7 +31,7 @@
 {% for nudge in sentNudges %}
   <p class="mt-8">
     {% call linkNudge(nudge.post_url) %}
-      @{{ nudge.giftee_handle }} nudged with {{ nudge.nudge_type }} on {{ nudge.created_at | ssDatetime }}
+      @{{ nudge.giftee_handle if nudge.giftee_player_type == 'bluesky' else nudge.giftee_mastodon_account }} nudged with {{ nudge.nudge_type }} on {{ nudge.created_at | ssDatetime }}
     {% endcall %}
   </p>
 {% endfor %}

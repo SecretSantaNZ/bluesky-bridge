@@ -1,4 +1,15 @@
 {% from 'common/avatar.njk' import avatar %}
+{% macro gifteeLink(giftee) %}
+  {% if giftee.player_type == 'mastodon' %}
+    <a href="{{ giftee.mastodon_account | ssMastoUrl(giftee.mastodon_host) }}" target="_blank">@{{ giftee.mastodon_account }}</a>
+    <br/><span class="whitespace-nowrap">(<div class="size-6 i-mdi-bridge inline-block align-middle"></div> <a href="https://bsky.app/profile/{{ giftee.handle | ssEscapeUri }}" target="_blank">@{{ giftee.handle }}</a>)</span>
+  {% else %}
+    <a href="https://bsky.app/profile/{{ giftee.handle | ssEscapeUri }}" target="_blank">@{{ giftee.handle }}</a>
+    {% if giftee.mastodon_account %}
+    <br/><span class="whitespace-nowrap">(<div class="size-6 i-mdi-bridge inline-block align-middle"></div> <a href="https://fed.brid.gy/bsky/{{ giftee.handle | ssEscapeUri }}" target="_blank">@{{ giftee.mastodon_account }}</a>)</span>
+    {% endif %}
+  {% endif %}
+{% endmacro %}
 <div
   @click="isMobileWidth && (cardExpanded = !cardExpanded)"
   class="flex -ml-4 lg:ml-0 items-start"
@@ -15,7 +26,7 @@
     <div class="mt-8">
       <div class="flex items-center">
         {{ avatar(giftee.avatar_url) }}
-        <div class="font-semibold ml-4"><a href="https://bsky.app/profile/{{ giftee.handle | ssEscapeUri }}" target="_blank">@{{ giftee.handle }}</a></div>
+        <div class="font-semibold ml-4">{{ gifteeLink(giftee) }}</div>
       </div>
       {% if giftee.match_status === 'locked' %}
         <div>

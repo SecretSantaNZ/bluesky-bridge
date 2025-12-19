@@ -65,7 +65,10 @@ export const renderPlayerHome = async (
         .innerJoin('player', 'player.id', 'match.giftee')
         .select([
           'player.avatar_url',
+          'player.player_type',
           'player.handle',
+          'player.mastodon_account',
+          'player.mastodon_host',
           'player.address',
           'player.delivery_instructions',
           'match.id as match_id',
@@ -94,6 +97,8 @@ export const renderPlayerHome = async (
           'nudge_type.name as nudge_type',
           'nudge.created_at',
           'giftee.handle as giftee_handle',
+          'giftee.player_type as giftee_player_type',
+          'giftee.mastodon_account as giftee_mastodon_account',
           'nudge.post_url',
         ])
         .where('match.santa', '=', player.id)

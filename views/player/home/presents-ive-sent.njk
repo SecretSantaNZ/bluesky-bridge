@@ -17,7 +17,7 @@
 <div x-show="!isMobileWidth || cardExpanded" class="space-y-8">
   {% for sentTracking in giftsIveSent %}
     <p>
-      To @{{ sentTracking.giftee_handle }} on
+      To @{{ sentTracking.giftee_handle if sentTracking.giftee_player_type == 'bluesky' else sentTracking.giftee_mastodon_account }} on
       {{ sentTracking.shipped_date | ssDate }} with {{ sentTracking.carrier }} <b>{{ sentTracking.tracking_number }}</b>. {{ 'Gifts are wrapped.' if sentTracking.giftwrap_status else  'Gifts are naked (do not remove postal wrapper / box).' }}
     </p>
   {% endfor %}

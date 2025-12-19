@@ -13,10 +13,15 @@
 <div x-show="!isMobileWidth || cardExpanded" class="flex flex-col grow">
   <div class="font-semibold mt-8 text-xl">
   {% if player.player_type === 'mastodon' %}
-    <a href="https://{{ player.mastodon_host }}/@{{ player.mastodon_account.split('@')[0] | ssEscapeUri }}" target="_blank">@{{ player_display_handle }}</a></div>
+    <a href="{{ player.mastodon_account | ssMastoUrl(player.mastodon_host) }}" target="_blank">@{{ player.mastodon_account }}</a>
+    <br/><span class="whitespace-nowrap font-normal text-sm">(<div class="size-6 i-mdi-bridge inline-block align-middle"></div> <a href="https://bsky.app/profile/{{ player.handle | ssEscapeUri }}" target="_blank">@{{ player.handle }}</a>)</span>
   {% else %}
-    <a href="https://bsky.app/profile/{{ player.handle | ssEscapeUri }}" target="_blank">@{{ player.handle }}</a></div>
+    <a href="https://bsky.app/profile/{{ player.handle | ssEscapeUri }}" target="_blank">@{{ player.handle }}</a>
+    {# {% if giftee.mastodon_account %} #}
+    <br/><span class="whitespace-nowrap font-normal text-sm">(<div class="size-6 i-mdi-bridge inline-block align-middle"></div> <a href="https://fed.brid.gy/bsky/{{ player.handle | ssEscapeUri }}" target="_blank">@{{ player.mastodon_account }}</a>)</span>
+    {# {% endif %} #}
   {% endif %}
+  </div>
   {% if player.game_mode != 'Santa Only' %}
   <div class="mt-4 flex items-start">
     <div class="grow shrink">
@@ -43,7 +48,7 @@
     {% endif %}
   </div>
   <div class="grow shrink"></div>
-  <a href="/opt-out" x-target="modal-content" @ajax:before="$dispatch('modal:open')" id="opt-out-button" class="no-underline block rounded-lg px-8 py-2 mt-12 border-4 border-red-600 hover:bg-red-300 text-red-600 flex">
+  <a href="/opt-out" x-target="modal-content" @ajax:before="$dispatch('modal:open')" id="opt-out-button" class="no-underline rounded-lg px-8 py-2 mt-12 border-4 border-red-600 hover:bg-red-300 text-red-600 flex">
     <div>Opt out</div>
   </a>
 </div>

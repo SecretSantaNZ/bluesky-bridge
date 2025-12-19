@@ -112,6 +112,11 @@ export const build = async (
         env.addFilter('ssBase64', (value) =>
           Buffer.from(value, 'utf-8').toString('base64')
         );
+        env.addFilter(
+          'ssMastoUrl',
+          (account: string, host: string) =>
+            `https://${host}/@${encodeURIComponent(account.split('@')[0] as string)}`
+        );
       },
     },
   });
