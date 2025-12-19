@@ -25,6 +25,15 @@
       </div>
     </div>
   {% endif %}
+  {% if not player.mastodon_account %}
+    <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
+      <div class="shrink-0 grow-0 i-mdi-bridge size-16 mr-4 text-orange-500"></div>
+      <div class="shrink grow">
+        <h1>You haven't bridged to Mastodon</h1>
+        <p>Mastodon players will not be able to see your posts. Increase the joy by following <a href="https://bsky.app/profile/ap.brid.gy" target="_blank">@ap.brid.gy</a> so people on mastodon can see your bluesky posts.</p>
+      </div>
+    </div>
+  {% endif %}
 {% elif player.player_type === 'mastodon' %}
   {% if not player.following_santa %}
     <div class="max-lg:max-w-xl lg:col-span-2 xl:col-span-3 w-full border-solid border rounded-xl border-slate-500 bg-slate-100 dark:bg-slate-900 p-8 drop-shadow-lg flex items-center">
