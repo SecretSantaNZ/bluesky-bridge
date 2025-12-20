@@ -122,6 +122,7 @@ export interface Match {
   contacted: Generated<null | string>;
   followup_action: Generated<null | 'super-assigned' | 'sorted'>;
   super_santa_match: Generated<number>;
+  posted_opening: Generated<0 | 1>;
 }
 
 export interface NudgeType {

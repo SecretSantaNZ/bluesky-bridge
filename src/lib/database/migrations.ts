@@ -2076,3 +2076,15 @@ migrations['030'] = {
     `.execute(db);
   },
 };
+
+migrations['031'] = {
+  async up(db: Kysely<unknown>) {
+    await db.schema
+      .alterTable('match')
+      .addColumn('posted_opening', 'int2', (col) => col.defaultTo(0))
+      .execute();
+  },
+  async down(db: Kysely<unknown>) {
+    await db.schema.alterTable('match').dropColumn('posted_opening').execute();
+  },
+};

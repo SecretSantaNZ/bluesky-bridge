@@ -6,6 +6,7 @@ import type { Database } from './lib/database/index.js';
 import { addMinutes, isBefore, parseISO, subDays, subHours } from 'date-fns';
 import type { PlayerBadge, Settings } from './lib/database/schema.js';
 import ms from 'ms';
+import { tz } from '@date-fns/tz';
 
 function authorFromPostUri(postUri: string | undefined): string | undefined {
   if (!postUri) return undefined;
@@ -50,6 +51,7 @@ type AssignableBadge = {
 export class FeedSubscription {
   private gameHashtags: Array<string> = [];
   private hashtagBadges: Array<AssignableBadge> = [];
+  private midnightOpeningDay = new Date('3000-01-01');
   private jetstream: Jetstream | undefined;
   constructor(private readonly db: Database) {
     setInterval(this.purge.bind(this), ms('1h'));
@@ -59,7 +61,7 @@ export class FeedSubscription {
     const [settings, cursorResult] = await Promise.all([
       this.db
         .selectFrom('settings')
-        .select(['hashtag', 'feed_hashtags'])
+        .select(['hashtag', 'feed_hashtags', 'opening_date'])
         .executeTakeFirstOrThrow(),
       this.db
         .selectFrom('post')
@@ -92,7 +94,16 @@ export class FeedSubscription {
       .execute();
   }
 
-  async settingsChanged(settings: Pick<Settings, 'hashtag' | 'feed_hashtags'>) {
+  async settingsChanged(
+    settings: Pick<Settings, 'hashtag' | 'feed_hashtags' | 'opening_date'>
+  ) {
+    this.midnightOpeningDay = parseISO(
+      settings.opening_date + 'T00:00:00.000',
+      {
+        in: tz('Pacific/Auckland'),
+      }
+    );
+
     const hashtagBadges = await this.db
       .selectFrom('badge')
       .select(['id', 'title', 'assigned_by_hashtag', 'assigned_by_elf'])
@@ -135,10 +146,12 @@ export class FeedSubscription {
     const replyParentAuthor = authorFromPostUri(replyParent);
 
     const hashtags = getHashtags(event.commit.record);
-    let hasHashtag = this.gameHashtags.find((tag) => hashtags.has(tag)) != null;
+    const postHasHashtag =
+      this.gameHashtags.find((tag) => hashtags.has(tag)) != null;
+    let hasHashtag = postHasHashtag;
     const player = await this.db
       .selectFrom('player')
-      .select(['did', 'deactivated', 'booted', 'admin', 'handle'])
+      .select(['id', 'did', 'deactivated', 'booted', 'admin', 'handle'])
       .where('did', '=', author)
       .executeTakeFirst();
     const byPlayer = Boolean(
@@ -236,6 +249,19 @@ export class FeedSubscription {
       })
       .onConflict((cb) => cb.doNothing())
       .execute();
+
+    if (
+      !isBefore(indexedAtDate, this.midnightOpeningDay) &&
+      byPlayer &&
+      player != null &&
+      postHasHashtag
+    ) {
+      await this.db
+        .updateTable('match')
+        .set({ posted_opening: 1 })
+        .where('giftee', '=', player?.id)
+        .execute();
+    }
 
     const recorded_at = now.toISOString();
     const badges = this.hashtagBadges

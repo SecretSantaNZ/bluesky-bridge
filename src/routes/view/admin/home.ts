@@ -6,12 +6,10 @@ import {
   buildTooManySantasMatchesQuery,
 } from './fix-matches.js';
 import { buildHasntPostedQuery } from './hasnt-posted.js';
-import { loadSettings } from '../../../lib/settings.js';
 
 export const adminHome: FastifyPluginAsync = async (app) => {
   app.get('/', async function (request, reply) {
     const { db } = this.blueskyBridge;
-    const settings = await loadSettings(db);
     const [
       { signupCompleteCount },
       { registeredPlayersCount },
@@ -115,7 +113,7 @@ export const adminHome: FastifyPluginAsync = async (app) => {
           ])
         )
         .executeTakeFirstOrThrow(),
-      buildHasntPostedQuery(db, settings.opening_date)
+      buildHasntPostedQuery(db)
         .clearSelect()
         .select(({ fn }) => fn.countAll<number>().as('cnt'))
         .executeTakeFirstOrThrow(),

@@ -90,6 +90,7 @@ export const match: FastifyPluginAsync = async (rawApp) => {
       return reply.redirect('/admin/without-gifts', 303);
     }
   );
+
   app.post(
     '/:match_id/mark-contacted',
     {
@@ -112,6 +113,31 @@ export const match: FastifyPluginAsync = async (rawApp) => {
         .execute();
 
       return reply.redirect('/admin/without-gifts', 303);
+    }
+  );
+
+  app.post(
+    '/:match_id/mark-posted-opening',
+    {
+      schema: {
+        params: z.object({
+          match_id: z.coerce.number(),
+        }),
+        body: z.object({}),
+      },
+    },
+    async function handler(request, reply) {
+      const { db } = app.blueskyBridge;
+
+      await db
+        .updateTable('match')
+        .set({
+          posted_opening: 1,
+        })
+        .where('id', '=', request.params.match_id)
+        .execute();
+
+      return reply.redirect('/admin/hasnt-posted', 303);
     }
   );
 };
