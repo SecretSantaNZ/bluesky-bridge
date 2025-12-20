@@ -113,6 +113,14 @@ export class FirehoseSubscription {
     if (isBlob(event.commit.record.avatar)) {
       avatar_url = `https://cdn.bsky.app/img/avatar/plain/${event.did}/${event.commit.record.avatar.ref.$link}@jpeg`;
     }
-    await this.playerService.patchPlayer(event.did, { avatar_url });
+
+    const profile_public =
+      event.commit.record.labels?.values?.find(
+        (label) => label.val === '!no-unauthenticated'
+      ) == null;
+    await this.playerService.patchPlayer(event.did, {
+      avatar_url,
+      profile_public: profile_public ? 1 : 0,
+    });
   }
 }

@@ -2083,8 +2083,14 @@ migrations['031'] = {
       .alterTable('match')
       .addColumn('posted_opening', 'int2', (col) => col.defaultTo(0))
       .execute();
+
+    await db.schema
+      .alterTable('player')
+      .addColumn('profile_public', 'int2', (col) => col.defaultTo(0))
+      .execute();
   },
   async down(db: Kysely<unknown>) {
     await db.schema.alterTable('match').dropColumn('posted_opening').execute();
+    await db.schema.alterTable('player').dropColumn('profile_public').execute();
   },
 };

@@ -103,6 +103,7 @@ export interface Player {
   post_count: Generated<number>;
   post_count_since_signup: Generated<number>;
   last_checked_post_count: Generated<string>;
+  profile_public: Generated<0 | 1>;
 }
 
 export interface Match {

@@ -537,6 +537,9 @@ export class PlayerService {
       : undefined;
 
     const handle = profile.handle;
+    const profile_public =
+      profile.labels?.find((label) => label.val === '!no-unauthenticated') ==
+      null;
     const following_santa_uri =
       relationship?.followedBy ??
       (mastodonFollowing?.mastodon_following_santa ? 'mastodon' : null);
@@ -566,6 +569,7 @@ export class PlayerService {
       post_count: profile.postsCount ?? 0,
       post_count_since_signup: 0,
       last_checked_post_count: new Date().toISOString(),
+      profile_public: profile_public ? 1 : 0,
     };
 
     const result = await this.db
