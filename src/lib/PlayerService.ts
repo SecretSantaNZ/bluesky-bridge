@@ -830,7 +830,26 @@ export class PlayerService {
     await this.db.deleteFrom('tracking').execute();
     await this.db.deleteFrom('nudge').execute();
     await this.db.deleteFrom('match').execute();
-    await this.db.deleteFrom('player').execute();
+    await this.db.deleteFrom('player').where('booted', 'is', null).execute();
+    await this.db
+      .updateTable('player')
+      .set({
+        address: null,
+        address_review_required: null,
+        address_location: null,
+        delivery_instructions: null,
+        game_mode: null,
+        max_giftees: 0,
+        giftee_for_count: 0,
+        locked_giftee_for_count: 0,
+        giftee_count: 0,
+        giftee_count_no_super: 0,
+        giftee_count_status: 'can_have_more',
+        next_player_dm: 'signup-complete-1',
+        next_player_dm_after: null,
+        player_dm_status: 'queued',
+      })
+      .execute();
   }
 
   addListener(listener: PlayersChangedListener) {
