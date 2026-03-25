@@ -342,7 +342,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
   );
 
   app.setErrorHandler(async function (error, request, reply) {
-    newrelic.noticeError(error, {
+    newrelic.noticeError(error as Error, {
       method: request.method,
       url: request.url,
       // @ts-expect-error no type
@@ -350,7 +350,7 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
     });
     request.log.error({ url: request.url, error, body: request.body });
     return returnLoginView(app.blueskyBridge, reply, request.url, {
-      errorMessage: error.message || 'Unknown Error',
+      errorMessage: (error as Error).message || 'Unknown Error',
       mode: (request.body as Record<string, string>)?.mode,
       handle: (request.body as Record<string, string>)?.handle,
       isAlpineRequest: Boolean(request.headers['x-alpine-request']),
@@ -427,7 +427,8 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
     {
       onRequest: async function (request, reply) {
         try {
-          await validateSessionCookie.bind(this)(request);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await validateSessionCookie.bind(this as any)(request);
         } catch (err) {
           if (err instanceof UnauthorizedError) {
             return reply

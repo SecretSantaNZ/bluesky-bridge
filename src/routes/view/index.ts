@@ -84,7 +84,7 @@ export const view: FastifyPluginAsync = async (app) => {
 
     // @ts-expect-error can't be bothered typing to http error
     return reply.status(error.status ?? 500).view('common/error', {
-      errorMessage: error.message || 'Unknown Error',
+      errorMessage: (error as Error).message || 'Unknown Error',
       elementId,
     });
   });
