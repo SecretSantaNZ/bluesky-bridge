@@ -971,7 +971,7 @@ export class PlayerService {
 
   async lookupBridgedBlueskyHandle(mastodonHandle: string) {
     const html = await w
-      .get(`https://fed.brid.gy/ap/${mastodonHandle}`)
+      .get(`https://fed.brid.gy/ap/@${mastodonHandle}`)
       .notFound(() => null)
       .text();
 
