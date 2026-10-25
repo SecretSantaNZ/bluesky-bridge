@@ -26,6 +26,77 @@ async function renderReassign(
   });
 }
 
+export type ReassignParams = {
+  match_id: number;
+  santa_handle: string;
+  super_santa_match?: 'true' | 'false' | undefined;
+  force?: 'true' | 'false' | undefined;
+};
+
+export type ReassignOutcome =
+  | { ok: true; superSantaMatch: boolean }
+  | {
+      ok: false;
+      status: 409;
+      error: 'santa-not-found' | 'too-many-giftees';
+    };
+
+/** Deactivates the old match (or flags it for super-santa followup) and
+ *  creates a replacement match for the giftee with the requested santa. */
+export async function reassignMatch(
+  db: Database,
+  { match_id, santa_handle, super_santa_match, force }: ReassignParams
+): Promise<ReassignOutcome> {
+  const player = await db
+    .selectFrom('player')
+    .selectAll()
+    .where('deactivated', '=', 0)
+    .where('handle', '=', santa_handle)
+    .executeTakeFirst();
+
+  if (player == null) {
+    return { ok: false, status: 409, error: 'santa-not-found' };
+  }
+
+  if (player.giftee_count_status != 'can_have_more' && force !== 'true') {
+    return { ok: false, status: 409, error: 'too-many-giftees' };
+  }
+
+  const oldMatch = await db
+    .updateTable('match')
+    .set(
+      super_santa_match === 'true'
+        ? {
+            followup_action: 'super-assigned',
+          }
+        : {
+            deactivated: new Date().toISOString(),
+          }
+    )
+    .where('id', '=', match_id)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+
+  await db
+    .insertInto('match')
+    .values({
+      santa: player.id,
+      giftee: oldMatch.giftee,
+      has_present: 0,
+      invalid_player: 0,
+      match_status: super_santa_match === 'true' ? 'locked' : 'draft',
+      nudge_count: 0,
+      nudge_present_update_count: 0,
+      tracking_count: 0,
+      tracking_missing_count: 0,
+      super_santa_match: super_santa_match === 'true' ? 1 : 0,
+    })
+    .returningAll()
+    .executeTakeFirstOrThrow();
+
+  return { ok: true, superSantaMatch: super_santa_match === 'true' };
+}
+
 export const reassign: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
   app.get(
@@ -72,64 +143,23 @@ export const reassign: FastifyPluginAsync = async (rawApp) => {
     async function handler(request, reply) {
       const { db } = app.blueskyBridge;
 
-      const player = await db
-        .selectFrom('player')
-        .selectAll()
-        .where('deactivated', '=', 0)
-        .where('handle', '=', request.body.santa_handle)
-        .executeTakeFirst();
+      const outcome = await reassignMatch(db, {
+        match_id: request.params.match_id,
+        ...request.body,
+      });
 
-      if (player == null) {
+      if (!outcome.ok) {
+        const error =
+          outcome.error === 'santa-not-found'
+            ? 'santa-not-found'
+            : 'too-many-giftees';
         return renderReassign(db, reply, request.params.match_id, 409, {
           ...request.body,
-          reassignError: 'santa-not-found',
+          reassignError: error,
         });
       }
 
-      if (
-        player.giftee_count_status != 'can_have_more' &&
-        request.body.force !== 'true'
-      ) {
-        return renderReassign(db, reply, request.params.match_id, 409, {
-          ...request.body,
-          reassignError: 'too-many-giftees',
-        });
-      }
-
-      const oldMatch = await db
-        .updateTable('match')
-        .set(
-          request.body.super_santa_match === 'true'
-            ? {
-                followup_action: 'super-assigned',
-              }
-            : {
-                deactivated: new Date().toISOString(),
-              }
-        )
-        .where('id', '=', request.params.match_id)
-        .returningAll()
-        .executeTakeFirstOrThrow();
-
-      await db
-        .insertInto('match')
-        .values({
-          santa: player.id,
-          giftee: oldMatch.giftee,
-          has_present: 0,
-          invalid_player: 0,
-          match_status:
-            request.body.super_santa_match === 'true' ? 'locked' : 'draft',
-          nudge_count: 0,
-          nudge_present_update_count: 0,
-          tracking_count: 0,
-          tracking_missing_count: 0,
-          super_santa_match: request.body.super_santa_match === 'true' ? 1 : 0,
-        })
-        .returningAll()
-        .executeTakeFirstOrThrow();
-
-      if (request.body.super_santa_match) {
+      if (outcome.superSantaMatch) {
         return reply.redirect('/admin/without-gifts', 303);
       }
 
