@@ -9,7 +9,10 @@
     "build:client": "node build-client.mjs build",
     "start": "run-p start:server start:client",
     "start:server": "nodemon --watch 'src/**' --ext 'ts' --exec 'tsx src/server.ts'",
-    "start:client": "node build-client.mjs watch"
+    "start:client": "node build-client.mjs watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "author": "",
   "license": "ISC",
@@ -38,6 +41,7 @@
     "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "alpinejs": "^3.15.0",
     "esbuild": "^0.27.4",
     "esbuild-plugin-tailwindcss": "^2.1.0",
@@ -48,7 +52,8 @@
     "osls": "^3.56.0",
     "tailwindcss": "^4.1.8",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^2.1.9"
   },
   "dependencies": {
     "@atproto/api": "^0.19.4",

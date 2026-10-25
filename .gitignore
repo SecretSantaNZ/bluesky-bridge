@@ -14,3 +14,4 @@
 *.sqlite-wal
 newrelic_agent.log
 todo.md
+coverage/
