@@ -1,4 +1,4 @@
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { BadRequestError, NotFoundError } from 'http-errors-enhanced';
@@ -13,6 +13,83 @@ import type { DatabaseSchema } from '../../../../lib/database/schema.js';
 import { resolveMastodonHandle } from '../../../mastodon/index.js';
 import { getLocation } from '../../../../lib/googlePlaces.js';
 
+export const createPlayerInputShape = {
+  player_type: z.enum(['bluesky', 'mastodon']),
+  handle: z.string(),
+  address: z.string(),
+  delivery_instructions: z.string(),
+};
+
+export type CreatePlayerInput = {
+  player_type: 'bluesky' | 'mastodon';
+  handle: string;
+  address: string;
+  delivery_instructions: string;
+};
+
+/** Normalizes the requested handle (validating bridgy fed accounts),
+ *  resolves the DID via the santa agent, records the address location, and
+ *  creates the player with regular game mode defaults. */
+export async function createAdminPlayer(
+  blueskyBridge: Pick<
+    FastifyInstance['blueskyBridge'],
+    'db' | 'playerService' | 'santaAgent'
+  >,
+  body: CreatePlayerInput
+) {
+  const { playerService, db, santaAgent } = blueskyBridge;
+  let handle = body.handle.replace(/^@/, '').trim();
+  let additionalAttributes: Partial<InsertObject<DatabaseSchema, 'player'>> =
+    {};
+  if (body.player_type === 'mastodon') {
+    const [, instance] = handle.split('@');
+    const { handle: mastodon_account, host } = await resolveMastodonHandle(
+      handle,
+      instance as string
+    );
+    const bskyHandle =
+      await playerService.lookupBridgedBlueskyHandle(mastodon_account);
+    if (bskyHandle == null) {
+      throw new Error(
+        `Unable to find Bluesky handle for account ${mastodon_account}. Have they set up bridgy fed?`
+      );
+    }
+    handle = bskyHandle;
+    additionalAttributes = {
+      mastodon_account,
+      mastodon_host: host,
+    };
+  } else if (handle.endsWith('.ap.brid.gy')) {
+    throw new BadRequestError('Mastodon handle');
+  } else {
+    handle = handle.replace(/@/g, '.');
+  }
+  const agent = await santaAgent();
+  const resolveHandleResult = await agent.resolveHandle({
+    handle,
+  });
+  const playerDid = resolveHandleResult.data.did;
+  const location = body.address
+    ? await getLocation(handle, body.address)
+    : null;
+  await playerService.createPlayer(playerDid, body.player_type, {
+    ...additionalAttributes,
+    address: body.address || null,
+    address_location: location ? JSON.stringify(location) : null,
+    delivery_instructions: body.delivery_instructions || null,
+  });
+  // Don't integrate this into the above create because the signup complete
+  // trigger only fires on an update
+  await playerService.patchPlayer(playerDid, {
+    game_mode: 'Regular',
+    max_giftees: 1,
+  });
+
+  return await baseAdminPlayerQuery(db)
+    .where('did', '=', playerDid)
+    .executeTakeFirst();
+}
+
 export const player: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
 
@@ -26,67 +103,14 @@ export const player: FastifyPluginAsync = async (rawApp) => {
     '/',
     {
       schema: {
-        body: z.object({
-          player_type: z.enum(['bluesky', 'mastodon']),
-          handle: z.string(),
-          address: z.string(),
-          delivery_instructions: z.string(),
-        }),
+        body: z.object(createPlayerInputShape),
       },
     },
     async function handler(request, reply) {
-      const { playerService, db, santaAgent } = app.blueskyBridge;
-      let handle = request.body.handle.replace(/^@/, '').trim();
-      let additionalAttributes: Partial<
-        InsertObject<DatabaseSchema, 'player'>
-      > = {};
-      if (request.body.player_type === 'mastodon') {
-        const [, instance] = handle.split('@');
-        const { handle: mastodon_account, host } = await resolveMastodonHandle(
-          handle,
-          instance as string
-        );
-        const bskyHandle =
-          await playerService.lookupBridgedBlueskyHandle(mastodon_account);
-        if (bskyHandle == null) {
-          throw new Error(
-            `Unable to find Bluesky handle for account ${mastodon_account}. Have they set up bridgy fed?`
-          );
-        }
-        handle = bskyHandle;
-        additionalAttributes = {
-          mastodon_account,
-          mastodon_host: host,
-        };
-      } else if (handle.endsWith('.ap.brid.gy')) {
-        throw new BadRequestError('Mastodon handle');
-      } else {
-        handle = handle.replace(/@/g, '.');
-      }
-      const agent = await santaAgent();
-      const resolveHandleResult = await agent.resolveHandle({
-        handle,
-      });
-      const playerDid = resolveHandleResult.data.did;
-      const location = request.body.address
-        ? await getLocation(handle, request.body.address)
-        : null;
-      await playerService.createPlayer(playerDid, request.body.player_type, {
-        ...additionalAttributes,
-        address: request.body.address || null,
-        address_location: location ? JSON.stringify(location) : null,
-        delivery_instructions: request.body.delivery_instructions || null,
-      });
-      // Don't integrate this into the above create because the signup complete
-      // trigger only fires on an update
-      await playerService.patchPlayer(playerDid, {
-        game_mode: 'Regular',
-        max_giftees: 1,
-      });
-
-      const adminPlayer = await baseAdminPlayerQuery(db)
-        .where('did', '=', playerDid)
-        .executeTakeFirst();
+      const adminPlayer = await createAdminPlayer(
+        app.blueskyBridge,
+        request.body
+      );
       return reply.view('common/server-events', {
         playerEvents: [
           {
