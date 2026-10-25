@@ -84,6 +84,7 @@ const main = async () => {
   });
 
   const nudgeSender = new NudgeSender(db, robotAgent);
+  await nudgeSender.init();
   const dmSender = new DmSender(
     db,
     santaAgent,

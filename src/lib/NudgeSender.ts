@@ -14,11 +14,9 @@ export class NudgeSender {
   constructor(
     private readonly db: Database,
     private readonly robotAgent: () => Promise<Agent>
-  ) {
-    this.init();
-  }
+  ) {}
 
-  private async init() {
+  async init() {
     const settings = await this.db
       .selectFrom('settings')
       .select(['nudge_rate', 'send_messages'])
