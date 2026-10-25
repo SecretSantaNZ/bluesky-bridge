@@ -7,6 +7,8 @@
     "build": "run-s build:server build:client",
     "build:server": "rm -rf ./dist && tsc",
     "build:client": "node build-client.mjs build",
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix src",
     "start": "run-p start:server start:client",
     "start:server": "nodemon --watch 'src/**' --ext 'ts' --exec 'tsx src/server.ts'",
     "start:client": "node build-client.mjs watch",
