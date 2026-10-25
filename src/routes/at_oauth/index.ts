@@ -18,6 +18,109 @@ import type { InsertObject } from 'kysely';
 import { BadRequestError, UnauthorizedError } from 'http-errors-enhanced';
 import { unauthenticatedAgent } from '../../bluesky.js';
 import { tz, TZDate } from '@date-fns/tz';
+import type { Database } from '../../lib/database/index.js';
+import { addHours as addHoursFn } from 'date-fns';
+
+const OTP_ATTEMPT_LIMIT = 3;
+const SESSION_MAX_AGE_HOURS = 12;
+
+/** Normalizes a Bluesky handle: strips leading @, lower-cases, converts
+ *  nested @ separators to dots, and assumes a single-label handle is on
+ *  .bsky.social. */
+export function normalizeBlueskyHandle(rawHandle: string): string {
+  let handle = rawHandle
+    .replace(/^@/, '')
+    .replace(/@/g, '.')
+    .trim()
+    .toLowerCase();
+  if (!handle.includes('.')) {
+    handle += '.bsky.social';
+  }
+  return handle;
+}
+
+/** Marks an otp_login as consumed, bumping its attempt counter. Only rows
+ *  that are unexpired and below the attempt limit are returned. */
+export const consumeOtpLogin = async (db: Database, key: string) =>
+  await db
+    .updateTable('otp_login')
+    .set((eb) => ({
+      attempts: eb('attempts', '+', 1),
+    }))
+    .where('key', '=', key)
+    .where('expires', '>', new Date().toISOString())
+    .where('attempts', '<', OTP_ATTEMPT_LIMIT)
+    .returningAll()
+    .executeTakeFirst();
+
+/** Constant-time comparison of the requested login code against the stored
+ *  code, tolerating codes shorter than 6 digits by zero-padding. */
+export function verifyLoginCode(
+  requestedCode: string,
+  expectedCode: string
+): boolean {
+  const codeBuffer = Buffer.from(
+    (requestedCode + '000000').substring(0, 6),
+    'utf8'
+  );
+  const expectedCodeBuffer = Buffer.from(expectedCode, 'utf-8');
+  return timingSafeEqual(codeBuffer, expectedCodeBuffer);
+}
+
+/** Signups open 24 hours after the configured date, evaluated in the
+ *  Pacific/Auckland timezone. */
+export function getSignupsOpenDate(settings: { signups_open_date: string }) {
+  return addHoursFn(
+    parseISO(settings.signups_open_date, {
+      in: tz('Pacific/Auckland'),
+    }),
+    24
+  );
+}
+
+export function signupsNotYetOpen(
+  settings: { signups_open_date: string },
+  now = new Date()
+) {
+  return isBefore(now, getSignupsOpenDate(settings));
+}
+
+/** A session must be renewed after 12 hours. */
+export function isSessionExpired(startedAt: string, now = new Date()) {
+  return isBefore(startedAt, addHours(now, -SESSION_MAX_AGE_HOURS));
+}
+
+type SignupBridge = Pick<
+  FastifyInstance['blueskyBridge'],
+  'db' | 'playerService'
+>;
+
+/** Applies Mastodon eligibility rules and the signups gate: returns a new or
+ *  existing player, or the reason join was denied. */
+export async function getOrCreatePlayer(
+  bridge: SignupBridge,
+  did: string,
+  player_type: 'bluesky' | 'mastodon',
+  attributes: Partial<InsertObject<DatabaseSchema, 'player'>>
+): Promise<{
+  player?: Player;
+  denied?: 'mastodon-disabled' | 'signups-closed';
+}> {
+  const { db, playerService } = bridge;
+  const settings = await db
+    .selectFrom('settings')
+    .selectAll()
+    .executeTakeFirstOrThrow();
+  if (player_type === 'mastodon' && !settings.mastodon_players) {
+    return { denied: 'mastodon-disabled' };
+  }
+  if (settings.signups_open || playerService.ensureElfDids.has(did)) {
+    return {
+      player: await playerService.createPlayer(did, player_type, attributes),
+    };
+  }
+  return { player: await playerService.getPlayer(did) };
+}
 
 async function startAtOauth(
   request: FastifyRequest,
@@ -31,14 +134,7 @@ async function startAtOauth(
   let returnUrl = '/';
   try {
     const client = blueskyBridge.atOauthClient;
-    let handle = rawHandle
-      .replace(/^@/, '')
-      .replace(/@/g, '.')
-      .trim()
-      .toLowerCase();
-    if (!handle.includes('.')) {
-      handle += '.bsky.social';
-    }
+    const handle = normalizeBlueskyHandle(rawHandle);
     const fullPerms = blueskyBridge.fullScopeHandles.has(handle.toLowerCase());
 
     const { subject: requestId, data } =
@@ -157,16 +253,16 @@ export async function finishLogin(
       .selectAll()
       .executeTakeFirstOrThrow();
 
-    if (player_type === 'mastodon' && !settings.mastodon_players) {
+    const { player: playerResult, denied } = await getOrCreatePlayer(
+      { db, playerService },
+      did,
+      player_type,
+      attributes
+    );
+    if (denied === 'mastodon-disabled') {
       throw new BadRequestError('Mastodon players are not allowed');
     }
-
-    let player: Player | undefined;
-    if (settings.signups_open || playerService.ensureElfDids.has(did)) {
-      player = await playerService.createPlayer(did, player_type, attributes);
-    } else {
-      player = await playerService.getPlayer(did);
-    }
+    const player = playerResult;
     const admin = player?.admin ? true : undefined;
     if (player == null) {
       const didDoc = await didResolver.resolve(did);
@@ -175,15 +271,8 @@ export async function finishLogin(
         ''
       );
 
-      const now = new TZDate(new Date(), 'Pacific/Auckland');
-      const signupsOpenDate = addHours(
-        parseISO(settings.signups_open_date, {
-          in: tz('Pacific/Auckland'),
-        }),
-        24
-      );
       return reply.view(
-        isBefore(now, signupsOpenDate)
+        signupsNotYetOpen(settings, new TZDate(new Date(), 'Pacific/Auckland'))
           ? 'player/signups-not-open'
           : 'player/signups-closed',
         {
@@ -301,25 +390,14 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function (request, reply) {
-      const result = await this.blueskyBridge.db
-        .updateTable('otp_login')
-        .set((eb) => ({
-          attempts: eb('attempts', '+', 1),
-        }))
-        .where('key', '=', request.body.otpKey)
-        .where('expires', '>', new Date().toISOString())
-        .where('attempts', '<', 3)
-        .returningAll()
-        .executeTakeFirst();
+      const result = await consumeOtpLogin(
+        this.blueskyBridge.db,
+        request.body.otpKey
+      );
       if (result == null) {
         throw new Error('Expired Key');
       }
-      const codeBuffer = Buffer.from(
-        (request.body.code + '000000').substring(0, 6),
-        'utf8'
-      );
-      const expectedCodeBuffer = Buffer.from(result.code, 'utf-8');
-      if (!timingSafeEqual(codeBuffer, expectedCodeBuffer)) {
+      if (!verifyLoginCode(request.body.code, result.code)) {
         throw new Error('Invalid code');
       }
 
@@ -442,8 +520,8 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
     async function (request, reply) {
       const startedAt = request.tokenData?.startedAt as string;
       const handle = request.tokenData?.handle as string;
-      // If session is over 12 hours old, clear cookie and refresh to require new login
-      if (isBefore(startedAt, addHours(new Date(), -12))) {
+      // If session is too old, clear cookie and refresh to require new login
+      if (isSessionExpired(startedAt)) {
         return reply
           .clearCookie('session')
           .code(401)
