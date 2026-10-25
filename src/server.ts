@@ -91,6 +91,7 @@ const main = async () => {
     santaMastodonHandle,
     santaMastodonHost
   );
+  await dmSender.init();
   const playerService = new PlayerService(
     db,
     santaAgent,

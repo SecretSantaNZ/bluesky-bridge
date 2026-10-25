@@ -557,11 +557,9 @@ export class DmSender {
     private readonly santaAgent: () => Promise<Agent>,
     public readonly santaMastodonHandle: string,
     public readonly santaMastodonHost: string
-  ) {
-    this.init();
-  }
+  ) {}
 
-  private async init() {
+  async init() {
     const settings = await this.db
       .selectFrom('settings')
       .select(['dm_rate', 'send_messages'])
