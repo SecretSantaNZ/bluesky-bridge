@@ -10,6 +10,7 @@ import {
   queryTrackingWithMatch,
 } from '../../lib/database/index.js';
 import type { SelectedSettings } from '../../lib/settings.js';
+import type { Player } from '../../lib/PlayerService.js';
 import { optOut } from './opt-out.js';
 import { optIn } from './opt-in.js';
 import { address } from './address.js';
@@ -17,6 +18,58 @@ import { gameMode } from './game-mode.js';
 import { tracking } from './tracking.js';
 import { nudge } from './nudge.js';
 import { badge } from './badge.js';
+
+export type ForcedView = {
+  view:
+    | 'player/booted-out'
+    | 'player/opted-out'
+    | 'player/address'
+    | 'player/game-mode';
+  clearSession: boolean;
+};
+
+/** GET requests force players to a specific view until their profile is
+ *  complete: booted players are locked out, then opted-out status, address
+ *  collection (except for Santa Only players), and finally game mode choice. */
+export function forcedViewForPlayer(
+  player: Player,
+  method: string
+): ForcedView | null {
+  if (method !== 'GET') {
+    return null;
+  }
+  if (player.booted) {
+    return { view: 'player/booted-out', clearSession: !player.admin };
+  }
+  if (player.opted_out) {
+    return { view: 'player/opted-out', clearSession: false };
+  }
+  const hasAddress = Boolean(player.address && player.address.trim());
+  if (!hasAddress && player.game_mode !== 'Santa Only') {
+    return { view: 'player/address', clearSession: false };
+  }
+  if (!player.game_mode) {
+    return { view: 'player/game-mode', clearSession: false };
+  }
+  return null;
+}
+
+/** Builds the badge list shown on the player home: the sent-present badge
+ *  once a gift has actually been sent, filtered to exclude the current-game
+ *  badge and badges without images. */
+export function assemblePlayerBadges(
+  sentBadge: { id: number; image_url?: string | null } | undefined | null,
+  giftsIveSentCount: number,
+  playerBadges: Array<{ id: number; image_url: string | null | undefined }>,
+  settings: { current_game_badge_id: number | null }
+) {
+  return [
+    ...(sentBadge && giftsIveSentCount > 0 ? [sentBadge] : []),
+    ...playerBadges,
+  ].filter(
+    (badge) => badge.id !== settings.current_game_badge_id && badge.image_url
+  );
+}
 
 const loadPlayerHomeLocals = async (
   {
@@ -129,11 +182,11 @@ export const renderPlayerHome = async (
     ]);
 
   const settings = reply.locals?.settings as SelectedSettings;
-  const badges = [
-    ...(sentBadge && giftsIveSent.length > 0 ? [sentBadge] : []),
-    ...playerBadges,
-  ].filter(
-    (badge) => badge.id !== settings.current_game_badge_id && badge.image_url
+  const badges = assemblePlayerBadges(
+    sentBadge,
+    giftsIveSent.length,
+    playerBadges,
+    settings
   );
   return reply.view(view, {
     giftees,
@@ -160,33 +213,27 @@ export const playerHome: FastifyPluginAsync = async (app) => {
     const player = playerHomeLocals.player;
 
     if (request.method === 'GET') {
-      if (player.booted) {
-        if (!player.admin) {
+      const forced = forcedViewForPlayer(player, request.method);
+      if (forced) {
+        if (forced.clearSession) {
           reply.clearCookie('session');
         }
-        return reply.view('player/booted-out');
-      }
-      if (player.opted_out) {
-        reply.locals = {
-          ...reply.locals,
-        };
-        return reply.view('player/opted-out');
-      }
-      const hasAddress = Boolean(player.address && player.address.trim());
-      if (!hasAddress && player.game_mode !== 'Santa Only') {
-        return reply.view('player/address', {
-          CLIENT_GOOGLE_API_KEY: process.env.CLIENT_GOOGLE_API_KEY,
-          hideClose: true,
-        });
-      }
-      if (!player.game_mode) {
-        return reply.view('player/game-mode', {
-          hideClose: true,
-          gameModeOptions: [
-            { id: 'Regular', text: 'Regular' },
-            { id: 'Super Santa', text: 'Super Santa' },
-          ],
-        });
+        if (forced.view === 'player/address') {
+          return reply.view(forced.view, {
+            CLIENT_GOOGLE_API_KEY: process.env.CLIENT_GOOGLE_API_KEY,
+            hideClose: true,
+          });
+        }
+        if (forced.view === 'player/game-mode') {
+          return reply.view(forced.view, {
+            hideClose: true,
+            gameModeOptions: [
+              { id: 'Regular', text: 'Regular' },
+              { id: 'Super Santa', text: 'Super Santa' },
+            ],
+          });
+        }
+        return reply.view(forced.view);
       }
     }
   });
