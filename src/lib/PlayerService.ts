@@ -1,18 +1,21 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import newrelic from 'newrelic';
-import {
-  Agent,
-  AppBskyGraphDefs,
-  type AppBskyGraphGetRelationships,
-} from '@atproto/api';
+import { Agent, AppBskyGraphDefs } from '@atproto/api';
 import { unauthenticatedAgent } from '../bluesky.js';
 import { queryFullMatch, type Database } from './database/index.js';
-import fetch from 'node-fetch';
-import { InternalServerError } from 'http-errors-enhanced';
-import { safeFetchWrap } from '@atproto-labs/fetch-node';
-import wretch from 'wretch';
-import FormDataAddon from 'wretch/addons/formData';
-import * as cheerio from 'cheerio';
+import { fetchRelationships } from './bluesky.js';
+import { postWebhook } from './webhooks.js';
+import {
+  fetchMastodonRelationships,
+  lookupMastodonAccount,
+  followMastodonAccount,
+} from './mastodon.js';
+import {
+  fetchBridgedMastodonPage,
+  fetchBridgedBlueskyPage,
+  parseBridgedMastodonHandle,
+  parseBridgedBlueskyHandle,
+} from './bridgyfed.js';
 
 import type {
   DatabaseSchema,
@@ -22,7 +25,6 @@ import type {
 import ms from 'ms';
 import type { InsertObject, SelectType } from 'kysely';
 import type { DmSender } from './DmSender.js';
-import { z } from 'zod';
 import { addDays, addHours } from 'date-fns';
 import type { ProfileViewDetailed } from '@atproto/api/dist/client/types/app/bsky/actor/defs.js';
 
@@ -56,15 +58,6 @@ type MastodonRelationshipDetails = Pick<
   | 'mastodon_follow_last_checked'
 >;
 
-const w = wretch()
-  .polyfills({
-    fetch: safeFetchWrap(),
-  })
-  .addon(FormDataAddon)
-  .options({
-    redirect: 'error',
-  });
-
 const dbPlayerToPlayer = (dbPlayer: SelectedPlayer): Player => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { following_santa_uri, santa_following_uri, id, ...rest } = dbPlayer;
@@ -79,37 +72,6 @@ const dbPlayerToPlayer = (dbPlayer: SelectedPlayer): Player => {
   };
 };
 
-const fetchRelationships = async (
-  santaDid: string,
-  playerDid: string
-): Promise<AppBskyGraphGetRelationships.OutputSchema> => {
-  if (santaDid === playerDid) {
-    return {
-      relationships: [
-        {
-          $type: 'app.bsky.graph.defs#relationship',
-          did: playerDid,
-          followedBy: 'self',
-          following: 'self',
-        },
-      ],
-    };
-  }
-  const uri = new URL(
-    'https://public.api.bsky.app/xrpc/app.bsky.graph.getRelationships'
-  );
-  uri.searchParams.set('actor', santaDid);
-  uri.searchParams.set('others', playerDid);
-  uri.searchParams.set('cacheBust', new Date().toISOString());
-  const result = await fetch(uri.toString());
-  if (!result.ok) {
-    throw new InternalServerError(
-      `Unable to fetch relationship [${result.status}]: ${await result.text()}`
-    );
-  }
-  return (await result.json()) as AppBskyGraphGetRelationships.OutputSchema;
-};
-
 type WebhookNotifier<T> = (body: T) => Promise<void>;
 
 const buildWebhookNotifier = <T>(
@@ -121,14 +83,7 @@ const buildWebhookNotifier = <T>(
         console.log(`Notify ${description}: ${JSON.stringify(body)}`);
       }
     : async (body: T) => {
-        const result = await fetch(hookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body),
-        });
-        await result.text();
+        await postWebhook(hookUrl, body);
         console.log(`Notify ${description}: ${JSON.stringify(body)}`);
       };
 
@@ -179,11 +134,9 @@ export class PlayerService {
       process.env.OPTED_OUT_WEBHOOK,
       'opted out'
     );
-
-    this.init();
   }
 
-  private async init() {
+  async init() {
     const settings = await this.db
       .selectFrom('settings')
       .select('auto_follow')
@@ -268,16 +221,11 @@ export class PlayerService {
       } of mastodonPlayersToFollow) {
         try {
           console.log(`Following @${mastodon_account} (${did})`);
-          await w
-            .auth(`Bearer ${santaToken.token}`)
-            .url(
-              new URL(
-                `/api/v1/accounts/${mastodon_id}/follow`,
-                `https://${this.santaMastodonHost}`
-              ).href
-            )
-            .post()
-            .json();
+          await followMastodonAccount(
+            this.santaMastodonHost,
+            santaToken.token,
+            mastodon_id as string
+          );
 
           newrelic.recordCustomEvent('SecretSantaSantaAutoFollow', {
             playerDid: did,
@@ -875,31 +823,11 @@ export class PlayerService {
       return {};
     }
 
-    const relationshipsUrl = new URL(
-      '/api/v1/accounts/relationships',
-      `https://${this.santaMastodonHost}`
+    const relationships = await fetchMastodonRelationships(
+      this.santaMastodonHost,
+      santaToken.token,
+      mastodonIds
     );
-    for (const mastodon_id of mastodonIds) {
-      relationshipsUrl.searchParams.append('id[]', mastodon_id);
-    }
-
-    const relationships = z
-      .array(
-        z.object({
-          id: z.string(),
-          following: z.boolean(),
-          followed_by: z.boolean(),
-          requested: z.boolean(),
-        })
-      )
-      .parse(
-        await w
-          .headers({
-            Authorization: `Bearer ${santaToken.token}`,
-          })
-          .get(relationshipsUrl.href)
-          .json()
-      );
 
     const now = new Date().toISOString();
     return Object.fromEntries(
@@ -931,14 +859,10 @@ export class PlayerService {
         mastodon_follow_last_checked: '9999-12-30T23:59:59.999Z',
       };
     } else {
-      const lookupUrl = new URL(
-        '/api/v1/accounts/lookup',
-        `https://${this.santaMastodonHost}`
+      const { id: mastodon_id } = await lookupMastodonAccount(
+        this.santaMastodonHost,
+        mastodon_account
       );
-      lookupUrl.searchParams.set('acct', mastodon_account);
-      const { id: mastodon_id } = z
-        .object({ id: z.string() })
-        .parse(await w.get(lookupUrl.href).json());
 
       const relationships = await this.queryMastodonRelationships(mastodon_id);
       const relationship = relationships[mastodon_id];
@@ -955,32 +879,22 @@ export class PlayerService {
   }
 
   async lookupBridgedMastodonHandle(blueskyHandle: string) {
-    const html = await w
-      .get(`https://fed.brid.gy/bsky/${blueskyHandle}`)
-      .notFound(() => null)
-      .text();
+    const html = await fetchBridgedMastodonPage(blueskyHandle);
 
     if (html == null) {
       return null;
     }
 
-    const doc = cheerio.load(html);
-    const mastodonHandle = doc('a[rel="me"]').eq(1).text().trim();
-    return mastodonHandle.replace(/^@/, '');
+    return parseBridgedMastodonHandle(html);
   }
 
   async lookupBridgedBlueskyHandle(mastodonHandle: string) {
-    const html = await w
-      .get(`https://fed.brid.gy/ap/@${mastodonHandle}`)
-      .notFound(() => null)
-      .text();
+    const html = await fetchBridgedBlueskyPage(mastodonHandle);
 
     if (html == null) {
       return null;
     }
 
-    const doc = cheerio.load(html);
-    const blueskyHandle = doc('a[rel="me"]').eq(1).text().trim();
-    return blueskyHandle;
+    return parseBridgedBlueskyHandle(html);
   }
 }

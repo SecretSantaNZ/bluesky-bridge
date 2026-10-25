@@ -101,6 +101,7 @@ const main = async () => {
     santaMastodonHandle,
     santaMastodonHost
   );
+  await playerService.init();
   const subscription = new FirehoseSubscription(
     db,
     playerService,
