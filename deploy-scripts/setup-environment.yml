@@ -11,13 +11,18 @@
       ansible.builtin.user:
         name: '{{ service_name }}'
     - name: Install node
-      ansible.builtin.apt:
-        name: nodejs
-        state: present
-    - name: Install npm
-      ansible.builtin.apt:
-        name: npm
-        state: present
+      ansible.builtin.import_role:
+        name: ansible-nodejs-role
+      vars:
+        nodejs_version: 22.x
+    # - name: Install node
+    #   ansible.builtin.apt:
+    #     name: nodejs
+    #     state: present
+    # - name: Install npm
+    #   ansible.builtin.apt:
+    #     name: npm
+    #     state: present
     - name: Install sqlite3
       ansible.builtin.apt:
         name: sqlite3
@@ -34,7 +39,7 @@
           SERVER_GOOGLE_API_KEY={{ server_google_api_key }}
           CLIENT_GOOGLE_API_KEY={{ client_google_api_key }}
         service_credentials_path: /home/{{ service_name }}/{{ service_name }}-creds.cred
-      no_log: true
+      # no_log: true
     - name: Set service credentials fact hashs
       ansible.builtin.set_fact:
         service_credentials_hash: "{{ service_credentials | hash('sha256') }}"
