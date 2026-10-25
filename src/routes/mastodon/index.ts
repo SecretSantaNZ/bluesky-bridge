@@ -85,18 +85,28 @@ const followOneRedirect = <T, C>(
     .error(308, callback);
 };
 
+export type WebfingerResult = z.infer<typeof webfingerSchema>;
+
+export type FetchWebfinger = (url: string) => Promise<WebfingerResult>;
+
+export const fetchWebfinger: FetchWebfinger = async (url) => {
+  return webfingerSchema.parse(await followOneRedirect(w.get(url)).json());
+};
+
+/** Resolves a Mastodon handle to its canonical account/host by following the
+ *  'self' link in webfinger. If the self link points to a different host the
+ *  lookup is repeated there until no resolutions remain. */
 export async function resolveMastodonHandle(
   handle: string,
   host: string,
-  resolvesRemaining = 1
+  resolvesRemaining = 1,
+  fetch: FetchWebfinger = fetchWebfinger
 ) {
   const webfingerUrl = new URL('/.well-known/webfinger', `https://${host}`);
   const resource = `acct:${handle}`;
   webfingerUrl.searchParams.set('resource', resource);
 
-  const webfingerResult = webfingerSchema.parse(
-    await followOneRedirect(w.get(webfingerUrl.href)).json()
-  );
+  const webfingerResult = await fetch(webfingerUrl.href);
   if (webfingerResult.subject.toLowerCase() !== resource.toLowerCase()) {
     throw new Error(
       `Invalid subject, expected ${resource} but was ${webfingerResult.subject}`
@@ -121,7 +131,12 @@ export async function resolveMastodonHandle(
   if (resolvesRemaining <= 0) {
     throw new Error(`Too many resolves for ${resource}`);
   }
-  return resolveMastodonHandle(handle, selfUrl.host);
+  return resolveMastodonHandle(
+    handle,
+    selfUrl.host,
+    resolvesRemaining - 1,
+    fetch
+  );
 }
 
 export async function startMastodonOauth(
