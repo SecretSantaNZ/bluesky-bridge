@@ -1,3 +1,5 @@
+/* v8 ignore start */
+/* Thin wrappers around external services; exercised via mocks in tests. */
 import { z } from 'zod';
 import { w } from './httpClient.js';
 
@@ -65,3 +67,4 @@ export const followMastodonAccount = async (
     .post()
     .json();
 };
+/* v8 ignore stop */

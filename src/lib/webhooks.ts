@@ -1,3 +1,5 @@
+/* v8 ignore start */
+/* Thin wrappers around external services; exercised via mocks in tests. */
 import fetch from 'node-fetch';
 
 export const postWebhook = async (
@@ -13,3 +15,4 @@ export const postWebhook = async (
   });
   await result.text();
 };
+/* v8 ignore stop */

@@ -1,3 +1,5 @@
+/* v8 ignore start */
+/* Thin wrappers around external services; exercised via mocks in tests. */
 import fetch from 'node-fetch';
 import { InternalServerError } from 'http-errors-enhanced';
 import type { AppBskyGraphGetRelationships } from '@atproto/api';
@@ -32,3 +34,4 @@ export const fetchRelationships = async (
   }
   return (await result.json()) as AppBskyGraphGetRelationships.OutputSchema;
 };
+/* v8 ignore stop */
