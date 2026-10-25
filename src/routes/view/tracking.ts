@@ -8,6 +8,78 @@ import {
   NotFoundError,
 } from 'http-errors-enhanced';
 import { queryTrackingWithMatch } from '../../lib/database/tracking.js';
+import type { Database } from '../../lib/database/index.js';
+import type { Player } from '../../lib/PlayerService.js';
+
+export type TrackingInput = z.infer<typeof trackingInputSchema>;
+export const trackingInputSchema = z.object({
+  shipped_date: z.string().date(),
+  carrier: z.coerce.number(),
+  tracking_number: z.string(),
+  giftwrap_status: z.coerce.number().min(0).max(1),
+});
+
+export type TrackingResult = { badge: number } | { path: string };
+
+/** Validates and records a tracking row for one of the player's matches.
+ *  Returns the badge the santa should see for sending a present (only on
+ *  their first tracking) or the path to redirect to. */
+export async function addPlayerTracking(
+  db: Database,
+  player: Pick<Player, 'id'>,
+  did: string,
+  match_id: number,
+  input: TrackingInput
+): Promise<TrackingResult> {
+  const { shipped_date, carrier, tracking_number, giftwrap_status } = input;
+  const [match, settings, { cnt: countTracking }] = await Promise.all([
+    db
+      .selectFrom('match')
+      .selectAll()
+      .where('santa', '=', player.id)
+      .where('id', '=', match_id)
+      .executeTakeFirstOrThrow(),
+    db.selectFrom('settings').selectAll().executeTakeFirstOrThrow(),
+    db
+      .selectFrom('tracking')
+      .select(({ fn }) => [fn.countAll<number>().as('cnt')])
+      .innerJoin('match', 'match.id', 'tracking.match')
+      .where('match.santa', '=', player.id)
+      .executeTakeFirstOrThrow(),
+    db
+      .selectFrom('carrier')
+      .selectAll()
+      .where('id', '=', carrier)
+      .executeTakeFirstOrThrow(),
+  ]);
+  const trackingBadge = await db
+    .selectFrom('badge')
+    .selectAll()
+    .where('id', '=', settings.sent_present_badge_id)
+    .executeTakeFirst();
+  if (match == null || match.tracking_count >= 5) {
+    throw new BadRequestError(`Already 5 tracking for ${match_id}`);
+  }
+  await db
+    .insertInto('tracking')
+    .values({
+      carrier,
+      shipped_date,
+      tracking_number,
+      giftwrap_status,
+      missing: null,
+      match: match_id,
+      tracking_status: 'queued',
+      created_at: new Date().toISOString(),
+      created_by: did,
+    })
+    .executeTakeFirstOrThrow();
+
+  if (trackingBadge != null && countTracking === 0) {
+    return { badge: trackingBadge.id };
+  }
+  return { path: '/' };
+}
 
 export const tracking: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -63,61 +135,23 @@ export const tracking: FastifyPluginAsync = async (rawApp) => {
     },
     async function handler(request, reply) {
       const { match_id } = request.params;
-      const { shipped_date, carrier, tracking_number, giftwrap_status } =
-        request.body;
       const did = request.tokenSubject as string;
       const { db, playerService } = this.blueskyBridge;
       const player = await playerService.getPlayer(did);
       if (player == null) {
         throw new InternalServerError(`Player not found ${did}`);
       }
-      const [match, settings, { cnt: countTracking }] = await Promise.all([
-        db
-          .selectFrom('match')
-          .selectAll()
-          .where('santa', '=', player.id)
-          .where('id', '=', match_id)
-          .executeTakeFirstOrThrow(),
-        db.selectFrom('settings').selectAll().executeTakeFirstOrThrow(),
-        db
-          .selectFrom('tracking')
-          .select(({ fn }) => [fn.countAll<number>().as('cnt')])
-          .innerJoin('match', 'match.id', 'tracking.match')
-          .where('match.santa', '=', player.id)
-          .executeTakeFirstOrThrow(),
-        db
-          .selectFrom('carrier')
-          .selectAll()
-          .where('id', '=', carrier)
-          .executeTakeFirstOrThrow(),
-      ]);
-      const trackingBadge = await db
-        .selectFrom('badge')
-        .selectAll()
-        .where('id', '=', settings.sent_present_badge_id)
-        .executeTakeFirst();
-      if (match == null || match.tracking_count >= 5) {
-        throw new BadRequestError(`Already 5 tracking for ${match_id}`);
+      const result = await addPlayerTracking(
+        db,
+        player,
+        did,
+        match_id,
+        request.body
+      );
+      if ('badge' in result) {
+        return reply.redirect(`/badge/${result.badge}`, 303);
       }
-      await db
-        .insertInto('tracking')
-        .values({
-          carrier,
-          shipped_date,
-          tracking_number,
-          giftwrap_status,
-          missing: null,
-          match: match_id,
-          tracking_status: 'queued',
-          created_at: new Date().toISOString(),
-          created_by: did,
-        })
-        .executeTakeFirstOrThrow();
-
-      if (trackingBadge != null && countTracking === 0) {
-        return reply.redirect(`/badge/${trackingBadge.id}`, 303);
-      }
-      return reply.redirect('/', 303);
+      return reply.redirect(result.path, 303);
     }
   );
 
