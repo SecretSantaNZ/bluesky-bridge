@@ -2,7 +2,8 @@ import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { baseAdminPlayerQuery } from '../manage-players.js';
-import { BadRequestError, NotFoundError } from 'http-errors-enhanced';
+import { NotFoundError } from 'http-errors-enhanced';
+import { resolveMaxGiftees } from '../../../../lib/game-mode.js';
 
 export const gameMode: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -82,17 +83,7 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
       }
       const { game_mode, max_giftees } = request.body;
       const { return_to, ...rest } = request.body;
-      if (game_mode === 'Super Santa' && (!max_giftees || max_giftees < 2)) {
-        throw new BadRequestError(
-          'Must opt in to at least 2 giftees if super santa'
-        );
-      }
-      let defaultedMaxGiftees = max_giftees;
-      if (game_mode === 'Regular') {
-        defaultedMaxGiftees = 1;
-      } else if (game_mode === 'Giftee Only') {
-        defaultedMaxGiftees = 0;
-      }
+      const defaultedMaxGiftees = resolveMaxGiftees(game_mode, max_giftees);
       await playerService.patchPlayer(player.did, {
         ...rest,
         max_giftees: defaultedMaxGiftees,
