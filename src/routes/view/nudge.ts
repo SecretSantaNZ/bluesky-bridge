@@ -4,6 +4,78 @@ import z from 'zod';
 import { queryFullMatch } from '../../lib/database/match.js';
 import { BadRequestError, InternalServerError } from 'http-errors-enhanced';
 import { loadNudgeOptions } from '../../lib/database/nudge.js';
+import type { Database } from '../../lib/database/index.js';
+import type { Player } from '../../lib/PlayerService.js';
+
+export type NudgeInput = z.infer<typeof nudgeInputSchema>;
+export const nudgeInputSchema = z.object({
+  match_id: z.coerce.number(),
+  nudge_type: z.coerce.number(),
+  nudge_greeting: z.coerce.number(),
+  nudge_signoff: z.coerce.number(),
+});
+
+/** Validates the requested nudge type/greeting/signoff combination and the
+ *  per-match nudge limit, then records a queued nudge row. */
+export async function createPlayerNudge(
+  db: Database,
+  player: Pick<Player, 'id'>,
+  did: string,
+  input: NudgeInput
+): Promise<void> {
+  const { match_id, nudge_type, nudge_greeting, nudge_signoff } = input;
+  const [match] = await Promise.all([
+    db
+      .selectFrom('match')
+      .selectAll()
+      .where('santa', '=', player.id)
+      .where('id', '=', match_id)
+      .executeTakeFirstOrThrow(),
+    db
+      .selectFrom('nudge_type')
+      .selectAll()
+      .where('id', '=', nudge_type)
+      .executeTakeFirstOrThrow(),
+    db
+      .selectFrom('nudge_greeting')
+      .innerJoin(
+        'nudge_type_greeting',
+        'nudge_greeting.id',
+        'nudge_type_greeting.greeting'
+      )
+      .selectAll()
+      .where('id', '=', nudge_greeting)
+      .where('nudge_type_greeting.nudge_type', '=', nudge_type)
+      .executeTakeFirstOrThrow(),
+    db
+      .selectFrom('nudge_signoff')
+      .selectAll()
+      .innerJoin(
+        'nudge_type_signoff',
+        'nudge_signoff.id',
+        'nudge_type_signoff.signoff'
+      )
+      .selectAll()
+      .where('id', '=', nudge_signoff)
+      .where('nudge_type_signoff.nudge_type', '=', nudge_type)
+      .executeTakeFirstOrThrow(),
+  ]);
+  if (match == null || match.nudge_count >= 5) {
+    throw new BadRequestError(`Already 5 nudges for ${match_id}`);
+  }
+  await db
+    .insertInto('nudge')
+    .values({
+      nudge_type,
+      nudge_greeting,
+      nudge_signoff,
+      match: match_id,
+      nudge_status: 'queued',
+      created_at: new Date().toISOString(),
+      created_by: did,
+    })
+    .execute();
+}
 
 export const nudge: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -54,8 +126,6 @@ export const nudge: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function handler(request, reply) {
-      const { match_id, nudge_type, nudge_greeting, nudge_signoff } =
-        request.body;
       const did = request.tokenSubject as string;
       const { db, playerService } = this.blueskyBridge;
       const player = await playerService.getPlayer(did);
@@ -63,57 +133,7 @@ export const nudge: FastifyPluginAsync = async (rawApp) => {
         throw new InternalServerError(`Player not found ${did}`);
       }
 
-      const [match] = await Promise.all([
-        db
-          .selectFrom('match')
-          .selectAll()
-          .where('santa', '=', player.id)
-          .where('id', '=', match_id)
-          .executeTakeFirstOrThrow(),
-        db
-          .selectFrom('nudge_type')
-          .selectAll()
-          .where('id', '=', nudge_type)
-          .executeTakeFirstOrThrow(),
-        db
-          .selectFrom('nudge_greeting')
-          .innerJoin(
-            'nudge_type_greeting',
-            'nudge_greeting.id',
-            'nudge_type_greeting.greeting'
-          )
-          .selectAll()
-          .where('id', '=', nudge_greeting)
-          .where('nudge_type_greeting.nudge_type', '=', nudge_type)
-          .executeTakeFirstOrThrow(),
-        db
-          .selectFrom('nudge_signoff')
-          .selectAll()
-          .innerJoin(
-            'nudge_type_signoff',
-            'nudge_signoff.id',
-            'nudge_type_signoff.signoff'
-          )
-          .selectAll()
-          .where('id', '=', nudge_signoff)
-          .where('nudge_type_signoff.nudge_type', '=', nudge_type)
-          .executeTakeFirstOrThrow(),
-      ]);
-      if (match == null || match.nudge_count >= 5) {
-        throw new BadRequestError(`Already 5 nudges for ${match_id}`);
-      }
-      await db
-        .insertInto('nudge')
-        .values({
-          nudge_type,
-          nudge_greeting,
-          nudge_signoff,
-          match: match_id,
-          nudge_status: 'queued',
-          created_at: new Date().toISOString(),
-          created_by: did,
-        })
-        .execute();
+      await createPlayerNudge(db, player, did, request.body);
 
       return reply.redirect('/', 303);
     }
