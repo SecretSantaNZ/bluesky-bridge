@@ -159,3 +159,76 @@ stateDiagram
   Active --> BootedOut: elf boot out - delete player from bridge
   OptedOut --> Active: opt in - queries follow status from bridge, creates player in bridge
 ```
+
+# External interfaces & Roles
+
+## Web application
+
+The web application is the main public interface of the application and provides three levels of access:
+
+* Public - accessible without login
+* Player - accessible to all logged in users
+* Elf - accessible to users who are identified as "admin" for running the game.
+
+There are two special cases:
+* "Booted out Player" which is a player logging in who has been booted from the game by the elves. These should
+  have their session immediately terminated and see a booted out message while being able to take no actions.
+  Note that an Elf who is booted out should still see the booted out message but their session should not be
+  terminated and should be able to continue to elf functionality.
+* "Opted out Player" which is a player logging in who has opted out. These users are still only shown a "opted out"
+  screen but unlike booted out their session is not terminated. While signups are open they can opt back in but
+  that should be the only action taken
+
+### Public access
+
+Unauthenticated users (i.e. Public access) should be able to see:
+* Login / Signup screen
+* FAQ page
+* Rules page
+
+The only action they should be able to take is Login / Signup and the only data they should be able to access is:
+* Game dates from settings
+* Game hashtag from settings
+* Elf list from settings
+
+# Player access
+
+Players should be able to see  their own profile and:
+* Edit address up until they are the locked giftee of someone
+* Edit their game mode until signups close.
+
+Players with a game mode of Santa Only should never be prompted for an address
+
+Players should be able to take the following actions:
+* Enter nudges for giftees assigned to them via a match
+* Enter tracking for giftees assigned to them via a match
+* Mark a tracking for a match where they are the giftee as missing or arrived
+* Opt out
+
+Players should only be able to see:
+* Their own address / game mode
+* Address, delivery instructions, and handle for the giftee player of matches where they are santa
+* Nudges and tracking for matches where they are the santa
+* Tracking for matches where they are the santa
+* Badges assigned to that player
+
+Specifically players must not be able to access:
+* Address or any information about any player other than themselves and their giftee
+* Any details of matches where they are not the santa
+* Any information about their giftee other than listed above
+* Any information about their santa other than the tracking listed above
+
+# Elf access
+
+Elves can:
+* see and edit details of all players and their game modes
+* enter nudges and tracking on behalf of players
+* opt out or boot out players as well as reactivating oped out or booted out players
+* change settings, assign badges etc
+
+
+## Bluesky Feeds
+
+In addition to the web application there are three bluesky feeds provided under the `/xrpc/` path:
+* gifteeFeed - should only return posts to players with an associated giftee and only the posts of their giftee
+* hashtagFeed and hashtagWithRepliesFeed - should be visible to any bluesky user, should include posts using various hashtags but exclude posts by booted out players
