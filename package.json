@@ -7,6 +7,7 @@
     "build": "run-s build:server build:client",
     "build:server": "rm -rf ./dist && tsc",
     "build:client": "node build-client.mjs build",
+    "prelint": "tsc --noEmit",
     "lint": "eslint src",
     "lint:fix": "eslint --fix src",
     "start": "run-p start:server start:client",
