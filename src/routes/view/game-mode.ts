@@ -2,6 +2,36 @@ import type { FastifyPluginAsync } from 'fastify';
 import { BadRequestError, NotFoundError } from 'http-errors-enhanced';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { resolveMaxGiftees } from '../../lib/game-mode.js';
+import type { Database } from '../../lib/database/index.js';
+import type { PlayerService } from '../../lib/PlayerService.js';
+
+/** Updates the logged in player's game mode after checking signups are still
+ *  open and normalizing the giftee limit; returns the updated player or
+ *  undefined when the player could not be found. */
+export async function updateGifteePreferences(
+  db: Database,
+  playerService: PlayerService,
+  playerDid: string,
+  body: { game_mode: 'Regular' | 'Super Santa'; max_giftees: number }
+): Promise<Awaited<ReturnType<PlayerService['patchPlayer']>> | undefined> {
+  const settings = await db
+    .selectFrom('settings')
+    .selectAll()
+    .executeTakeFirstOrThrow();
+  if (!settings.signups_open) {
+    throw new BadRequestError('Signups are closed');
+  }
+  const defaultedMaxGiftees = resolveMaxGiftees(
+    body.game_mode,
+    body.max_giftees
+  );
+  const player = await playerService.patchPlayer(playerDid, {
+    ...body,
+    max_giftees: defaultedMaxGiftees,
+  });
+  return player ?? undefined;
+}
 
 export const gameMode: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
@@ -26,28 +56,13 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
     },
     async function handler(request, reply) {
       const playerDid = request.tokenSubject as string;
-      const { game_mode, max_giftees } = request.body;
-      if (game_mode === 'Super Santa' && (!max_giftees || max_giftees < 2)) {
-        throw new BadRequestError(
-          'Must opt in to at least 2 giftees if super santa'
-        );
-      }
-      const settings = await this.blueskyBridge.db
-        .selectFrom('settings')
-        .selectAll()
-        .executeTakeFirstOrThrow();
-      if (!settings.signups_open) {
-        throw new BadRequestError('Signups are closed');
-      }
-      let defaultedMaxGiftees = max_giftees;
-      if (game_mode === 'Regular') {
-        defaultedMaxGiftees = 1;
-      }
-      const { playerService } = app.blueskyBridge;
-      const player = await playerService.patchPlayer(playerDid, {
-        ...request.body,
-        max_giftees: defaultedMaxGiftees,
-      });
+      const { db, playerService } = app.blueskyBridge;
+      const player = await updateGifteePreferences(
+        db,
+        playerService,
+        playerDid,
+        request.body
+      );
       if (player == null) {
         throw new NotFoundError();
       }
