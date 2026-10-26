@@ -47,13 +47,17 @@ export const prepareSnapshotPage = async (
 };
 
 /**
- * Locators for regions whose content is rendered relative to the clock
- * (`x-datetime` uses date-fns formatRelative client-side). Pass these to
- * `snapshot()`'s mask option instead of pinning the clock (page.clock's
- * fixed time provably causes 1x1 viewport flickers that flip the app's
- * mobile-width detection mid-capture).
+ * The "players available to santa" sidebar rows are ordered randomly on
+ * every render (loadPlayersWhoCanHaveMoreGifees breaks ties with
+ * random()), and at narrow widths long handles wrap differently depending
+ * on where they land. Hide the rows for snapshot stability; the heading,
+ * row count and overflow text remain.
  */
-export const datetimeRegions = (page: Page) => page.locator('[x-datetime]');
+export const hideRandomOrderRows = async (page: Page) => {
+  await page.addStyleTag({
+    content: '.players-available-row { display: none !important; }',
+  });
+};
 
 /** Capture a named snapshot. Waits for Alpine to initialise first (it strips
  *  x-cloak from #page-body) so x-show/x-datetime state is settled. Modals

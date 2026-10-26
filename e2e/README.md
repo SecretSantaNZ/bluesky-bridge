@@ -53,8 +53,20 @@ the hashed bundle names (`e2e/fixtures.ts` reads `.env.client.prod` at boot).
   `e2e/fixtures.ts` (Google Places) or defused (bridgy-fed lookups return
   null); the firehose subscriptions are never started.
 
-## Static test users (`e2e/helpers/users.ts`)
+## Visual snapshots (`e2e/visual-*.spec.ts`)
 
+Committed per-screen baselines live in `e2e/__screenshots__/` (Linux/Chromium
+only -- on another platform regenerate with
+`npx playwright test <file> --update-snapshots`). Determinism helpers live in
+`e2e/helpers/visual.ts`: placeholder SVGs for external assets, pinned
+viewports, and an Alpine-ready gate before every capture. Two known traps are
+documented there: `page.clock.setFixedTime` provably causes 1x1 viewport
+flickers (which flip the app's mobile-width detection mid-capture), so
+relative datetimes are masked with `[x-datetime]` locators instead, and the
+"players available to santa" sidebar is randomly ordered on every render, so
+its rows are hidden (`hideRandomOrderRows`) on pages that render it.
+
+## Static test users (`e2e/helpers/users.ts`)
 All users are synthetic rows seeded into the test DB -- no external accounts
 are created. Key users:
 

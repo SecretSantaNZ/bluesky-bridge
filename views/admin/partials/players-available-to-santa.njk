@@ -2,7 +2,7 @@
 <div>
   <h1>Players available to Santa</h1>
   {% for player in (playersWhoCanHaveMoreGifees | batch(15))[0] %}
-    <div class="mb-2 flex" x-data="{player: {{ player | dump }} }">
+    <div class="mb-2 flex players-available-row" x-data="{player: {{ player | dump }} }">
       {{ playerLink() }}
       <div class="ml-2">{{ player.giftee_count }} / {{ player.max_giftees }}</div>
     </div>
