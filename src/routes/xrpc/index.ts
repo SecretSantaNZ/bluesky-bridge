@@ -46,8 +46,13 @@ export async function getFeedSkeletonOutput(
 
   const userDid = params.userDid;
 
-  const limit = params.limit ? parseInt(String(params.limit)) : 30;
-  const offset = params.cursor ? parseInt(params.cursor) : 0;
+  // Clamp to safe bounds. SQLite treats a negative LIMIT as unbounded and
+  // a huge LIMIT causes a full table scan, and a huge offset is similarly
+  // a full scan before the slice below. The Bluesky spec caps limit at
+  // 100, and cursors beyond 10k posts are unreachable for these feeds
+  // (posts are purged after 90 days).
+  const limit = Math.min(100, Math.max(1, parseSafeInt(params.limit, 30)));
+  const offset = Math.min(10_000, Math.max(0, parseSafeInt(params.cursor, 0)));
 
   let query = db.selectFrom('post').select('uri');
   if (params.feed === hashtagFeedUri) {
@@ -159,6 +164,21 @@ export async function getFeedSkeletonOutput(
 
   return output;
 }
+
+/**
+ * Parses an integer query parameter, falling back to the default for missing
+ * or unparsable values.
+ */
+const parseSafeInt = (
+  value: string | number | undefined,
+  fallback: number
+): number => {
+  if (value == null) {
+    return fallback;
+  }
+  const parsed = parseInt(String(value), 10);
+  return Number.isSafeInteger(parsed) ? parsed : fallback;
+};
 
 export const xrpc: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
