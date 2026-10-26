@@ -189,14 +189,25 @@ const buildApp = async (): Promise<AppHandle> => {
   const didResolver = {
     resolve: async (did: string) => {
       const u = staticUsers.find((candidate) => candidate.did === did);
-      if (u == null) {
-        throw new Error(`Unable to resolve did ${did}`);
+      if (u != null) {
+        return {
+          did,
+          alsoKnownAs: [`at://${u.handle}`],
+          verificationMethod: [],
+        };
       }
-      return {
-        did,
-        alsoKnownAs: [`at://${u.handle}`],
-        verificationMethod: [],
-      };
+      // Synthetic identities minted by the fake OAuth callback follow the
+      // did:plc:e2e<key> convention; resolve them back to a handle.
+      if (did.startsWith('did:plc:e2e')) {
+        return {
+          did,
+          alsoKnownAs: [
+            `at://${did.slice('did:plc:e2e'.length)}.test.bsky.social`,
+          ],
+          verificationMethod: [],
+        };
+      }
+      throw new Error(`Unable to resolve did ${did}`);
     },
   };
 

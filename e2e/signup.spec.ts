@@ -1,4 +1,5 @@
-import { test, expect, submitAndWait } from './fixtures.js';
+import { test, expect, submitAndWait, type AppHandle } from './fixtures.js';
+import type { Page } from '@playwright/test';
 import { getPlayerRow, setSettings } from './helpers/state.js';
 import { mastodonHost } from './helpers/fake-mastodon.js';
 
@@ -145,5 +146,75 @@ test.describe('mastodon signup', () => {
     // Same DB trigger semantics as the bluesky signup above
     expect(player.profile_complete).toBe(1);
     expect(player.signup_complete).toBe(0);
+  });
+});
+
+test.describe('signup refusals', () => {
+  const refusedHandle = 'toolate.test.bsky.social';
+
+  const attemptSignup = async (app: AppHandle, page: Page) => {
+    await page.route('https://fake-bluesky.test/authorize*', async (route) => {
+      const url = new URL(route.request().url());
+      await route.fulfill({
+        status: 302,
+        headers: {
+          location: `${app.baseUrl}/atproto-oauth-callback?code=fake-code&state=${url.searchParams.get('state')}&handle=${url.searchParams.get('handle')}`,
+        },
+      });
+    });
+    await page.goto('/');
+    // With signups closed the card starts in login mode (no Sign up button);
+    // otherwise switch to signup mode first.
+    const signupButton = page
+      .getByRole('button', { name: 'Sign up', exact: true })
+      .first();
+    if (await signupButton.isVisible()) {
+      await signupButton.click();
+    }
+    await page.locator('#handle').fill(refusedHandle);
+    await page.locator('#login input[type=submit]').click();
+  };
+
+  const refusedRows = async (app: AppHandle) =>
+    app.db
+      .selectFrom('player')
+      .selectAll()
+      .where('handle', '=', refusedHandle)
+      .execute();
+
+  test('signing up while signups are closed shows the closed screen', async ({
+    app,
+    page,
+  }) => {
+    await setSettings(app.db, { signups_open: 0 });
+    await attemptSignup(app, page);
+
+    await expect(
+      page.getByRole('heading', { name: 'Signups are closed' })
+    ).toBeVisible({ timeout: 15_000 });
+    await expect(
+      page.getByText(/@toolate\.test\.bsky\.social, the game has begun/)
+    ).toBeVisible();
+    expect(await refusedRows(app)).toHaveLength(0);
+  });
+
+  test('signing up before the opening date shows the not-yet-open screen', async ({
+    app,
+    page,
+  }) => {
+    const opensInAMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10);
+    await setSettings(app.db, {
+      signups_open: 0,
+      signups_open_date: opensInAMonth,
+    });
+    await attemptSignup(app, page);
+
+    await expect(
+      page.getByRole('heading', { name: 'Soon precious, soon' })
+    ).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/signups don't open until/)).toBeVisible();
+    expect(await refusedRows(app)).toHaveLength(0);
   });
 });
