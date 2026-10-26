@@ -1,9 +1,16 @@
 import { test, expect, submitAndWait } from './fixtures.js';
-import { createMatch, defaultSettings, setSettings } from './helpers/state.js';
+import {
+  bootPlayer,
+  createMatch,
+  defaultSettings,
+  setSettings,
+} from './helpers/state.js';
 import type { AppHandle } from './fixtures.js';
+import { insertPlayerRow } from './helpers/users.js';
 import {
   alice,
   bob,
+  carol,
   dave,
   eve,
   gifteeonly,
@@ -18,6 +25,26 @@ const playerId = async (app: AppHandle, user: { did: string }) => {
     .where('did', '=', user.did)
     .executeTakeFirstOrThrow();
   return row.id;
+};
+
+/** Extra eligible players, e.g. to push lists past their 15-item overflow. */
+const seedExtraPlayers = async (
+  app: AppHandle,
+  count: number,
+  prefix: string
+) => {
+  for (let i = 1; i <= count; i++) {
+    await insertPlayerRow(app.db, {
+      key: `${prefix}${i}`,
+      handle: `${prefix}${i}.test.bsky.social`,
+      did: `did:plc:e2e${prefix}${i}`,
+      game_mode: 'Regular',
+      max_giftees: 2,
+      address: `${prefix}${i} Street 1, Wellington`,
+      delivery_instructions: null,
+      admin: 0,
+    });
+  }
 };
 
 test.describe('admin matches', () => {
@@ -228,5 +255,101 @@ test.describe('admin matches', () => {
     await app.login(page, 'headelf');
     await page.goto(`/admin/match/${match.id}/reassign`);
     await expect(page.getByText(/Reassign/i)).toBeVisible();
+  });
+
+  test('fix-matches: broken matches from deactivated players are listed', async ({
+    app,
+    page,
+  }) => {
+    await createMatch(app.db, alice.did, bob.did, { match_status: 'locked' });
+    // Booting the giftee deactivates the player, which flags the match broken
+    await bootPlayer(app.db, bob.did);
+    await app.login(page, 'headelf');
+    await page.goto('/admin/fix-matches');
+    await expect(
+      page.getByRole('heading', { name: 'Broken matches' })
+    ).toBeVisible();
+    await expect(
+      page.getByText(/alice\.test\.bsky\.social/).first()
+    ).toBeVisible();
+  });
+
+  test('fix-matches: players with too many Giftees are flagged', async ({
+    app,
+    page,
+  }) => {
+    // supersanta limited to one giftee but holding two = giftee_count_status
+    // 'too_many' (critical), listed with links to fix it
+    await app.insertPlayer(supersanta, {
+      game_mode: 'Regular',
+      max_giftees: 1,
+    });
+    await createMatch(app.db, supersanta.did, alice.did, {
+      match_status: 'shared',
+    });
+    await createMatch(app.db, supersanta.did, bob.did, {
+      match_status: 'shared',
+    });
+    await app.login(page, 'headelf');
+    await page.goto('/admin/fix-matches');
+    await expect(
+      page.getByRole('heading', { name: 'Players with too many Giftees' })
+    ).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: 'Change game mode' }).first()
+    ).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: 'Reassign giftee' }).first()
+    ).toBeVisible();
+  });
+
+  test('fix-matches: players with multiple santas are flagged', async ({
+    app,
+    page,
+  }) => {
+    await createMatch(app.db, alice.did, bob.did, { match_status: 'locked' });
+    await createMatch(app.db, carol.did, bob.did, { match_status: 'locked' });
+    await app.login(page, 'headelf');
+    await page.goto('/admin/fix-matches');
+    await expect(
+      page.getByRole('heading', { name: 'Players with multiple santas' })
+    ).toBeVisible();
+    await expect(
+      page.getByText(/bob\.test\.bsky\.social/).first()
+    ).toBeVisible();
+  });
+
+  test('fix-matches: long lists collapse into a "+N more" overflow', async ({
+    app,
+    page,
+  }) => {
+    // The "needing a santa" list and the "players available to santa"
+    // sidebar both render only 15 rows, plus an overflow count beyond that
+    await seedExtraPlayers(app, 8, 'gen');
+    await app.login(page, 'headelf');
+    await page.goto('/admin/fix-matches');
+
+    const needingSanta = await app.db
+      .selectFrom('player')
+      .select(({ fn }) => fn.countAll<number>().as('cnt'))
+      .where('signup_complete', '=', 1)
+      .where('giftee_for_count', '=', 0)
+      .where('game_mode', '<>', 'Santa Only')
+      .executeTakeFirstOrThrow();
+    const available = await app.db
+      .selectFrom('player')
+      .select(({ fn }) => fn.countAll<number>().as('cnt'))
+      .where('giftee_count_status', '=', 'can_have_more')
+      .where('signup_complete', '=', 1)
+      .executeTakeFirstOrThrow();
+    expect(needingSanta.cnt).toBeGreaterThan(15);
+    expect(available.cnt).toBeGreaterThan(15);
+
+    await expect(
+      page.getByText(`... and ${needingSanta.cnt - 15} more`).first()
+    ).toBeVisible();
+    await expect(
+      page.getByText(`... and ${available.cnt - 15} more`).first()
+    ).toBeVisible();
   });
 });
