@@ -647,9 +647,9 @@ describe('PlayerService', () => {
       const result = await service.lookupMastodonFollowing(
         'user@example.social'
       );
-      expect(result.mastodon_id).toBe('5555');
-      expect(result.mastodon_following_santa).toBe(1);
-      expect(result.mastodon_followed_by_santa).toBe(0);
+      expect(result?.mastodon_id).toBe('5555');
+      expect(result?.mastodon_following_santa).toBe(1);
+      expect(result?.mastodon_followed_by_santa).toBe(0);
     });
   });
 

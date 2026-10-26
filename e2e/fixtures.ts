@@ -33,11 +33,11 @@ import {
   migrateToLatest,
   type Database,
 } from '../src/lib/database/index.js';
-import { TokenManager } from '../src/lib/TokenManager.js';
-import { PlayerService } from '../src/lib/PlayerService.js';
-import { NudgeSender } from '../src/lib/NudgeSender.js';
-import { DmSender } from '../src/lib/DmSender.js';
-import { FeedSubscription } from '../src/FeedSubscription.js';
+import { Bridge } from '../src/bridge.js';
+import type { TokenManager } from '../src/lib/TokenManager.js';
+import type { PlayerService } from '../src/lib/PlayerService.js';
+import type { NudgeSender } from '../src/lib/NudgeSender.js';
+import type { DmSender } from '../src/lib/DmSender.js';
 import type { NodeOAuthClient } from '@atproto/oauth-client-node';
 import type { DidResolver } from '@atproto/identity';
 import type { Selectable } from 'kysely';
@@ -125,54 +125,17 @@ const buildApp = async (): Promise<AppHandle> => {
   await seedUsers(db);
   await setSettings(db, defaultSettings());
 
-  const returnTokenManager = new TokenManager<{ returnUrl: string }>(
-    db,
-    TOKEN_ISSUER,
-    `${TOKEN_ISSUER}/oauth/login`,
-    '7 days'
-  );
-  const authTokenManager = new TokenManager<{
-    csrfToken: string;
-    startedAt: string;
-    handle: string;
-    admin?: true;
-  }>(db, TOKEN_ISSUER, `${TOKEN_ISSUER}/endpoints`, '15 minutes');
-  await Promise.all([
-    returnTokenManager.initialize(),
-    authTokenManager.initialize(),
-  ]);
-
   const santaAgentStub = new RecordingAgentStub(santaDid, identityByHandle);
   const robotAgentStub = new RecordingAgentStub(robotDid, identityByHandle);
-  const santaAgent = async () => asAgent(santaAgentStub);
-  const robotAgent = async () => asAgent(robotAgentStub);
-
-  const dmSender = new DmSender(
-    db,
-    santaAgent,
-    '@santa.test.bsky.social',
-    'test.bsky.social'
-  );
-  const playerService = new PlayerService(
-    db,
-    santaAgent,
-    santaDid,
-    dmSender,
-    new Set<string>([`did:plc:e2eheadelf`]),
-    '@santa.test.bsky.social',
-    'test.bsky.social'
-  );
-  const nudgeSender = new NudgeSender(db, robotAgent);
-  const feedSubscription = new FeedSubscription(db);
 
   // Bridgy-fed and Mastodon lookups are inherently external services with no
   // meaningful fake that the bridge consumes over HTTP. They resolve to "no
   // bridge account" for all e2e sessions.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const service = playerService as any;
-  service.lookupBridgedMastodonHandle = async () => null;
-  service.lookupBridgedBlueskyHandle = async () => null;
-  service.lookupMastodonFollowing = async () => ({});
+  const bridgedLookups = {
+    lookupBridgedMastodonHandle: async () => null,
+    lookupBridgedBlueskyHandle: async () => null,
+    lookupMastodonFollowing: async () => undefined,
+  };
 
   const atOauthClient = {
     clientMetadata: { client_id: `${TOKEN_ISSUER}/client-metadata.json` },
@@ -202,31 +165,39 @@ const buildApp = async (): Promise<AppHandle> => {
     },
   };
 
-  const app = await build(
-    { logger: false },
+  // The app is built through the shared composition root (src/bridge.ts) so
+  // the harness cannot drift from production wiring; fakes are passed as
+  // seams. `bridge.init()` is the timer-free bootstrap; the background loops
+  // (`bridge.start()`) are never started in tests.
+  const bridge = await Bridge.build(
     {
-      returnTokenManager,
-      authTokenManager,
-      playerService,
+      tokenIssuer: TOKEN_ISSUER,
+      santaHandle: 'santa.test.bsky.social',
+      robotHandle: 'robot.test.bsky.social',
+      santaMastodonHandle: '@santa.test.bsky.social',
+      santaMastodonHost: 'test.bsky.social',
+      ensureElfHandles: [],
+    },
+    {
       db,
+      agentSource: (handle) => {
+        const did = identityByHandle.get(handle);
+        if (did == null) {
+          throw new Error(`Unknown agent handle ${handle}`);
+        }
+        const stub =
+          handle === 'santa.test.bsky.social' ? santaAgentStub : robotAgentStub;
+        return [async () => asAgent(stub), did];
+      },
       atOauthClient: atOauthClient as unknown as NodeOAuthClient,
-      fullScopeHandles: new Set([
-        'santa.test.bsky.social',
-        'robot.test.bsky.social',
-      ]),
-      santaAccountDid: santaDid,
-      santaAgent,
-      robotAgent,
-      settingsChanged: async (settings) =>
-        Promise.all([
-          playerService.settingsChanged(settings),
-          nudgeSender.settingsChanged(settings),
-          dmSender.settingsChanged(settings),
-          feedSubscription.settingsChanged(settings),
-        ]),
       didResolver: didResolver as unknown as DidResolver,
+      ensureElfDids: new Set(['did:plc:e2eheadelf']),
+      bridgedLookups,
     }
   );
+  await bridge.init();
+
+  const app = await build({ logger: false }, bridge.blueskyBridge);
   await app.listen({ port: 0, host: '127.0.0.1' });
   const baseUrl = `http://127.0.0.1:${(app.server?.address() as { port: number }).port}`;
 
@@ -261,10 +232,10 @@ const buildApp = async (): Promise<AppHandle> => {
     db,
     santaAgent: santaAgentStub,
     robotAgent: robotAgentStub,
-    playerService,
-    nudgeSender,
-    dmSender,
-    authTokenManager,
+    playerService: bridge.playerService,
+    nudgeSender: bridge.nudgeSender,
+    dmSender: bridge.dmSender,
+    authTokenManager: bridge.authTokenManager,
     insertPlayer: async (u, overrides) => {
       // Insert (or re-insert, replacing any seeded row) a static user
       await db.deleteFrom('player').where('did', '=', u.did).execute();
@@ -275,7 +246,7 @@ const buildApp = async (): Promise<AppHandle> => {
       if (u == null) {
         throw new Error(`Unknown user key ${key}`);
       }
-      const token = await authTokenManager.generateToken(u.did, {
+      const token = await bridge.authTokenManager.generateToken(u.did, {
         csrfToken: randomUUID(),
         startedAt: new Date().toISOString(),
         handle: u.handle,

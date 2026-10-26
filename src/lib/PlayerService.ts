@@ -71,7 +71,7 @@ export interface BridgedLookups {
   ) => Promise<string | null>;
   lookupMastodonFollowing: (
     mastodonAccount: string
-  ) => Promise<MastodonRelationshipDetails>;
+  ) => Promise<MastodonRelationshipDetails | undefined>;
 }
 
 const dbPlayerToPlayer = (dbPlayer: SelectedPlayer): Player => {
@@ -137,7 +137,7 @@ export class PlayerService {
   ) => Promise<string | null>;
   public readonly lookupMastodonFollowing: (
     mastodonAccount: string
-  ) => Promise<MastodonRelationshipDetails>;
+  ) => Promise<MastodonRelationshipDetails | undefined>;
 
   constructor(
     private readonly db: Database,
