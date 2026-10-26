@@ -15,9 +15,18 @@ import { returnLoginView } from '../view/index.js';
 import { startMastodonOauth } from '../mastodon/index.js';
 import type { DatabaseSchema } from '../../lib/database/schema.js';
 import type { InsertObject } from 'kysely';
-import { BadRequestError, UnauthorizedError } from 'http-errors-enhanced';
+import {
+  BadRequestError,
+  TooManyRequestsError,
+  UnauthorizedError,
+} from 'http-errors-enhanced';
 import { unauthenticatedAgent } from '../../bluesky.js';
 import { tz, TZDate } from '@date-fns/tz';
+import ms from 'ms';
+import {
+  clientKeyFromRequest,
+  createRateLimiter,
+} from '../../util/rateLimit.js';
 import type { Database } from '../../lib/database/index.js';
 import { addHours as addHoursFn } from 'date-fns';
 
@@ -350,6 +359,34 @@ export async function finishLogin(
 
 export const at_oauth: FastifyPluginAsync = async (rawApp) => {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
+
+  // Rate limits to protect the unauthenticated login endpoints from abuse.
+  // Each OTP login code that is issued sends a DM to the target player, and
+  // each verification attempt is a guess of that code, so both issuing and
+  // verifying need to be rate limited per target handle. request.ip is the
+  // reverse proxy for every request so client keyed limits use the address
+  // appended to X-Forwarded-For by the reverse proxy.
+  const loginClientLimiter = createRateLimiter({
+    windowMs: ms('15 minutes'),
+    max: 100,
+  });
+  const loginHandleLimiter = createRateLimiter({
+    windowMs: ms('15 minutes'),
+    max: 10,
+  });
+  const otpIssueHandleLimiter = createRateLimiter({
+    windowMs: ms('15 minutes'),
+    max: 5,
+  });
+  const otpVerifyClientLimiter = createRateLimiter({
+    windowMs: ms('15 minutes'),
+    max: 100,
+  });
+  const otpVerifyDidLimiter = createRateLimiter({
+    windowMs: ms('15 minutes'),
+    max: 15,
+  });
+
   app.get('/client-metadata.json', (_, reply) =>
     reply.send(app.blueskyBridge.atOauthClient.clientMetadata)
   );
@@ -390,6 +427,23 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
       },
     },
     async function (request, reply) {
+      if (!otpVerifyClientLimiter(clientKeyFromRequest(request))) {
+        throw new TooManyRequestsError(
+          'Too many login attempts, try again in a few minutes'
+        );
+      }
+      // The key is only useful together with its code, but the did of the
+      // targeted player is enough to rate limit guesses of that code.
+      const existingOtp = await this.blueskyBridge.db
+        .selectFrom('otp_login')
+        .select('did')
+        .where('key', '=', request.body.otpKey)
+        .executeTakeFirst();
+      if (existingOtp != null && !otpVerifyDidLimiter(existingOtp.did)) {
+        throw new TooManyRequestsError(
+          'Too many login attempts, try again in a few minutes'
+        );
+      }
       const result = await consumeOtpLogin(
         this.blueskyBridge.db,
         request.body.otpKey
@@ -471,6 +525,24 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
         otpLogin = Array.isArray(request.body.otpLogin)
           ? Boolean(request.body.otpLogin[0])
           : Boolean(request.body.otpLogin);
+      }
+
+      // Mirror the handle normalisation used when logging in so that
+      // variations of the same handle share a rate limit.
+      const handleKey =
+        request.body.accountType === 'bluesky'
+          ? normalizeBlueskyHandle(request.body.handle)
+          : request.body.handle.replace(/^@/, '').trim().toLowerCase();
+      if (
+        !loginClientLimiter(clientKeyFromRequest(request)) ||
+        !loginHandleLimiter(handleKey) ||
+        (otpLogin &&
+          request.body.accountType === 'bluesky' &&
+          !otpIssueHandleLimiter(handleKey))
+      ) {
+        throw new TooManyRequestsError(
+          'Too many login attempts, try again in a few minutes'
+        );
       }
 
       if (request.body.accountType === 'bluesky') {
