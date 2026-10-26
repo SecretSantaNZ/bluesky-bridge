@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { Player } from '../../lib/PlayerService.js';
-import { assemblePlayerBadges, forcedViewForPlayer } from './player-home.js';
+import {
+  actionAllowedForPlayer,
+  assemblePlayerBadges,
+  forcedViewForPlayer,
+} from './player-home.js';
 
 const player = (overrides: Partial<PlayerOverrides> = {}): Partial<Player> =>
   ({
@@ -84,6 +88,99 @@ describe('forcedViewForPlayer', () => {
         'GET'
       )
     ).toEqual({ view: 'player/address', clearSession: false });
+  });
+});
+
+describe('actionAllowedForPlayer', () => {
+  it('always allows GET requests, the forced view logic handles those', () => {
+    expect(
+      actionAllowedForPlayer(
+        player({ booted: '2025-12-01' }) as Player,
+        'GET',
+        '/'
+      )
+    ).toBe(true);
+    expect(
+      actionAllowedForPlayer(
+        player({ opted_out: '2025-12-01' }) as Player,
+        'GET',
+        '/opt-in'
+      )
+    ).toBe(true);
+  });
+
+  it('forbids every action from a booted out player, including opting in', () => {
+    expect(
+      actionAllowedForPlayer(
+        player({ booted: '2025-12-01' }) as Player,
+        'POST',
+        '/nudge'
+      )
+    ).toBe(false);
+    expect(
+      actionAllowedForPlayer(
+        player({ booted: '2025-12-01' }) as Player,
+        'POST',
+        '/opt-in'
+      )
+    ).toBe(false);
+  });
+
+  it('allows opted out players to opt back in only', () => {
+    expect(
+      actionAllowedForPlayer(
+        player({ opted_out: '2025-12-01' }) as Player,
+        'POST',
+        '/opt-in'
+      )
+    ).toBe(true);
+    expect(
+      actionAllowedForPlayer(
+        player({ opted_out: '2025-12-01' }) as Player,
+        'POST',
+        '/address'
+      )
+    ).toBe(false);
+    expect(
+      actionAllowedForPlayer(
+        player({ opted_out: '2025-12-01' }) as Player,
+        'POST',
+        '/nudge'
+      )
+    ).toBe(false);
+  });
+
+  it('lets elves keep taking every action when booted out', () => {
+    expect(
+      actionAllowedForPlayer(
+        player({ booted: '2025-12-01', admin: 1 }) as Player,
+        'POST',
+        '/nudge'
+      )
+    ).toBe(true);
+  });
+
+  it('lets elves keep taking every action when opted out, like when booted out', () => {
+    expect(
+      actionAllowedForPlayer(
+        player({ opted_out: '2025-12-01', admin: 1 }) as Player,
+        'POST',
+        '/address'
+      )
+    ).toBe(true);
+    expect(
+      actionAllowedForPlayer(
+        player({ opted_out: '2025-12-01', admin: 1 }) as Player,
+        'POST',
+        '/nudge'
+      )
+    ).toBe(true);
+  });
+
+  it('lets active players take any action', () => {
+    expect(actionAllowedForPlayer(player() as Player, 'POST', '/address')).toBe(
+      true
+    );
   });
 });
 

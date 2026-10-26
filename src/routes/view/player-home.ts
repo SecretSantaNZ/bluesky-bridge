@@ -4,7 +4,7 @@ import type {
   FastifyReply,
   FastifyRequest,
 } from 'fastify';
-import { UnauthorizedError } from 'http-errors-enhanced';
+import { ForbiddenError, UnauthorizedError } from 'http-errors-enhanced';
 import {
   queryTrackingWithGiftee,
   queryTrackingWithMatch,
@@ -200,6 +200,32 @@ export const renderPlayerHome = async (
   });
 };
 
+/**
+ * Non-GET requests from booted out or opted out players are forbidden: a
+ * booted out player can take no action at all, and an opted out player may
+ * only opt back in. Elves keep full access in both cases, just as an elf who
+ * is booted out can continue with elf functionality.
+ */
+export function actionAllowedForPlayer(
+  player: Pick<Player, 'admin' | 'booted' | 'opted_out'>,
+  method: string,
+  routeUrl: string | undefined
+): boolean {
+  if (method === 'GET') {
+    return true;
+  }
+  if (player.admin) {
+    return true;
+  }
+  if (player.booted) {
+    return false;
+  }
+  if (player.opted_out) {
+    return routeUrl === '/opt-in';
+  }
+  return true;
+}
+
 export const playerHome: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async function (request, reply) {
     const playerHomeLocals = await loadPlayerHomeLocals(
@@ -212,29 +238,33 @@ export const playerHome: FastifyPluginAsync = async (app) => {
     };
     const player = playerHomeLocals.player;
 
-    if (request.method === 'GET') {
-      const forced = forcedViewForPlayer(player, request.method);
-      if (forced) {
-        if (forced.clearSession) {
-          reply.clearCookie('session');
-        }
-        if (forced.view === 'player/address') {
-          return reply.view(forced.view, {
-            CLIENT_GOOGLE_API_KEY: process.env.CLIENT_GOOGLE_API_KEY,
-            hideClose: true,
-          });
-        }
-        if (forced.view === 'player/game-mode') {
-          return reply.view(forced.view, {
-            hideClose: true,
-            gameModeOptions: [
-              { id: 'Regular', text: 'Regular' },
-              { id: 'Super Santa', text: 'Super Santa' },
-            ],
-          });
-        }
-        return reply.view(forced.view);
+    if (
+      !actionAllowedForPlayer(player, request.method, request.routeOptions.url)
+    ) {
+      throw new ForbiddenError();
+    }
+
+    const forced = forcedViewForPlayer(player, request.method);
+    if (forced) {
+      if (forced.clearSession) {
+        reply.clearCookie('session');
       }
+      if (forced.view === 'player/address') {
+        return reply.view(forced.view, {
+          CLIENT_GOOGLE_API_KEY: process.env.CLIENT_GOOGLE_API_KEY,
+          hideClose: true,
+        });
+      }
+      if (forced.view === 'player/game-mode') {
+        return reply.view(forced.view, {
+          hideClose: true,
+          gameModeOptions: [
+            { id: 'Regular', text: 'Regular' },
+            { id: 'Super Santa', text: 'Super Santa' },
+          ],
+        });
+      }
+      return reply.view(forced.view);
     }
   });
 
