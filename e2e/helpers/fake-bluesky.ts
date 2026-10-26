@@ -38,12 +38,21 @@ fakeBlueskyServer.use(
     const actor = url.searchParams.get('actor') ?? '';
     const u = usersByHandle.get(actor) ?? usersByDid.get(actor) ?? null;
     // Unknown actors (e.g. admin-created players) get a synthesized profile
+    // with a lexicon-valid handle ("did:plc:xyz" -> "xyz.test.bsky.social").
+    const baseName = actor.startsWith('did:')
+      ? actor.slice(actor.lastIndexOf(':') + 1)
+      : actor.split('.')[0];
     const did =
-      u?.did ??
-      (actor.startsWith('did:') ? actor : `did:plc:e2e${actor.split('.')[0]}`);
+      u?.did ?? (actor.startsWith('did:') ? actor : `did:plc:e2e${baseName}`);
+    const handleByDid = actor.startsWith('did:')
+      ? [...identityByHandle.entries()].find(
+          ([, mappedDid]) => mappedDid === actor
+        )?.[0]
+      : undefined;
     const handle =
       u?.handle ??
-      (actor.startsWith('did:') ? `${actor}.test.bsky.social` : actor);
+      handleByDid ??
+      (actor.startsWith('did:') ? `${baseName}.test.bsky.social` : actor);
     const profileKey = u?.key ?? handle.split('.')[0] ?? '';
     return HttpResponse.json({
       did,

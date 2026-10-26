@@ -58,6 +58,7 @@ are created. Key users:
 | `natter`     | DMs disabled on their profile (error banners, retry-DM)     |
 | `oldfriend`  | badges + history for the home screen cards                  |
 
-Known-failing specs (`e2e/admin-player-create.spec.ts`,
-`e2e/admin-player-badges.spec.ts`) are marked with a description block; see the
-tracked TODO in the repo workboard for the root cause.
+Known-failing specs note: earlier versions of
+`e2e/admin-player-create.spec.ts` / `e2e/admin-player-badges.spec.ts` relied on
+the fake inbound boundary; non-static handles now get synthesized
+profiles/DIDs in `fake-bluesky`/`stubs`, and click flows use `submitAndWait`.

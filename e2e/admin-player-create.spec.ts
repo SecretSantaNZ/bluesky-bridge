@@ -2,9 +2,7 @@ import { test, expect, submitAndWait } from './fixtures.js';
 import { defaultSettings, setSettings } from './helpers/state.js';
 
 /**
- * KNOWN FAILING: POST /admin/player responds 500 in the e2e harness. To be
- * revisited -- likely the googlePlaces stub or the santa agent resolveHandle
- * for a newly created (non-static) handle.
+ * Exercises the admin "Add player" flow end to end.
  */
 test.describe('admin player create', () => {
   test.beforeEach(async ({ app }) => {

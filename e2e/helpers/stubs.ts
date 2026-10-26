@@ -54,11 +54,13 @@ export class RecordingAgentStub {
   // Sugar used by admin player-create
   resolveHandle(options: { handle: string }) {
     this.calls.push({ method: 'resolveHandle', args: [options] });
-    const did = this.identityByHandle.get(options.handle);
+    // Unknown handles get a deterministic synthetic DID (consistent with the
+    // fake app-view's profile synthesis), mirroring real bluesky behaviour
+    // where any registered handle resolves.
+    let did = this.identityByHandle.get(options.handle);
     if (did == null) {
-      return Promise.reject(
-        new Error(`Unable to resolve handle: ${options.handle}`)
-      );
+      did = `did:plc:e2e${options.handle.split('.')[0]}`;
+      this.identityByHandle.set(options.handle, did);
     }
     return Promise.resolve({ data: { did }, success: true });
   }
