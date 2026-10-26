@@ -60,7 +60,8 @@ export const createMatch = async (
 export const queueNudge = async (
   db: Database,
   matchId: number,
-  nudgeType: NudgeType['name']
+  nudgeType: NudgeType['name'],
+  overrides: { created_at?: string } = {}
 ) => {
   const type = await db
     .selectFrom('nudge_type')
@@ -98,7 +99,7 @@ export const queueNudge = async (
       nudge_signoff: signoff.id,
       match: matchId,
       nudge_status: 'queued',
-      created_at: now(),
+      created_at: overrides.created_at ?? now(),
       created_by: 'e2e',
     })
     .execute();
@@ -120,6 +121,7 @@ export const createTracking = async (
     giftwrap_status: number;
     missing: string | null;
     tracking_status: 'queued' | 'sent' | 'error';
+    tracking_number: string;
   }> = {}
 ) => {
   const carrier = await db
@@ -132,7 +134,9 @@ export const createTracking = async (
     .values({
       carrier: carrier.id,
       shipped_date: '2025-12-20',
-      tracking_number: `NZ${randomUUID().slice(0, 8).toUpperCase()}`,
+      tracking_number:
+        overrides.tracking_number ??
+        `NZ${randomUUID().slice(0, 8).toUpperCase()}`,
       giftwrap_status: overrides.giftwrap_status ?? 1,
       match: matchId,
       tracking_status: overrides.tracking_status ?? 'sent',
@@ -227,6 +231,17 @@ export const defaultSettings = () =>
     send_messages: 0,
     auto_follow: 0,
     show_badges: 1,
+  }) satisfies SettingsOverrides;
+
+/** Settings with fully pinned dates for visual snapshot tests: no matter
+ *  when the suite runs, every rendered date is identical. */
+export const snapshotSettings = () =>
+  ({
+    ...defaultSettings(),
+    signups_close_date: '2025-12-10',
+    matches_sent_date: '2025-12-15',
+    send_by_date: '2025-12-20',
+    opening_date: '2025-12-26',
   }) satisfies SettingsOverrides;
 
 const isoFutureDate = (daysAhead: number) => {

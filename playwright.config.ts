@@ -30,4 +30,11 @@ export default defineConfig({
     timezoneId: 'Pacific/Auckland',
   },
   outputDir: 'test-results',
+  snapshotDir: 'e2e/__screenshots__',
+  expect: {
+    toHaveScreenshot: {
+      animations: 'disabled',
+      maxDiffPixelRatio: 0.01,
+    },
+  },
 });
