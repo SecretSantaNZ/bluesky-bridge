@@ -122,6 +122,9 @@ type PlayerSeed = Partial<
       | 'signup-complete-3'
       | 'signup-complete-4';
     next_player_dm_after?: string | null;
+    player_type?: 'bluesky' | 'mastodon';
+    mastodon_account?: string;
+    mastodon_host?: string;
   }
 >;
 
