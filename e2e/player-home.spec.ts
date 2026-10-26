@@ -50,6 +50,22 @@ test.describe('player home', () => {
     ).toBeVisible();
   });
 
+  test('bluesky players who have bridged see no bridge banner', async ({
+    app,
+    page,
+  }) => {
+    await app.db
+      .updateTable('player')
+      .set({ mastodon_account: 'alice@mastodon.test' })
+      .where('did', '=', alice.did)
+      .execute();
+    await app.login(page, 'alice');
+    await page.goto('/');
+    await expect(page.getByText("You haven't bridged to Mastodon")).toHaveCount(
+      0
+    );
+  });
+
   test('not-yet-following players see the follow-santa banner', async ({
     app,
     page,
