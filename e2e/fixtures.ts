@@ -146,11 +146,29 @@ const buildApp = async (): Promise<AppHandle> => {
   const atOauthClient = {
     clientMetadata: { client_id: `${TOKEN_ISSUER}/client-metadata.json` },
     jwks: { keys: [] },
-    authorize: async () => {
-      throw new Error('Full OAuth flow is not exercised in e2e tests');
+    // Fake OAuth provider: the authorize URL encodes the state key and the
+    // handle; e2e/signup.spec.ts fulfils that URL with a redirect back to the
+    // real /atproto-oauth-callback route, exercising the real login code.
+    authorize: async (handle: string, opts: { state: string }) => {
+      const key = `fake-${randomUUID()}`;
+      await db.insertInto('at_oauth_state').values({
+        key,
+        data: JSON.stringify({ appState: opts.state }),
+        created_at: new Date().toISOString(),
+      });
+      return new URL(
+        `https://fake-bluesky.test/authorize?state=${key}&handle=${encodeURIComponent(handle)}`
+      );
     },
-    callback: async () => {
-      throw new Error('Full OAuth flow is not exercised in e2e tests');
+    callback: async (params: URLSearchParams) => {
+      const handle = params.get('handle') ?? '';
+      const did =
+        identityByHandle.get(handle) ??
+        `did:plc:e2e${handle.split('.')[0] ?? handle}`;
+      // Register the identity so the fake app-view's profile synthesis
+      // reverse-lookup reports the handle the user typed.
+      identityByHandle.set(handle, did);
+      return { session: { did } };
     },
     restore: async () => {
       throw new Error('Full OAuth flow is not exercised in e2e tests');

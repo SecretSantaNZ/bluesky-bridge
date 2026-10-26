@@ -32,6 +32,11 @@ the hashed bundle names (`e2e/fixtures.ts` reads `.env.client.prod` at boot).
   (`@atproto` captures `globalThis.fetch` at construction time).
 - **Stub agents** (`e2e/helpers/stubs.ts`): the santa/robot agents record
   posts, DMs and follows instead of hitting Bluesky. Unknown methods throw.
+- **Fake OAuth provider** (`e2e/fixtures.ts` + `e2e/signup.spec.ts`): the
+  `atOauthClient.authorize` stub stores the OAuth state row and mints a
+  `https://fake-bluesky.test/authorize?...` URL; the spec fulfils that URL with
+  a redirect back to the real `/atproto-oauth-callback` route, so brand-new
+  signups run the real login code end to end.
 - **Background senders are not started**; tests that check the send path call
   `app.withFixedTimeWindow(() => app.nudgeSender.sendANudge())` directly.
 - **Bootstrap helpers** (`e2e/helpers/state.ts`): seed real rows (matches,
