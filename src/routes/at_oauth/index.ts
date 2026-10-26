@@ -131,6 +131,17 @@ export async function getOrCreatePlayer(
   return { player: await playerService.getPlayer(did) };
 }
 
+/**
+ * The OTP code is a short lived login credential so it must not end up in
+ * error reporting or logs. The target handle is kept as it is useful context.
+ */
+const redactOtpBody = (body: unknown): unknown => {
+  if (body == null || typeof body !== 'object' || !('code' in body)) {
+    return body;
+  }
+  return { ...(body as Record<string, unknown>), code: '******' };
+};
+
 async function startAtOauth(
   request: FastifyRequest,
   reply: FastifyReply,
@@ -474,13 +485,13 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
   );
 
   app.setErrorHandler(async function (error, request, reply) {
+    const body = redactOtpBody(request.body);
     newrelic.noticeError(error as Error, {
       method: request.method,
       url: request.url,
-      // @ts-expect-error no type
-      ...request.body,
+      ...(body as Record<string, unknown>),
     });
-    request.log.error({ url: request.url, error, body: request.body });
+    request.log.error({ url: request.url, error, body });
     return returnLoginView(app.blueskyBridge, reply, request.url, {
       errorMessage: (error as Error).message || 'Unknown Error',
       mode: (request.body as Record<string, string>)?.mode,
