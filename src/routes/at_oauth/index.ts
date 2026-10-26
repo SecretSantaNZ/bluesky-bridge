@@ -540,7 +540,10 @@ export const at_oauth: FastifyPluginAsync = async (rawApp) => {
           csrfToken: request.tokenData?.csrfToken as string,
           startedAt,
           handle,
-          admin: request.tokenData?.admin as true | undefined,
+          // Only propagate the admin claim if the player is still an admin in
+          // the database, so that demoted elves lose access when their session
+          // is refreshed rather than at the end of the 12 hour session cap.
+          admin: player.admin ? true : undefined,
         });
       reply.setCookie('session', sessionToken, {
         path: '/',
