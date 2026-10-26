@@ -60,4 +60,47 @@ test.describe('admin player badges', () => {
         .execute()
     ).toHaveLength(0);
   });
+
+  test('badges list labels every assignment kind', async ({ app, page }) => {
+    const mk = async (
+      title: string,
+      extra: { assigned_by_hashtag?: string; assigned_by_elf?: 0 | 1 } = {}
+    ) =>
+      app.db
+        .insertInto('badge')
+        .values({
+          title,
+          description: title,
+          image_url: `https://cdn.example.com/badges/${title}.png`,
+          assigned_by_elf: 0,
+          ...extra,
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
+
+    const current = await mk('Current');
+    const present = await mk('Present');
+    const superB = await mk('Super');
+    await mk('ByElf', { assigned_by_hashtag: '#elfonly', assigned_by_elf: 1 });
+    await mk('Posting', {
+      assigned_by_hashtag: '#secretsantanz',
+      assigned_by_elf: 0,
+    });
+    await mk('Plain');
+
+    await setSettings(app.db, {
+      current_game_badge_id: current.id,
+      sent_present_badge_id: present.id,
+      super_santa_badge_id: superB.id,
+    });
+
+    await app.login(page, 'headelf');
+    await page.goto('/admin/badges');
+    await expect(page.getByText('Current game')).toBeVisible();
+    await expect(page.getByText('Sending gift')).toBeVisible();
+    await expect(page.getByText('Super santa', { exact: true })).toBeVisible();
+    await expect(page.getByText('By elf: #elfonly')).toBeVisible();
+    await expect(page.getByText('Posting: #secretsantanz')).toBeVisible();
+    await expect(page.getByText('Nothing').first()).toBeVisible();
+  });
 });

@@ -352,4 +352,134 @@ test.describe('admin matches', () => {
       page.getByText(`... and ${available.cnt - 15} more`).first()
     ).toBeVisible();
   });
+
+  test('fix-matches: reassign surfaces santa-not-found in the modal', async ({
+    app,
+    page,
+  }) => {
+    const match = await createMatch(app.db, alice.did, bob.did, {
+      match_status: 'shared',
+    });
+    await app.login(page, 'headelf');
+    await page.goto(`/admin/match/${match.id}/reassign`);
+    await page
+      .locator('#reassign_giftee_santa_handle')
+      .fill('ghost.test.bsky.social');
+    // The 409 re-renders the modal content with the inline error
+    await page.locator('form#modal-content input[type=submit]').click();
+    await expect(
+      page.getByText('Cannot find player ghost.test.bsky.social to assign.')
+    ).toBeVisible();
+    const unchanged = await app.db
+      .selectFrom('match')
+      .selectAll()
+      .where('id', '=', match.id)
+      .executeTakeFirstOrThrow();
+    expect(unchanged.deactivated).toBeNull();
+  });
+
+  test('fix-matches: reassign warns when the santa has no giftee room', async ({
+    app,
+    page,
+  }) => {
+    // bob is already at his two-giftee limit
+    await createMatch(app.db, bob.did, carol.did, { match_status: 'locked' });
+    await createMatch(app.db, bob.did, dave.did, { match_status: 'locked' });
+    const match = await createMatch(app.db, alice.did, eve.did, {
+      match_status: 'shared',
+    });
+    await app.login(page, 'headelf');
+    await page.goto(`/admin/match/${match.id}/reassign`);
+    await page.locator('#reassign_giftee_santa_handle').fill(bob.handle);
+    await page.locator('form#modal-content input[type=submit]').click();
+    // Plain red warning for regular (non-super) reassigns
+    await expect(page.getByText(/can.t have more giftees/)).toBeVisible();
+    const unchanged = await app.db
+      .selectFrom('match')
+      .selectAll()
+      .where('id', '=', match.id)
+      .executeTakeFirstOrThrow();
+    expect(unchanged.santa).toBe(await playerId(app, alice));
+  });
+
+  test('fix-matches: super-santa reassigns can force an overloaded santa', async ({
+    app,
+    page,
+  }) => {
+    // bob is already at his two-giftee limit
+    await createMatch(app.db, bob.did, carol.did, { match_status: 'locked' });
+    await createMatch(app.db, bob.did, dave.did, { match_status: 'locked' });
+    const match = await createMatch(app.db, alice.did, eve.did, {
+      match_status: 'locked',
+      super_santa_match: 1,
+    });
+    await app.login(page, 'headelf');
+    await page.goto(`/admin/match/${match.id}/reassign?super_santa_match=true`);
+    await page.locator('#reassign_giftee_santa_handle').fill(bob.handle);
+    await page.locator('form#modal-content input[type=submit]').click();
+    // The super-santa variant shows the orange warning and offers to force
+    await expect(page.getByText('Save again to assign anyway.')).toBeVisible();
+    await submitAndWait(page, `/match/${match.id}/reassign`, () =>
+      page.locator('form#modal-content input[type=submit]').click()
+    );
+
+    const eveId = await playerId(app, eve);
+    const newMatch = await app.db
+      .selectFrom('match')
+      .selectAll()
+      .where('giftee', '=', eveId)
+      .where('deactivated', 'is', null)
+      .orderBy('id', 'desc')
+      .executeTakeFirstOrThrow();
+    expect(newMatch.santa).toBe(await playerId(app, bob));
+    expect(newMatch.super_santa_match).toBe(1);
+    expect(newMatch.match_status).toBe('locked');
+    const oldMatch = await app.db
+      .selectFrom('match')
+      .selectAll()
+      .where('id', '=', match.id)
+      .executeTakeFirstOrThrow();
+    expect(oldMatch.followup_action).toBe('super-assigned');
+  });
+
+  test('fix-matches: changing game mode round-trips back to fix-matches', async ({
+    app,
+    page,
+  }) => {
+    await app.insertPlayer(supersanta, {
+      game_mode: 'Regular',
+      max_giftees: 1,
+    });
+    await createMatch(app.db, supersanta.did, alice.did, {
+      match_status: 'shared',
+    });
+    await createMatch(app.db, supersanta.did, bob.did, {
+      match_status: 'shared',
+    });
+    await app.login(page, 'headelf');
+    await page.goto('/admin/fix-matches');
+    await page.getByRole('link', { name: 'Change game mode' }).first().click();
+    await expect(
+      page.getByRole('heading', {
+        name: 'Game mode for @supersanta.test.bsky.social',
+      })
+    ).toBeVisible();
+    await page.locator('#game_mode').selectOption({ label: 'Super Santa' });
+    await page.locator('#max_giftees').fill('3');
+    await submitAndWait(page, '/game-mode', () =>
+      page.locator('form#modal-content input[type=submit]').click()
+    );
+
+    // return_to=fix-matches redirects here, where the issue is now resolved
+    await expect(
+      page.getByRole('heading', { name: 'Players with too many Giftees' })
+    ).toHaveCount(0);
+    const row = await app.db
+      .selectFrom('player')
+      .selectAll()
+      .where('did', '=', supersanta.did)
+      .executeTakeFirstOrThrow();
+    expect(row.game_mode).toBe('Super Santa');
+    expect(row.max_giftees).toBe(3);
+  });
 });
