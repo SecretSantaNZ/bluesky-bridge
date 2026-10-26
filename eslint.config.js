@@ -16,7 +16,13 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([
-  globalIgnores(['public/index.js', 'dist/*']),
+  globalIgnores([
+    'public/index.js',
+    'dist/*',
+    // Playwright artifacts
+    'test-results/*',
+    'playwright-report/*',
+  ]),
   {
     extends: compat.extends(
       'eslint:recommended',
