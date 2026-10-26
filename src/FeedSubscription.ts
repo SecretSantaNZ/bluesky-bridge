@@ -53,9 +53,8 @@ export class FeedSubscription {
   private hashtagBadges: Array<AssignableBadge> = [];
   private midnightOpeningDay = new Date('3000-01-01');
   private jetstream: Jetstream | undefined;
-  constructor(private readonly db: Database) {
-    setInterval(this.purge.bind(this), ms('1h'));
-  }
+  private purgeInterval: ReturnType<typeof setInterval> | undefined;
+  constructor(private readonly db: Database) {}
 
   async start() {
     const [settings, cursorResult] = await Promise.all([
@@ -85,6 +84,15 @@ export class FeedSubscription {
     this.jetstream.start();
 
     this.jetstream.onCreate('app.bsky.feed.post', this.onPostCreate.bind(this));
+    this.purgeInterval = setInterval(this.purge.bind(this), ms('1h'));
+  }
+
+  /** Stops the periodic purge. Background work only runs between start/stop. */
+  stop() {
+    if (this.purgeInterval != null) {
+      clearInterval(this.purgeInterval);
+      this.purgeInterval = undefined;
+    }
   }
 
   private async purge() {

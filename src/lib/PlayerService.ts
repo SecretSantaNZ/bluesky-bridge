@@ -58,6 +58,22 @@ type MastodonRelationshipDetails = Pick<
   | 'mastodon_follow_last_checked'
 >;
 
+/**
+ * External boundary lookups that hit bridgy-fed and Mastodon. Injectable so
+ * hosts (e.g. the e2e harness) can replace them with fakes.
+ */
+export interface BridgedLookups {
+  lookupBridgedMastodonHandle: (
+    blueskyHandle: string
+  ) => Promise<string | null>;
+  lookupBridgedBlueskyHandle: (
+    mastodonHandle: string
+  ) => Promise<string | null>;
+  lookupMastodonFollowing: (
+    mastodonAccount: string
+  ) => Promise<MastodonRelationshipDetails>;
+}
+
 const dbPlayerToPlayer = (dbPlayer: SelectedPlayer): Player => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { following_santa_uri, santa_following_uri, id, ...rest } = dbPlayer;
@@ -112,6 +128,16 @@ export class PlayerService {
     giftee_for_count: number;
   }>;
   private autoFollowIntervalHandle?: ReturnType<typeof setInterval>;
+  private backgroundIntervals: Array<ReturnType<typeof setInterval>> = [];
+  public readonly lookupBridgedMastodonHandle: (
+    blueskyHandle: string
+  ) => Promise<string | null>;
+  public readonly lookupBridgedBlueskyHandle: (
+    mastodonHandle: string
+  ) => Promise<string | null>;
+  public readonly lookupMastodonFollowing: (
+    mastodonAccount: string
+  ) => Promise<MastodonRelationshipDetails>;
 
   constructor(
     private readonly db: Database,
@@ -120,8 +146,18 @@ export class PlayerService {
     public readonly dmSender: DmSender,
     public readonly ensureElfDids: ReadonlySet<string>,
     public readonly santaMastodonHandle: string,
-    public readonly santaMastodonHost: string
+    public readonly santaMastodonHost: string,
+    bridgedLookups?: BridgedLookups
   ) {
+    this.lookupBridgedMastodonHandle =
+      bridgedLookups?.lookupBridgedMastodonHandle ??
+      this.fetchBridgedMastodonHandle.bind(this);
+    this.lookupBridgedBlueskyHandle =
+      bridgedLookups?.lookupBridgedBlueskyHandle ??
+      this.fetchBridgedBlueskyHandle.bind(this);
+    this.lookupMastodonFollowing =
+      bridgedLookups?.lookupMastodonFollowing ??
+      this.fetchMastodonFollowing.bind(this);
     this.followingChangedWebhook = buildWebhookNotifier(
       process.env.FOLLOWING_CHANGED_WEBHOOK,
       'following changed'
@@ -142,10 +178,22 @@ export class PlayerService {
       .select('auto_follow')
       .executeTakeFirstOrThrow();
     await this.settingsChanged(settings);
+  }
 
-    setInterval(this.refreshBlueskyBridging.bind(this), ms('1m'));
-    setInterval(this.refreshMastodonFollowing.bind(this), ms('60m'));
-    setInterval(this.refreshPostCounts.bind(this), ms('60m'));
+  /** Starts the periodic external refresh loops. Prod only -- never in tests. */
+  startBackground() {
+    this.backgroundIntervals.push(
+      setInterval(this.refreshBlueskyBridging.bind(this), ms('1m')),
+      setInterval(this.refreshMastodonFollowing.bind(this), ms('60m')),
+      setInterval(this.refreshPostCounts.bind(this), ms('60m'))
+    );
+  }
+
+  stopBackground() {
+    for (const handle of this.backgroundIntervals) {
+      clearInterval(handle);
+    }
+    this.backgroundIntervals = [];
   }
 
   async settingsChanged(settings: Pick<Settings, 'auto_follow'>) {
@@ -844,7 +892,7 @@ export class PlayerService {
     );
   }
 
-  async lookupMastodonFollowing(
+  private async fetchMastodonFollowing(
     mastodon_account: string
   ): Promise<MastodonRelationshipDetails> {
     if (mastodon_account === this.santaMastodonHandle) {
@@ -878,7 +926,7 @@ export class PlayerService {
     }
   }
 
-  async lookupBridgedMastodonHandle(blueskyHandle: string) {
+  private async fetchBridgedMastodonHandle(blueskyHandle: string) {
     const html = await fetchBridgedMastodonPage(blueskyHandle);
 
     if (html == null) {
@@ -888,7 +936,7 @@ export class PlayerService {
     return parseBridgedMastodonHandle(html);
   }
 
-  async lookupBridgedBlueskyHandle(mastodonHandle: string) {
+  private async fetchBridgedBlueskyHandle(mastodonHandle: string) {
     const html = await fetchBridgedBlueskyPage(mastodonHandle);
 
     if (html == null) {

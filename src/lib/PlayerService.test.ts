@@ -212,10 +212,16 @@ describe('PlayerService', () => {
   });
 
   describe('init and settingsChanged', () => {
-    it('starts the refresh intervals', async () => {
+    it('init() starts no timers; startBackground() starts the refresh intervals', async () => {
       db = await setupDb();
-      await getService(db);
+      const { service } = await getService(db);
+      expect(vi.getTimerCount()).toBe(0);
+
+      service.startBackground();
       expect(vi.getTimerCount()).toBe(3);
+
+      service.stopBackground();
+      expect(vi.getTimerCount()).toBe(0);
     });
 
     it('also starts the auto follow interval when enabled in settings', async () => {
@@ -225,20 +231,23 @@ describe('PlayerService', () => {
         .set({ auto_follow: 1 })
         .where('id', '=', 0)
         .execute();
-      await getService(db);
+      const { service } = await getService(db);
+      expect(vi.getTimerCount()).toBe(1);
+
+      service.startBackground();
       expect(vi.getTimerCount()).toBe(4);
     });
 
     it('starts and stops the auto follow interval from settingsChanged', async () => {
       db = await setupDb();
       const { service } = await getService(db);
-      expect(vi.getTimerCount()).toBe(3);
+      expect(vi.getTimerCount()).toBe(0);
 
       await service.settingsChanged({ auto_follow: 1 });
-      expect(vi.getTimerCount()).toBe(4);
+      expect(vi.getTimerCount()).toBe(1);
 
       await service.settingsChanged({ auto_follow: 0 });
-      expect(vi.getTimerCount()).toBe(3);
+      expect(vi.getTimerCount()).toBe(0);
     });
   });
 

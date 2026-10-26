@@ -1,19 +1,9 @@
 import path from 'path';
 import dotenv from 'dotenv';
-import { DidResolver, MemoryCache } from '@atproto/identity';
 
 import { build } from './app.js';
-import { TokenManager } from './lib/TokenManager.js';
+import { Bridge } from './bridge.js';
 import { createDb, migrateToLatest } from './lib/database/index.js';
-import { buildAtpClient, resolveHandle } from './bluesky.js';
-import { PlayerService } from './lib/PlayerService.js';
-import { NudgeSender } from './lib/NudgeSender.js';
-import { DmSender } from './lib/DmSender.js';
-import { initAtLoginClient } from './lib/initAtLoginClient.js';
-import { FirehoseSubscription } from './subscription.js';
-import { FeedSubscription } from './FeedSubscription.js';
-import { resolveMastodonHandle } from './routes/mastodon/index.js';
-import ms from 'ms';
 
 dotenv.config({
   path: [
@@ -23,130 +13,27 @@ dotenv.config({
   ],
 });
 
-const resolveEnsureElfHandles = async (): Promise<Array<string>> => {
-  const handles = process.env.ENSURE_ELF_HANDLES;
-  if (!handles) {
-    return [];
-  }
-  return Promise.all(
-    handles.split(',').map((handle) => resolveHandle(handle.trim()))
-  );
-};
-
 const main = async () => {
   const db = createDb();
   await migrateToLatest(db);
 
-  const tokenIssuer = process.env.TOKEN_ISSUER as string;
-  const returnTokenManager = new TokenManager<{ returnUrl: string }>(
-    db,
-    tokenIssuer,
-    `${tokenIssuer}/oauth/login`,
-    '7 days'
-  );
-  const authTokenManager = new TokenManager<{
-    csrfToken: string;
-    startedAt: string;
-    handle: string;
-    admin?: true;
-  }>(db, tokenIssuer, `${tokenIssuer}/endpoints`, '15 minutes');
-
-  const [atOauthClient] = await Promise.all([
-    initAtLoginClient({
-      database: db,
-      basePath: process.env.PUBLIC_BASE_URL as string,
-    }),
-    returnTokenManager.initialize(),
-    authTokenManager.initialize(),
-  ]);
-  const santaHandle = process.env.SANTA_BLUESKY_HANDLE as string;
-  const robotHandle = process.env.ROBOT_BLUESKY_HANDLE as string;
-  const santaMastodonHandle = process.env.SANTA_MASTODON_HANDLE as string;
-  const [, initialSantaMastodonHost] = santaMastodonHandle.split('@');
-  const [
-    [santaAgent, santaAccountDid],
-    [robotAgent],
-    ensureElfDids,
-    { host: santaMastodonHost },
-  ] = await Promise.all([
-    buildAtpClient(atOauthClient, santaHandle),
-    buildAtpClient(atOauthClient, robotHandle),
-    resolveEnsureElfHandles(),
-    resolveMastodonHandle(
-      santaMastodonHandle,
-      initialSantaMastodonHost as string
-    ),
-  ]);
-  const didResolver = new DidResolver({
-    didCache: new MemoryCache(),
-    plcUrl: 'https://plc.directory',
-    timeout: 3000,
-  });
-
-  const nudgeSender = new NudgeSender(db, robotAgent);
-  await nudgeSender.init();
-  const dmSender = new DmSender(
-    db,
-    santaAgent,
-    santaMastodonHandle,
-    santaMastodonHost
-  );
-  await dmSender.init();
-  const playerService = new PlayerService(
-    db,
-    santaAgent,
-    santaAccountDid,
-    dmSender,
-    new Set(ensureElfDids),
-    santaMastodonHandle,
-    santaMastodonHost
-  );
-  await playerService.init();
-  const subscription = new FirehoseSubscription(
-    db,
-    playerService,
-    santaAccountDid
-  );
-  playerService.addListener(subscription.playersChanged.bind(subscription));
-  const feedSubscription = new FeedSubscription(db);
-
-  await db
-    .updateTable('player')
-    .set({ admin: 1 })
-    .where('did', 'in', ensureElfDids)
-    .execute();
-
-  setInterval(async () => {
-    await db
-      .deleteFrom('otp_login')
-      .where('expires', '<', new Date().toISOString())
-      .execute();
-  }, ms('5m'));
-
-  const app = await build(
-    { logger: true },
+  const bridge = await Bridge.build(
     {
-      returnTokenManager,
-      authTokenManager,
-      playerService,
-      db,
-      atOauthClient,
-      fullScopeHandles: new Set(
-        [santaHandle, robotHandle].map((s) => s.toLowerCase())
-      ),
-      santaAccountDid,
-      santaAgent,
-      robotAgent,
-      settingsChanged: async (settings) =>
-        Promise.all([
-          playerService.settingsChanged(settings),
-          nudgeSender.settingsChanged(settings),
-          dmSender.settingsChanged(settings),
-          feedSubscription.settingsChanged(settings),
-        ]),
-      didResolver,
-    }
+      tokenIssuer: process.env.TOKEN_ISSUER as string,
+      santaHandle: process.env.SANTA_BLUESKY_HANDLE as string,
+      robotHandle: process.env.ROBOT_BLUESKY_HANDLE as string,
+      santaMastodonHandle: process.env.SANTA_MASTODON_HANDLE as string,
+      ensureElfHandles: (process.env.ENSURE_ELF_HANDLES ?? '')
+        .split(',')
+        .filter((handle) => handle !== ''),
+      basePath: process.env.PUBLIC_BASE_URL as string,
+    },
+    { db }
   );
+
+  await bridge.init();
+
+  const app = await build({ logger: true }, bridge.blueskyBridge);
 
   app.listen({ port: 3000 }, (err) => {
     if (err) {
@@ -155,8 +42,7 @@ const main = async () => {
     }
   });
 
-  subscription.start();
-  feedSubscription.start();
+  bridge.start();
 };
 
 main().catch((e) => {
