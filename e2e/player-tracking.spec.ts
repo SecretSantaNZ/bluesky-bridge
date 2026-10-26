@@ -66,7 +66,9 @@ test.describe('player tracking', () => {
     await app.login(page, 'bob');
     await page.goto('/');
     await expect(page.getByText('1 gift', { exact: false })).toBeVisible();
-    await page.getByRole('button', { name: 'Report missing' }).click();
+    await submitAndWait(page, `/tracking`, () =>
+      page.getByRole('button', { name: 'Report missing' }).click()
+    );
 
     const { missing } = await app.db
       .selectFrom('tracking')
@@ -93,11 +95,13 @@ test.describe('player tracking', () => {
 
     await app.login(page, 'bob');
     await page.goto('/');
-    await page
-      .locator('#tracking-details-1, [id^=tracking-details-]')
-      .first()
-      .getByRole('button', { name: 'Report arrived' })
-      .click();
+    await submitAndWait(page, `/tracking`, () =>
+      page
+        .locator('#tracking-details-1, [id^=tracking-details-]')
+        .first()
+        .getByRole('button', { name: 'Report arrived' })
+        .click()
+    );
     await page.reload();
 
     const { missing } = await app.db

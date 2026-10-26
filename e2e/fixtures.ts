@@ -10,7 +10,11 @@ import { test as base, expect, type Page } from '@playwright/test';
 export const submitAndWait = async (
   page: Page,
   urlPart: string,
-  click: () => Promise<void>
+  click: () => Promise<void>,
+  options: {
+    /** The POST intentionally responds with an error status (both ok to test) */
+    expectError?: boolean;
+  } = {}
 ) => {
   const [response] = await Promise.all([
     page.waitForResponse(
@@ -18,7 +22,9 @@ export const submitAndWait = async (
     ),
     click(),
   ]);
-  expect(response.status()).toBeLessThan(400);
+  if (!options.expectError) {
+    expect(response.status()).toBeLessThan(400);
+  }
   return response;
 };
 
