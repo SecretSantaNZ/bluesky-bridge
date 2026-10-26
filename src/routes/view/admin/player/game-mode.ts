@@ -68,7 +68,7 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
             'Santa Only',
             'Giftee Only',
           ]),
-          max_giftees: z.coerce.number(),
+          max_giftees: z.coerce.number().max(5, 'Max 5 giftees'),
           return_to: z.literal('fix-matches').optional(),
         }),
       },

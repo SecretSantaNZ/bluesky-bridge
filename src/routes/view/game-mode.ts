@@ -50,7 +50,9 @@ export const gameMode: FastifyPluginAsync = async (rawApp) => {
       schema: {
         body: z.object({
           game_mode: z.enum(['Regular', 'Super Santa']),
-          max_giftees: z.coerce.number(),
+          max_giftees: z.coerce
+            .number()
+            .max(5, 'You can only buy for up to 5 giftees'),
         }),
       },
     },
