@@ -37,6 +37,13 @@ the hashed bundle names (`e2e/fixtures.ts` reads `.env.client.prod` at boot).
   `https://fake-bluesky.test/authorize?...` URL; the spec fulfils that URL with
   a redirect back to the real `/atproto-oauth-callback` route, so brand-new
   signups run the real login code end to end.
+- **Fake Mastodon instance** (`e2e/helpers/fake-mastodon.ts`): msw handlers on
+  the same server as the fake Bluesky app-view, answering webfinger, app
+  registration, OAuth token and account verification for `mastodon.test`. The
+  bridgy-fed lookup (`lookupBridgedBlueskyHandle`) consults that module's
+  `bridgedBlueskyHandles` map; the spec bounces the fake provider's authorize
+  URL back to the real `/mastodon/callback` route. Mastodon signups must first
+  enable the tab via `setSettings(db, { mastodon_players: 1 })`.
 - **Background senders are not started**; tests that check the send path call
   `app.withFixedTimeWindow(() => app.nudgeSender.sendANudge())` directly.
 - **Bootstrap helpers** (`e2e/helpers/state.ts`): seed real rows (matches,

@@ -32,6 +32,9 @@ export const submitAndWait = async (
 // imported -- @atproto captures globalThis.fetch at construction time, so the
 // interception has to be in place first.
 import './helpers/fake-bluesky.js';
+// The fake Mastodon instance adds handlers to the same msw server (later
+// handlers take precedence over the Bluesky app-view ones).
+import { bridgedBlueskyHandles } from './helpers/fake-mastodon.js';
 
 import { build } from '../src/app.js';
 import {
@@ -90,6 +93,11 @@ placesProto.searchText = async () => [
 
 const TOKEN_ISSUER = 'https://e2e.secretsanta.test';
 
+// The Mastodon OAuth routes build the /mastodon/callback redirect_uri from
+// PUBLIC_BASE_URL, which src/server.ts only sets outside e2e (the tests build
+// the app via build() directly). Read lazily at request time.
+process.env.PUBLIC_BASE_URL ??= 'https://e2e.secretsanta.test';
+
 export interface AppHandle {
   baseUrl: string;
   db: Database;
@@ -135,11 +143,14 @@ const buildApp = async (): Promise<AppHandle> => {
   const robotAgentStub = new RecordingAgentStub(robotDid, identityByHandle);
 
   // Bridgy-fed and Mastodon lookups are inherently external services with no
-  // meaningful fake that the bridge consumes over HTTP. They resolve to "no
-  // bridge account" for all e2e sessions.
+  // meaningful fake that the bridge consumes over HTTP. Mastodon -> Bluesky
+  // bridging resolves via the fake Mastodon instance's bridge map (see
+  // e2e/helpers/fake-mastodon.ts); the rest resolve to "no bridge account"
+  // for all e2e sessions.
   const bridgedLookups = {
     lookupBridgedMastodonHandle: async () => null,
-    lookupBridgedBlueskyHandle: async () => null,
+    lookupBridgedBlueskyHandle: async (mastodonHandle: string) =>
+      bridgedBlueskyHandles.get(mastodonHandle.toLowerCase()) ?? null,
     lookupMastodonFollowing: async () => undefined,
   };
 
