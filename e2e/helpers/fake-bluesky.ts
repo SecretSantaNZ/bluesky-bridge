@@ -1,10 +1,11 @@
 import { setupServer } from 'msw/node';
-import { http, HttpResponse, passthrough } from 'msw';
+import { http, HttpResponse } from 'msw/http';
+import { passthrough } from 'msw/utils/passthrough';
 import { usersByDid, usersByHandle, identityByHandle } from './users.js';
 
 /**
  * A fake Bluesky app-view for the endpoints the bridge actually calls. Any
- * other outbound request fails the test loudly (onUnhandledRequest: 'error'),
+ * other outbound request fails the test loudly (onUnhandledFrame: 'error'),
  * guaranteeing that nothing is ever sent to real Bluesky or Mastodon.
  */
 const handlesMarkedPrivate = new Set<string>();
@@ -13,7 +14,7 @@ export const markProfilePrivate = (handle: string) =>
   handlesMarkedPrivate.add(handle);
 
 export const fakeBlueskyServer = setupServer();
-fakeBlueskyServer.listen({ onUnhandledRequest: 'error' });
+fakeBlueskyServer.listen({ onUnhandledFrame: 'error' });
 
 fakeBlueskyServer.use(
   // The app under test runs on 127.0.0.1 -- never intercept its own traffic

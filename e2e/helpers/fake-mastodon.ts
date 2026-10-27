@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from 'msw/http';
 import { fakeBlueskyServer } from './fake-bluesky.js';
 import { identityByHandle } from './users.js';
 
