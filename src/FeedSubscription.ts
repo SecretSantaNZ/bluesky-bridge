@@ -215,15 +215,16 @@ export class FeedSubscription {
     }
 
     const now = new Date();
-    let indexedAtDate = now;
+    let indexedAtDate: Date;
     try {
       const createdAt = parseISO(event.commit.record.createdAt);
-      indexedAtDate = createdAt;
-      if (isBefore(addMinutes(now, 1), indexedAtDate)) {
+      if (isBefore(addMinutes(now, 1), createdAt)) {
         console.warn(
           `Ignoring future create date ${event.commit.record.createdAt} on post by ${author}, using ${now.toISOString()} instead`
         );
         indexedAtDate = now;
+      } else {
+        indexedAtDate = createdAt;
       }
       if (isBefore(indexedAtDate, subDays(now, 7))) {
         console.warn(

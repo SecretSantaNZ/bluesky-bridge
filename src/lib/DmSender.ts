@@ -690,7 +690,7 @@ export class DmSender {
     console.log('checking for dm to send');
     const settings = await loadSettings(this.db);
     const startDmQueue = this.nextDmQueue;
-    let dm: DM | undefined = undefined;
+    let dm: DM | undefined;
     do {
       dm = await dmQueues[this.nextDmQueue]?.(this.db, settings);
       this.nextDmQueue = (this.nextDmQueue + 1) % dmQueues.length;

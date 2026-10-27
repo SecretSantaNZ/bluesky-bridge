@@ -361,7 +361,7 @@ export const mastodon: FastifyPluginAsync = async (rawApp) => {
               `Unable to find Bluesky handle for account ${mastodon_account}. Have you set up bridgy fed?`
             );
           }
-          let did = '';
+          let did: string;
           try {
             const response = await unauthenticatedAgent.resolveHandle({
               handle: bskyHandle,
@@ -370,7 +370,8 @@ export const mastodon: FastifyPluginAsync = async (rawApp) => {
           } catch (error) {
             request.log.error(error);
             throw new Error(
-              `Unable to resolve Bluesky account ${bskyHandle} for account ${mastodon_account}. Have you set up bridgy fed?`
+              `Unable to resolve Bluesky account ${bskyHandle} for account ${mastodon_account}. Have you set up bridgy fed?`,
+              { cause: error }
             );
           }
 
