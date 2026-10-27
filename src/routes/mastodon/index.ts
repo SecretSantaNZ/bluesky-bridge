@@ -17,14 +17,9 @@ import { BadRequestError } from 'http-errors-enhanced';
 import { unauthenticatedAgent } from '../../bluesky.js';
 import { finishLogin } from '../at_oauth/index.js';
 
-const w = wretch()
-  .polyfills({
-    fetch: safeFetchWrap(),
-  })
-  .addon(FormDataAddon)
-  .options({
-    redirect: 'manual',
-  });
+const w = wretch().fetchPolyfill(safeFetchWrap()).addon(FormDataAddon).options({
+  redirect: 'manual',
+});
 
 const registrationResponseSchema = z.object({
   client_id: z.string(),
@@ -59,7 +54,10 @@ const followOneRedirect = <T, C>(
   chain: C & WretchResponseChain<T, C, undefined>
 ): C & WretchResponseChain<T, C, undefined> => {
   let redirectCount = 0;
-  const callback: WretchErrorCallback<T, C, undefined> = (error, req) => {
+  const callback: WretchErrorCallback<T, C, undefined, undefined, never> = (
+    error,
+    req
+  ) => {
     const location = error.response.headers.get('location');
     if (location == null) throw error;
     if (redirectCount > 0) {

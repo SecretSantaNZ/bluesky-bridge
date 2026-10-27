@@ -5,9 +5,7 @@ import wretch from 'wretch';
 import FormDataAddon from 'wretch/addons/formData';
 
 export const w = wretch()
-  .polyfills({
-    fetch: safeFetchWrap(),
-  })
+  .fetchPolyfill(safeFetchWrap())
   .addon(FormDataAddon)
   .options({
     redirect: 'error',

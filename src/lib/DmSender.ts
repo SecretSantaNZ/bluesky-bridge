@@ -20,14 +20,9 @@ import { safeFetchWrap } from '@atproto-labs/fetch-node';
 import wretch from 'wretch';
 import FormDataAddon from 'wretch/addons/formData';
 
-const w = wretch()
-  .polyfills({
-    fetch: safeFetchWrap(),
-  })
-  .addon(FormDataAddon)
-  .options({
-    redirect: 'error',
-  });
+const w = wretch().fetchPolyfill(safeFetchWrap()).addon(FormDataAddon).options({
+  redirect: 'error',
+});
 
 export interface DM {
   dmType: string;
