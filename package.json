@@ -6,6 +6,9 @@
   "engines": {
     "node": "^22.12.0"
   },
+  "overrides": {
+    "undici": "^7.24.5"
+  },
   "scripts": {
     "build": "run-s build:server build:client",
     "build:server": "rm -rf ./dist && tsc",
