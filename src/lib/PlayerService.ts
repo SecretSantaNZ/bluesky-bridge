@@ -26,7 +26,9 @@ import ms from 'ms';
 import type { InsertObject, SelectType } from 'kysely';
 import type { DmSender } from './DmSender.js';
 import { addDays, addHours } from 'date-fns';
-import type { ProfileViewDetailed } from '@atproto/api/dist/client/types/app/bsky/actor/defs.js';
+import type { AppBskyActorDefs } from '@atproto/api';
+
+type ProfileViewDetailed = AppBskyActorDefs.ProfileViewDetailed;
 
 type SelectedPlayer = {
   [K in keyof DbPlayer]: SelectType<DbPlayer[K]>;
