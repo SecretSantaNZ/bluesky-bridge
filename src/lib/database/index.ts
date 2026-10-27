@@ -1,5 +1,6 @@
 import SqliteDb from 'better-sqlite3';
-import { Kysely, Migrator, SqliteDialect } from 'kysely';
+import { Kysely, SqliteDialect } from 'kysely';
+import { Migrator } from 'kysely/migration';
 import type { DatabaseSchema } from './schema.js';
 import { migrationProvider } from './migrations.js';
 

@@ -1,9 +1,5 @@
-import {
-  sql,
-  type Kysely,
-  type Migration,
-  type MigrationProvider,
-} from 'kysely';
+import { sql, type Kysely } from 'kysely';
+import type { Migration, MigrationProvider } from 'kysely/migration';
 import {
   initialCarriers,
   initialHintIdeas,
