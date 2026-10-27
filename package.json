@@ -66,11 +66,11 @@
     "vitest": "^5.0.5"
   },
   "dependencies": {
-    "@atproto/api": "^0.19.4",
+    "@atproto/api": "^0.19.19",
     "@atproto/identity": "^0.4.8",
     "@atproto/jwk-jose": "^0.1.10",
     "@atproto/oauth-client-node": "^0.3.7",
-    "@atproto/xrpc-server": "^0.10.17",
+    "@atproto/xrpc-server": "^0.10.22",
     "@aws-sdk/client-s3": "^3.802.0",
     "@aws-sdk/s3-presigned-post": "^3.879.0",
     "@date-fns/tz": "^1.4.1",
