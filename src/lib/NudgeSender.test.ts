@@ -11,11 +11,17 @@ vi.mock('newrelic', () => ({
 }));
 
 vi.mock('@atproto/api', () => {
-  const RichText = vi.fn().mockImplementation((opts: { text: string }) => ({
-    text: opts.text,
-    facets: [],
-    detectFacets: vi.fn().mockResolvedValue(undefined),
-  }));
+  // Regular function (not an arrow): vitest 5 invokes class mocks with
+  // `new`, and arrow functions are not constructible.
+  const RichText = vi.fn().mockImplementation(function (opts: {
+    text: string;
+  }) {
+    return {
+      text: opts.text,
+      facets: [],
+      detectFacets: vi.fn().mockResolvedValue(undefined),
+    };
+  });
   return { RichText };
 });
 
